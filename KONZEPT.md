@@ -381,8 +381,8 @@ Rückmeldung. Discord wird erst in Schritt 7 gebraucht.
 
 | # | Agent baut | Nutzer testet (ohne Discord bis Schritt 6) |
 |---|---|---|
-| 1 | Gerüst: Core + App, leeres Fenster, `DeviceCatalog`, Statusleiste zeigt alle Endpunkte mit IDs und Standard-Markierung; `--check` gibt Snapshot als Text aus | EXE starten, Geräteliste stimmt mit Windows-Sound überein? Nichts hat sich in Windows verändert? |
-| 2 | `SoundBank`, `SoundPlayer`, Kacheln, Drag & Drop, Mithören-Senke auf gewähltem Kopfhörer, Stopp-alles, Lautstärke je Kachel | MP3/WAV/OGG reinziehen, abspielen, Lautstärke, Stopp. Kopfhörer per ID wählen; Windows-Standard bleibt unverändert |
+| 1 (erledigt) | Gerüst: Core + App, leeres Fenster, `DeviceCatalog`, Statusleiste zeigt alle Endpunkte mit IDs und Standard-Markierung; `--check` gibt Snapshot als Text aus | EXE starten, Geräteliste stimmt mit Windows-Sound überein? Nichts hat sich in Windows verändert? |
+| 2 (erledigt) | `SoundBank`, `SoundPlayer`, Kacheln, Drag & Drop, Mithören-Senke auf gewähltem Kopfhörer, Stopp-alles, Lautstärke je Kachel | MP3/WAV/OGG reinziehen, abspielen, Lautstärke, Stopp. Kopfhörer per ID wählen; Windows-Standard bleibt unverändert |
 | 3 | Hotkeys (Numpad), Konflikt-Meldung, Pausieren-Schalter | Hotkey belegen, in anderem Programm (Editor, Spiel) auslösen; Konflikt provozieren (zwei Kacheln gleiche Taste) |
 | 4 | `CaptureSource` + `Mixer` + `FileSink`: Mikro + Sounds werden 10 s in eine WAV geschrieben | WAV anhören: Stimme + Sound sauber, kein Knacken, kein Übersteuern. Puffer klein/mittel/groß probieren |
 | 5 | `SnapshotService`: sichern, vergleichen, Bericht; `PolicyConfig` Restore; Dirty-Flag; `--restore`; **Restore nur auf gesicherte Werte, Testfall: Nutzer stellt Standardgerät von Hand um, App meldet und stellt auf Knopfdruck zurück** | Snapshot machen, in Windows Standard-Wiedergabe absichtlich wechseln, App zeigt Abweichung, „Wie vorher" stellt es zurück. Danach von Hand prüfen |
