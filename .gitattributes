@@ -1,0 +1,12 @@
+* text=auto eol=crlf
+
+# Git hooks run under sh and need LF line endings
+.githooks/* text eol=lf
+
+# Audio and images are binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.flac binary
+*.ico binary
+*.png binary
