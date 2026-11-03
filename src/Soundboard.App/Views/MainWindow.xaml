@@ -1,0 +1,240 @@
+<Window x:Class="Soundboard.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Soundboard"
+        Width="1000" Height="700" MinWidth="560" MinHeight="420"
+        Background="#F6F7F9"
+        AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop"
+        Closed="OnClosed">
+
+    <Window.Resources>
+        <!-- Clickable area of a tile: hover and pressed are visible, focus gets a frame. -->
+        <Style x:Key="TileButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="Transparent"
+                                BorderThickness="2" CornerRadius="6,6,0,0" Padding="10,8,10,6">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#14000000" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#2A000000" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#1F5FA8" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StopButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#B3261E" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6"
+                                Padding="{TemplateBinding Padding}" BorderBrush="Transparent" BorderThickness="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#951F18" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#6E1712" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFD54F" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Button" x:Key="PlainButton">
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <!-- Status line -->
+        <Border DockPanel.Dock="Bottom" Background="#ECEEF2" BorderBrush="#D5D9E0" BorderThickness="0,1,0,0" Padding="12,5">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Content="Sound-Ordner öffnen" Style="{StaticResource PlainButton}" Margin="8,0,0,0"
+                        Command="{Binding OpenSoundsFolderCommand}" ToolTip="{Binding SoundsDir}" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding StatusMonitor}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding StatusDefaults}" Foreground="#4A5260" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Device list (read only) -->
+        <Expander DockPanel.Dock="Bottom" Margin="12,4,12,6" Header="{Binding DevicesHeader}">
+            <DockPanel Margin="0,6,0,0">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+                    <Button Content="Neu einlesen" Style="{StaticResource PlainButton}" Command="{Binding RefreshDevicesCommand}" />
+                    <CheckBox VerticalAlignment="Center" Margin="0,0,12,0" IsChecked="{Binding ShowNotPresent}"
+                              Content="{Binding NotPresentCount}" ContentStringFormat="Auch nicht mehr vorhandene Geräte zeigen ({0})"
+                              ToolTip="Windows merkt sich früher benutzte Geräte. Sie sind ausgeblendet, damit die Liste übersichtlich bleibt." />
+                    <TextBlock VerticalAlignment="Center" Foreground="#4A5260" TextWrapping="Wrap"
+                               Text="Die Liste aktualisiert sich auch von selbst, wenn ein Gerät dazukommt oder wegfällt." />
+                </StackPanel>
+                <DataGrid ItemsSource="{Binding Devices}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="230"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" CanUserAddRows="False"
+                          SelectionUnit="FullRow" HorizontalGridLinesBrush="#E3E6EB" Background="White">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Richtung" Binding="{Binding Richtung}" />
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" />
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" />
+                        <DataGridTextColumn Header="Windows-Standard für" Binding="{Binding Standard}" />
+                        <DataGridTextColumn Header="Lautstärke" Binding="{Binding Lautstaerke}" />
+                        <DataGridTextColumn Header="Mix-Format" Binding="{Binding Format}" />
+                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="3*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Expander>
+
+        <!-- Header: playback controls -->
+        <Border DockPanel.Dock="Top" Background="White" BorderBrush="#D5D9E0" BorderThickness="0,0,0,1" Padding="12,10">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Style="{StaticResource StopButton}" Content="■  Alles stoppen"
+                        Command="{Binding StopAllCommand}" ToolTip="Stoppt alle laufenden Sounds sofort." VerticalAlignment="Center" />
+                <WrapPanel VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
+                        <CheckBox Content="Mithören auf" IsChecked="{Binding MonitorEnabled}" VerticalAlignment="Center"
+                                  ToolTip="Spielt die Sounds auf diesem Gerät ab, damit du sie selbst hörst." />
+                        <ComboBox ItemsSource="{Binding OutputChoices}" SelectedItem="{Binding SelectedOutput}"
+                                  DisplayMemberPath="Display" Width="280" Margin="8,0,0,0"
+                                  ToolTip="Gerät für das Mithören. Die Windows-Einstellungen bleiben unverändert." />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
+                        <TextBlock Text="Lautstärke Sounds" VerticalAlignment="Center" />
+                        <Slider Minimum="0" Maximum="100" Width="140" Margin="8,0" VerticalAlignment="Center"
+                                Value="{Binding MasterVolumePercent}" SmallChange="1" LargeChange="10" IsMoveToPointEnabled="True"
+                                ToolTip="Gesamtlautstärke aller Sounds in diesem Programm (nicht die Windows-Lautstärke)." />
+                        <TextBlock Text="{Binding MasterVolumePercent, StringFormat={}{0:0} %}" Width="40" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <CheckBox Content="Sounds überlagern" IsChecked="{Binding OverlayEnabled}" VerticalAlignment="Center" Margin="0,4,20,4"
+                              ToolTip="Aus: ein neuer Sound stoppt den laufenden. An: mehrere Sounds spielen gleichzeitig." />
+                    <Button Content="Sounds hinzufügen …" Style="{StaticResource PlainButton}" Command="{Binding AddFilesDialogCommand}"
+                            Margin="0,4,20,4" ToolTip="MP3-, WAV-, OGG- oder FLAC-Dateien auswählen. Sie werden in den Sound-Ordner kopiert." />
+                </WrapPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Yellow notices -->
+        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Notices}" Margin="12,0,12,0">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="#FFF4C2" BorderBrush="#D9A800" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,8,0,0">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Schließen" Style="{StaticResource PlainButton}" Margin="8,0,0,0"
+                                    Command="{Binding CloseCommand}" VerticalAlignment="Center" />
+                            <Button DockPanel.Dock="Right" Content="{Binding ActionText}" Style="{StaticResource PlainButton}" Margin="8,0,0,0"
+                                    Command="{Binding RunActionCommand}" VerticalAlignment="Center"
+                                    Visibility="{Binding HasAction, Converter={StaticResource BoolToVis}}" />
+                            <TextBlock DockPanel.Dock="Left" Text="⚠" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="#7A5A00" />
+                            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="#3D2E00" />
+                        </DockPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Tiles -->
+        <Grid Background="Transparent">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Tiles}" Margin="8">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border x:Name="Tile" Width="176" Margin="6" CornerRadius="6" Background="{Binding Background}"
+                                    BorderBrush="#C3C9D3" BorderThickness="1" ToolTip="{Binding ToolTipText}">
+                                <Border.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Umbenennen" Command="{Binding RenameCommand}" />
+                                        <MenuItem Header="Im Sound-Ordner zeigen" Command="{Binding ShowInFolderCommand}" />
+                                        <Separator />
+                                        <MenuItem Header="Entfernen" Command="{Binding RemoveCommand}" />
+                                    </ContextMenu>
+                                </Border.ContextMenu>
+                                <StackPanel>
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=Explicit}" Margin="8,8,8,0" Padding="2"
+                                             Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}"
+                                             KeyDown="OnRenameKeyDown" LostKeyboardFocus="OnRenameLostFocus"
+                                             IsVisibleChanged="OnRenameVisibleChanged" />
+                                    <Button Style="{StaticResource TileButton}" Command="{Binding ClickCommand}" Height="88">
+                                        <DockPanel>
+                                            <DockPanel DockPanel.Dock="Bottom">
+                                                <TextBlock DockPanel.Dock="Right" Text="{Binding PlayGlyph}" FontSize="14" Foreground="#1A1A1A" />
+                                                <TextBlock Text="{Binding StatusText}" Foreground="#3A4250" FontSize="12" />
+                                            </DockPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" Foreground="#1A1A1A"
+                                                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
+                                        </DockPanel>
+                                    </Button>
+                                    <ProgressBar Height="5" Minimum="0" Maximum="1" Value="{Binding Progress}"
+                                                 Foreground="#1F5FA8" Background="#20000000" BorderThickness="0" />
+                                    <DockPanel Margin="8,4,8,6">
+                                        <TextBlock DockPanel.Dock="Left" Text="Lautst." VerticalAlignment="Center" FontSize="11" Foreground="#3A4250" />
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding VolumePercent, StringFormat={}{0:0} %}" Width="36"
+                                                   TextAlignment="Right" VerticalAlignment="Center" FontSize="11" Foreground="#3A4250" />
+                                        <Slider Minimum="0" Maximum="100" Value="{Binding VolumePercent}" Margin="4,0" VerticalAlignment="Center"
+                                                SmallChange="1" LargeChange="10" IsMoveToPointEnabled="True"
+                                                ToolTip="Lautstärke dieses Sounds" />
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                                    <Setter TargetName="Tile" Property="BorderBrush" Value="#1F5FA8" />
+                                    <Setter TargetName="Tile" Property="BorderThickness" Value="2" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsError}" Value="True">
+                                    <Setter TargetName="Tile" Property="BorderBrush" Value="#D9A800" />
+                                    <Setter TargetName="Tile" Property="BorderThickness" Value="2" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                       Margin="24" FontSize="15" Foreground="#4A5260" IsHitTestVisible="False"
+                       Visibility="{Binding HasNoTiles, Converter={StaticResource BoolToVis}}">
+                <Run Text="Noch keine Sounds." FontWeight="SemiBold" />
+                <LineBreak />
+                <Run Text="Zieh MP3-, WAV-, OGG- oder FLAC-Dateien in dieses Fenster" />
+                <LineBreak />
+                <Run Text="oder nutze oben „Sounds hinzufügen …“." />
+            </TextBlock>
+        </Grid>
+    </DockPanel>
+</Window>

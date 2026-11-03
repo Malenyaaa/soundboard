@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Soundboard.App</RootNamespace>
+    <AssemblyName>Soundboard</AssemblyName>
+    <StartupObject>Soundboard.App.Program</StartupObject>
+    <!-- Single-file publish: also pack the native WPF libraries into the EXE. -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Soundboard.Core\Soundboard.Core.csproj" />
+  </ItemGroup>
+
+</Project>
