@@ -186,6 +186,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         else UpdateMonitorStatus();
         if (_mixPurpose == MixPurpose.None) EnsureCable();
         else if (_mixPurpose == MixPurpose.Cable && !Cable.IsReady) EnsureCable(); // stops and says why
+        else if (_mixPurpose == MixPurpose.Cable && _mix is { HasVoice: false } && _profile.MicDeviceId is { } micId
+                 && _state.FindById(micId)?.Status == DeviceStatus.Active)
+            RestartMix(); // the microphone is back: take it into the cable again
         UpdateCableStatus();
     }
 
@@ -335,11 +338,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         catch (SinkException ex)
         {
             sink?.Dispose();
+            _player.SetMonitorActive(false);
             ShowNotice("monitor", ex.Message + " Wähle oben ein anderes Gerät oder schließe das andere Programm.", "Erneut versuchen", EnsureMonitor);
         }
         catch (COMException ex)
         {
             sink?.Dispose();
+            _player.SetMonitorActive(false);
             ShowNotice("monitor", $"Das Mithörgerät antwortet nicht ({ex.Message}). Wähle oben ein anderes Gerät oder versuche es erneut.", "Erneut versuchen", EnsureMonitor);
         }
         UpdateMonitorStatus();
@@ -973,13 +978,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             _mix = null;
             _mixPurpose = MixPurpose.None;
-            _player.SetMixActive(false);
             if (session is not null) session.Dispose();
             else
             {
                 output.Dispose();
                 mic?.Dispose();
             }
+            _player.SetMixActive(false); // after the output has stopped
             ShowNotice(noticeKey, ex is SinkException ? ex.Message : $"Die Ausgabe ließ sich nicht starten ({ex.Message}).", "Erneut versuchen", purpose == MixPurpose.FileTest ? RecordTest : RestartMix);
             return false;
         }
@@ -1027,15 +1032,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (e.Microphone)
         {
             var name = _profile.MicDeviceName ?? "Das Mikrofon";
-            StopMix($"„{name}“ hat aufgehört zu liefern{why}. Wurde es abgezogen?");
-            if (purpose == MixPurpose.Cable)
-                ShowNotice("cable", $"„{name}“ hat aufgehört zu liefern{why}. Wurde es abgezogen? Sobald es wieder da ist, startet die Übertragung von selbst.", "Erneut versuchen", RestartMix);
+            var text = e.Error is UnauthorizedAccessException
+                ? WasapiAudioSystem.MicrophoneAccessHint
+                : $"„{name}“ hat aufgehört zu liefern{why}. Wurde es abgezogen? Sobald es wieder da ist, kommt die Stimme von selbst zurück.";
+            StopMix(purpose == MixPurpose.FileTest ? text : null);
+            // The cable goes on with the sounds; the microphone joins again when it is back.
+            EnsureCable(withMic: false);
+            ShowNotice("mic", text, "Erneut versuchen", RestartMix);
         }
         else
         {
             StopMix($"Die Ausgabe wurde unterbrochen{why}.");
             if (purpose == MixPurpose.Cable)
                 ShowNotice("cable", $"Die Übertragung ans Kabel wurde unterbrochen{why}. Sobald das Kabel wieder da ist, startet sie von selbst.", "Erneut versuchen", RestartMix);
+            else
+                RestartMix(); // test recording failed: the cable takes the mix back
         }
     }
 
@@ -1066,6 +1077,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _fileSink = sink;
             HasTestFile = false;
             TestStatus = "Aufnahme läuft – sprich und spiel Sounds ab. Noch 10 s.";
+        }
+        else
+        {
+            RestartMix(); // the cable was stopped for the test; take it back
         }
     }
 
@@ -1183,7 +1198,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>Starts or stops "microphone + sounds → cable" according to settings and devices.</summary>
-    private void EnsureCable()
+    private void EnsureCable() => EnsureCable(withMic: true);
+
+    /// <param name="withMic">False after a microphone failure: the cable goes on with the sounds only, so a
+    /// broken microphone cannot cause a restart loop. It joins again on the next device change.</param>
+    private void EnsureCable(bool withMic)
     {
         if (!_initialized || _disposed) return;
         if (_mixPurpose == MixPurpose.FileTest) return; // the test recording has the mix; the cable follows afterwards
@@ -1224,7 +1243,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         // Without a microphone the cable still carries the sounds; the mic notice says what is missing.
-        var mic = OpenMic("mic");
+        var mic = withMic ? OpenMic("mic") : null;
         if (mic is not null) ClearNotice("mic");
         if (StartMix(output, mic, MixPurpose.Cable, "cable"))
         {

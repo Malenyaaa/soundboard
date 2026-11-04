@@ -191,6 +191,14 @@ public sealed class MixerTests
     }
 
     [TestMethod]
+    public void Capture_converter_rejects_64_bit_float()
+    {
+        var f64 = WaveFormat.CreateCustomFormat(WaveFormatEncoding.IeeeFloat, 48000, 1, 48000 * 8, 8, 64);
+        Assert.ThrowsException<NotSupportedException>(() => new SampleConverter(f64, 480));
+        _ = new SampleConverter(WaveFormat.CreateIeeeFloatWaveFormat(48000, 2), 480);
+    }
+
+    [TestMethod]
     public void Mixer_read_does_not_allocate()
     {
         // Full chain as in the app: mono 44.1 kHz microphone through the ring buffer,

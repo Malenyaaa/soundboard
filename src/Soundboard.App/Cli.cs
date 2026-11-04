@@ -85,11 +85,11 @@ internal static class Cli
         using var console = ConsoleOutput.Open();
         console.Writer.WriteLine("Soundboard");
         console.Writer.WriteLine();
-        console.Writer.WriteLine("  Soundboard.exe            Fenster öffnen");
-        console.Writer.WriteLine("  Soundboard.exe --check    Audio-Zustand als Text ausgeben (nur lesen, ändert nichts)");
-        console.Writer.WriteLine("  Soundboard.exe --restore  Windows-Standardgeräte auf die gesicherten zurückstellen");
+        console.Writer.WriteLine("  Soundboard.exe              Fenster öffnen");
+        console.Writer.WriteLine("  Soundboard.exe --check      Audio-Zustand als Text ausgeben (nur lesen, ändert nichts)");
+        console.Writer.WriteLine("  Soundboard.exe --restore    Windows-Standardgeräte auf die gesicherten zurückstellen");
         console.Writer.WriteLine("  Soundboard.exe --uninstall  Anleitung zum Entfernen (Daten löschen, Kabel entfernen, vergleichen)");
-        console.Writer.WriteLine("  Soundboard.exe --tray     ohne Fenster starten (nur Symbol im Infobereich)");
+        console.Writer.WriteLine("  Soundboard.exe --tray       ohne Fenster starten (nur Symbol im Infobereich)");
         console.Writer.WriteLine();
         console.Writer.WriteLine("In PowerShell auf die Ausgabe warten:  .\\Soundboard.exe --check | Out-String");
         return 0;

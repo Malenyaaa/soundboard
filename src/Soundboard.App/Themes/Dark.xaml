@@ -4,7 +4,7 @@
     <SolidColorBrush x:Key="WindowBg" Color="#16191D" />
     <SolidColorBrush x:Key="SurfaceBg" Color="#1E2227" />
     <SolidColorBrush x:Key="StatusBg" Color="#1B1F23" />
-    <SolidColorBrush x:Key="LineBrush" Color="#5A636F" />
+    <SolidColorBrush x:Key="LineBrush" Color="#68717E" />
     <SolidColorBrush x:Key="TextBrush" Color="#F1F3F6" />
     <SolidColorBrush x:Key="SubTextBrush" Color="#AEB6C2" />
     <SolidColorBrush x:Key="SignalBrush" Color="#5B9BE6" />
@@ -20,7 +20,7 @@
     <SolidColorBrush x:Key="StopPressed" Color="#8A221C" />
     <SolidColorBrush x:Key="StopFocus" Color="#FFD54F" />
     <SolidColorBrush x:Key="OnStopBrush" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="TileLine" Color="#5A636F" />
+    <SolidColorBrush x:Key="TileLine" Color="#68717E" />
     <SolidColorBrush x:Key="TileText" Color="#F1F3F6" />
     <SolidColorBrush x:Key="TileSubText" Color="#C3CAD4" />
     <SolidColorBrush x:Key="TrackBg" Color="#33FFFFFF" />

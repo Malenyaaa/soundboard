@@ -102,16 +102,18 @@ public sealed class CaptureSource : ICaptureInput
     {
         Exception? error = null;
         AudioClient? client = null;
+        bool started = false;
+        var ready = new EventWaitHandle(false, EventResetMode.AutoReset);
         try
         {
             client = _device.AudioClient;
             long duration = _bufferMs * 10_000L; // 100-ns units
             client.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.EventCallback, duration, 0, _mix, Guid.Empty);
-            using var ready = new EventWaitHandle(false, EventResetMode.AutoReset);
             client.SetEventHandle(ready.SafeWaitHandle.DangerousGetHandle());
             var capture = client.AudioCaptureClient;
             var converter = new SampleConverter(_mix, client.BufferSize);
             client.Start();
+            started = true;
             while (!_stop)
             {
                 if (!ready.WaitOne(200)) continue;
@@ -125,15 +127,22 @@ public sealed class CaptureSource : ICaptureInput
                     packet = capture.GetNextPacketSize();
                 }
             }
-            client.Stop();
         }
-        catch (Exception ex) when (ex is COMException or InvalidOperationException or ArgumentException or NotSupportedException)
+        catch (Exception ex)
         {
+            // Nothing may escape this thread (it would end the process). Typical: access denied
+            // by the Windows privacy settings, device removed, unsupported format.
             error = ex;
         }
         finally
         {
+            if (started)
+            {
+                try { client!.Stop(); }
+                catch (Exception) { }
+            }
             client?.Dispose();
+            ready.Dispose(); // only after the stream is stopped and released
         }
 
         if (!_stop || error is not null)
@@ -171,7 +180,7 @@ internal sealed class SampleConverter
         int samples = Math.Max(1, maxFrames) * _channels;
         _floats = new float[samples];
         _bytes = new byte[samples * Math.Max(1, _bits / 8)];
-        if (!_float && _bits is not (16 or 24 or 32))
+        if (_float ? _bits != 32 : _bits is not (16 or 24 or 32))
             throw new NotSupportedException($"Mikrofon-Format mit {_bits} bit wird nicht unterstützt.");
     }
 

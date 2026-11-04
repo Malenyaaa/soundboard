@@ -137,7 +137,8 @@ public sealed class Mixer : ISampleProvider
     private float _voiceVolume = 1f;
     private int _blockVoice;
     private float _peak;
-    private int _toneFramesLeft;
+    private int _toneFramesLeft; // audio thread only
+    private int _toneRequest;    // set by the UI, taken by the audio thread
     private double _tonePhase;
     private readonly double _toneStep;
 
@@ -181,7 +182,7 @@ public sealed class Mixer : ISampleProvider
     public float TakePeak() => Interlocked.Exchange(ref _peak, 0f);
 
     /// <summary>Adds a one-second 440 Hz test tone to the output (not to the monitor).</summary>
-    public void PlayTestTone() => Volatile.Write(ref _toneFramesLeft, Format.SampleRate);
+    public void PlayTestTone() => Interlocked.Exchange(ref _toneRequest, 1);
 
     /// <summary>Resample first (fewer channels is cheaper), then map channels.</summary>
     private static ISampleProvider Adapt(ISampleProvider source, TargetFormat target)
@@ -209,7 +210,8 @@ public sealed class Mixer : ISampleProvider
         float voiceStep = (voiceTarget - _voiceGainNow) / VoiceRampFrames;
         float voiceGain = _voiceGainNow;
 
-        int toneLeft = Volatile.Read(ref _toneFramesLeft);
+        if (Interlocked.Exchange(ref _toneRequest, 0) != 0) _toneFramesLeft = Format.SampleRate;
+        int toneLeft = _toneFramesLeft;
         float peak = 0f;
         float gain = _limiterGain;
         int frames = count / _channels;
@@ -258,7 +260,7 @@ public sealed class Mixer : ISampleProvider
         }
         _limiterGain = gain;
         _voiceGainNow = voiceGain;
-        Volatile.Write(ref _toneFramesLeft, toneLeft);
+        _toneFramesLeft = toneLeft;
 
         SoundPlayer.SoftClip(buffer, offset, count);
         if (peak > 1f) peak = 1f;

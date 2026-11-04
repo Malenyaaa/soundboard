@@ -54,7 +54,19 @@ public partial class App : Application
 
     private void StartMain()
     {
-        _vm = new MainViewModel(AppServices.CreateReal());
+        try
+        {
+            _vm = new MainViewModel(AppServices.CreateReal());
+        }
+        catch (System.Runtime.InteropServices.COMException ex)
+        {
+            MessageBox.Show($"Der Windows-Audiodienst antwortet nicht ({ex.Message}). Starte Windows neu oder prüfe in den Diensten, ob „Windows-Audio“ läuft, und öffne das Soundboard dann noch einmal.",
+                "Soundboard", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Instance?.Dispose();
+            Instance = null;
+            Shutdown();
+            return;
+        }
         _window = new Views.MainWindow(_vm);
         MainWindow = _window;
         _tray = new TrayIcon(this, _vm);
