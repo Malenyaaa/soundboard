@@ -604,4 +604,7 @@ Delete: remove key</value></data>
   <data name="Devices.IdTip" xml:space="preserve"><value>Endpoint ID: {0}</value></data>
   <data name="Setup.FinalLine" xml:space="preserve"><value>Microphone + sounds → cable → Discord. Play a pad to try it.</value></data>
   <data name="Pad.StatusPlaying" xml:space="preserve"><value>playing</value></data>
+  <data name="Profile.BackupFailed" xml:space="preserve"><value>The current pads could not be backed up ({0}), so nothing was imported. Is the data folder read-only?</value></data>
+  <data name="Notice.EvenOutNoSounds" xml:space="preserve"><value>No pad has a playable sound yet, so there is nothing to measure.</value></data>
+  <data name="Archive.TooBig" xml:space="preserve"><value>This file would unpack to more than 8 GB. Import it in parts.</value></data>
 </root>

@@ -10,8 +10,9 @@
     <DockPanel>
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,1,0,0" Padding="20,12">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="PrimaryButton" Style="{StaticResource PrimaryButton}" MinWidth="96" Click="OnPrimary" IsDefault="True" />
-                <Button x:Name="SecondaryButton" MinWidth="96" Margin="8,0,0,0" Click="OnSecondary" IsCancel="True" />
+                <!-- Enter and Esc both choose the safe second button; the action needs a click (or Tab to it). -->
+                <Button x:Name="PrimaryButton" Style="{StaticResource PrimaryButton}" MinWidth="96" Click="OnPrimary" />
+                <Button x:Name="SecondaryButton" MinWidth="96" Margin="8,0,0,0" Click="OnSecondary" IsCancel="True" IsDefault="True" />
             </StackPanel>
         </Border>
         <StackPanel Margin="20,18,20,20">

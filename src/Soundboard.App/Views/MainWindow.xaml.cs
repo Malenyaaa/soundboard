@@ -139,8 +139,8 @@ public partial class MainWindow : Window
             if (e.Key is Key.Left or Key.Right && Keyboard.Modifiers == ModifierKeys.Control && !_vm.SettingsOpen
                 && Keyboard.FocusedElement is Button { DataContext: TileViewModel { IsRenaming: false } moving })
             {
-                int at = _vm.Tiles.IndexOf(moving);
-                _vm.MoveTile(moving, at + (e.Key == Key.Left ? -1 : 1));
+                // One place among the pads on screen (a search may hide some in between).
+                if (Neighbour(moving, e.Key) is { } next) _vm.MoveTile(moving, _vm.Tiles.IndexOf(next));
                 FocusPad(moving);
                 e.Handled = true;
                 return;

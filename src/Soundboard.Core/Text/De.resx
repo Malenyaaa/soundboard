@@ -604,4 +604,7 @@ Entf: Taste löschen</value></data>
   <data name="Devices.IdTip" xml:space="preserve"><value>Endpunkt-ID: {0}</value></data>
   <data name="Setup.FinalLine" xml:space="preserve"><value>Mikrofon + Sounds → Kabel → Discord. Spiel ein Pad an, um es auszuprobieren.</value></data>
   <data name="Pad.StatusPlaying" xml:space="preserve"><value>spielt</value></data>
+  <data name="Profile.BackupFailed" xml:space="preserve"><value>Die jetzigen Pads ließen sich nicht sichern ({0}), deshalb wurde nichts importiert. Ist der Datenordner schreibgeschützt?</value></data>
+  <data name="Notice.EvenOutNoSounds" xml:space="preserve"><value>Noch kein Pad hat einen abspielbaren Sound, also gibt es nichts zu messen.</value></data>
+  <data name="Archive.TooBig" xml:space="preserve"><value>Diese Datei würde mehr als 8 GB entpacken. Importiere sie in Teilen.</value></data>
 </root>

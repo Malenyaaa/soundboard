@@ -25,6 +25,11 @@ public static class ProfileArchive
     /// <summary>Largest single file taken from an archive (a sound is at most 15 minutes).</summary>
     public const long MaxEntryBytes = 512L * 1024 * 1024;
 
+    /// <summary>Limits for a whole archive, so a small packed file cannot fill the disk.</summary>
+    public const long MaxTotalBytes = 8L * 1024 * 1024 * 1024;
+
+    public const int MaxPads = 2000;
+
     /// <summary>Writes the pads of <paramref name="profile"/> with their files. Missing files are left out.</summary>
     public static void Export(Profile profile, AppPaths paths, string zipPath)
     {
@@ -93,12 +98,17 @@ public static class ProfileArchive
     {
         using var zip = Open(zipPath);
         var profile = ReadProfile(zip);
+        long total = 0;
+        foreach (var t in profile.Tiles.Take(MaxPads))
+            foreach (var (prefix, name) in new[] { (SoundsPrefix, t.FileName), (ImagesPrefix, t.Image) })
+                if (ImageFiles.IsPlainFileName(name) && zip.GetEntry(prefix + name) is { } e) total += e.Length;
+        if (total > MaxTotalBytes) throw new ProfileArchiveException(Text.L.Get("Archive.TooBig"));
         var temp = Path.Combine(Path.GetTempPath(), "soundboard-import-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(temp);
         try
         {
             var result = new List<TileConfig>();
-            foreach (var t in profile.Tiles)
+            foreach (var t in profile.Tiles.Take(MaxPads))
             {
                 var sound = Extract(zip, SoundsPrefix, t.FileName, temp);
                 if (sound is null) continue;
@@ -161,7 +171,7 @@ public static class ProfileArchive
             profile.Migrate();
             return profile;
         }
-        catch (Exception ex) when (ex is JsonException or NotSupportedException or InvalidDataException)
+        catch (Exception ex) when (ex is JsonException or NotSupportedException or InvalidDataException or IOException)
         {
             throw new ProfileArchiveException(Text.L.Get("Archive.BadConfig"), ex);
         }

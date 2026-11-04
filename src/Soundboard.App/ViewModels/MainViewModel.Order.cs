@@ -56,9 +56,12 @@ public sealed partial class MainViewModel
         index = Math.Clamp(index, 0, Tiles.Count - 1);
         if (index == from) return;
         MoveTileRaw(tile, index);
-        PushUndo(() => L.F("Notice.PadMoved", tile.Name), () =>
+        // Found again by its settings: removing and restoring or an import makes new pad objects.
+        var config = tile.Config;
+        var name = tile.Name;
+        PushUndo(() => L.F("Notice.PadMoved", name), () =>
         {
-            if (Tiles.Contains(tile)) MoveTileRaw(tile, from);
+            if (Tiles.FirstOrDefault(t => ReferenceEquals(t.Config, config)) is { } now) MoveTileRaw(now, from);
         });
     }
 

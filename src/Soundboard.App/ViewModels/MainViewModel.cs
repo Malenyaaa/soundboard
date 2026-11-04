@@ -1506,6 +1506,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnSettingsTabChanged(string value)
     {
+        if (Capturing is FunctionKeyViewModel) CancelKeyCapture(); // its row is on the tab just left
         if (SettingsOpen && value == SettingsTabs.AudioState) ClearNotice("snapshot");
     }
 
@@ -1520,6 +1521,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void CloseSettings()
     {
+        // A row waiting for a key would otherwise wait unseen and catch the next key typed anywhere.
+        CancelKeyCapture();
         SettingsOpen = false;
         if (!_profile.SetupSeen)
         {
@@ -1930,7 +1933,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var g = b?.Gesture;
         f.HotkeyText = g?.Display;
         string noticeKey = "hotkey-" + f.OwnerId;
-        if (b is { State: HotkeyState.TakenByOtherProgram or HotkeyState.Failed })
+        if (b is { State: HotkeyState.Duplicate, DuplicateOf: { } other })
+        {
+            // Only from a hand-edited profile: two function keys on one key; the first one wins.
+            problems++;
+            f.SetProblem(L.F("Keys.FunctionTaken", g?.Display, OwnerName(other)), L.Get("Action.OtherKey"), () => BeginKeyCapture(f));
+            ClearNotice(noticeKey);
+        }
+        else if (b is { State: HotkeyState.TakenByOtherProgram or HotkeyState.Failed })
         {
             problems++;
             f.SetProblem(L.F(b.State == HotkeyState.Failed ? "Key.Refused" : "Key.TakenByOther", g?.Display), L.Get("Action.OtherKey"), () => BeginKeyCapture(f));

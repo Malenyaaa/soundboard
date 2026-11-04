@@ -94,6 +94,12 @@ public sealed partial class MainViewModel
             ImportPreview = null;
             ProfileErrorText = ex.Message;
         }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _importPath = null;
+            ImportPreview = null;
+            ProfileErrorText = L.F("Archive.CannotOpen", Path.GetFileName(path), ex.Message);
+        }
     }
 
     [RelayCommand]
@@ -121,6 +127,14 @@ public sealed partial class MainViewModel
         try
         {
             backup = BackupProfile();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ProfileErrorText = L.F("Profile.BackupFailed", ex.Message);
+            return;
+        }
+        try
+        {
             imported = ProfileArchive.Import(path, _paths);
         }
         catch (ProfileArchiveException ex)
@@ -171,6 +185,9 @@ public sealed partial class MainViewModel
     private void SetTiles(List<TileConfig> configs)
     {
         StopAll();
+        // Older steps refer to pads that are gone now; only the import itself can be taken back.
+        _undo.Clear();
+        ClearNotice("undo");
         foreach (var t in Tiles)
         {
             _bank.Remove(t.Config.Id);
@@ -227,7 +244,11 @@ public sealed partial class MainViewModel
         // Pads still loading are waited for (at most 30 s).
         for (int i = 0; i < 300 && which.Any(t => t.State == TileState.Loading); i++) await Task.Delay(100);
         var clips = Tiles.Where(t => t.Clip is not null).Select(t => (Tile: t, Clip: t.Clip!)).ToList();
-        if (clips.Count == 0) return;
+        if (clips.Count == 0)
+        {
+            if (remember) ShowNotice("evenout", T("Notice.EvenOutNoSounds"));
+            return;
+        }
         var infos = await Task.Run(() => clips.Select(c => (c.Tile, Info: LoudnessOf(c.Clip))).ToList());
         if (_disposed) return;
         double target = Loudness.Target(infos.Select(i => i.Info));
@@ -250,9 +271,12 @@ public sealed partial class MainViewModel
         Func<string> text = old.Count == 1 && which.Count == 1
             ? () => L.F("Notice.EvenedOutOne", old[0].Tile.Name, L.Percent(old[0].Percent / 100), old[0].Tile.VolumeText)
             : () => L.Count("Notice.EvenedOut", old.Count);
+        // Found again by its settings: an import or a restored pad makes new pad objects.
+        var back = old.Select(o => (o.Tile.Config, o.Percent)).ToList();
         PushUndo(text, () =>
         {
-            foreach (var (tile, percent) in old) tile.VolumePercent = percent;
+            foreach (var (config, percent) in back)
+                if (Tiles.FirstOrDefault(t => ReferenceEquals(t.Config, config)) is { } now) now.VolumePercent = percent;
         });
     }
 }
