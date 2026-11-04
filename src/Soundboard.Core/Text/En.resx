@@ -513,4 +513,16 @@ Delete: remove key</value></data>
   <data name="Keys.NumLockHint" xml:space="preserve"><value>Num keys give “Num 1” and so on only with Num Lock on.</value></data>
   <data name="Keys.FunctionTaken" xml:space="preserve"><value>{0} already belongs to “{1}”, so it stays where it is. Choose another key.</value></data>
   <data name="Key.IsFunctionKey" xml:space="preserve"><value>{0} is already the key for “{1}”. Choose another key for this pad.</value></data>
+  <data name="Pad.Colour" xml:space="preserve"><value>Colour</value></data>
+  <data name="Pad.Picture" xml:space="preserve"><value>Picture</value></data>
+  <data name="Pad.ColourAuto" xml:space="preserve"><value>Automatic (by order)</value></data>
+  <data name="Pad.ColourAccentMode" xml:space="preserve"><value>All pads use the accent colour – change under Appearance…</value></data>
+  <data name="PadColour.Blue" xml:space="preserve"><value>Blue</value></data>
+  <data name="PadColour.Orange" xml:space="preserve"><value>Orange</value></data>
+  <data name="PadColour.Green" xml:space="preserve"><value>Green</value></data>
+  <data name="PadColour.Pink" xml:space="preserve"><value>Pink</value></data>
+  <data name="PadColour.Teal" xml:space="preserve"><value>Teal</value></data>
+  <data name="PadColour.Violet" xml:space="preserve"><value>Violet</value></data>
+  <data name="PadColour.Grey" xml:space="preserve"><value>Grey</value></data>
+  <data name="Key.DelShort" xml:space="preserve"><value>Del</value></data>
 </root>

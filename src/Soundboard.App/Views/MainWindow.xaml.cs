@@ -98,6 +98,20 @@ public partial class MainWindow : Window
         if (HotkeyGesture.IsNumpadKey(KeyInterop.VirtualKeyFromKey(e.Key == Key.System ? e.SystemKey : e.Key))) _vm.NumpadSeen = true;
         if (_vm.Capturing is null)
         {
+            // F2 renames, Delete removes the focused pad (with "Undo").
+            if (e.Key is Key.F2 or Key.Delete && Keyboard.Modifiers == ModifierKeys.None && !_vm.SettingsOpen
+                && Keyboard.FocusedElement is Button { DataContext: TileViewModel { IsRenaming: false } tile })
+            {
+                if (e.Key == Key.F2) tile.IsRenaming = true;
+                else
+                {
+                    int index = _vm.Tiles.IndexOf(tile);
+                    _vm.RemoveTile(tile);
+                    FocusPadAt(index);
+                }
+                e.Handled = true;
+                return;
+            }
             if (e.Key == Key.Escape && Keyboard.FocusedElement is not TextBox { DataContext: TileViewModel { IsRenaming: true } }
                 && !IsInOpenDropDown(e.OriginalSource as DependencyObject))
             {
@@ -119,6 +133,19 @@ public partial class MainWindow : Window
         if (m.HasFlag(ModifierKeys.Windows)) mods |= HotkeyModifiers.Win;
         if (_vm.OnCapturedKey(vk, mods)) e.Handled = true;
     }
+
+    /// <summary>Puts the keyboard focus on the pad at <paramref name="index"/> (or the last one), once it is laid out.</summary>
+    public void FocusPadAt(int index) => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
+    {
+        if (_vm.Tiles.Count == 0) return;
+        PadButton(_vm.Tiles[Math.Clamp(index, 0, _vm.Tiles.Count - 1)])?.Focus();
+    });
+
+    /// <summary>The pad button of a tile, null while it is not generated.</summary>
+    private Button? PadButton(TileViewModel tile) =>
+        PadList.ItemContainerGenerator.ContainerFromItem(tile) is ContentPresenter { ContentTemplate: { } template } cp
+            ? template.FindName("PadBtn", cp) as Button
+            : null;
 
     /// <summary>Esc inside an open list belongs to the list (it closes the list, not the settings).</summary>
     private static bool IsInOpenDropDown(DependencyObject? source)

@@ -216,16 +216,39 @@
                                 </DockPanel>
                             </MenuItem.Header>
                         </MenuItem>
-                        <MenuItem Header="{t:T Pad.Rename}" Command="{Binding RenameCommand}" />
-                        <MenuItem Header="{t:T Pad.ChoosePicture}" Command="{Binding ChooseImageCommand}"
-                                  ToolTip="{t:T Pad.ChoosePictureTip}" />
-                        <MenuItem Header="{t:T Pad.RemovePicture}" Command="{Binding RemoveImageCommand}"
-                                  Visibility="{Binding HasImageConfigured, Converter={StaticResource BoolToVis}}" />
-                        <MenuItem Header="{t:T Pad.OpenPictureFolder}" Command="{Binding OpenImagesFolderCommand}"
-                                  ToolTip="{t:T Pad.OpenPictureFolderTip}" />
+                        <MenuItem Header="{t:T Pad.Rename}" Command="{Binding RenameCommand}" InputGestureText="F2" />
+                        <!-- Colour: automatic (by order) or one of the seven pad colours, each with its swatch. -->
+                        <MenuItem Header="{t:T Pad.Colour}" ItemsSource="{Binding ColorMenu}">
+                            <MenuItem.ItemContainerStyle>
+                                <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                    <Setter Property="Command" Value="{Binding Command}" />
+                                    <Setter Property="IsChecked" Value="{Binding IsChecked, Mode=OneWay}" />
+                                    <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                </Style>
+                            </MenuItem.ItemContainerStyle>
+                            <MenuItem.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="14" Height="14" CornerRadius="3" Margin="0,0,8,0" Background="{Binding Swatch}" BorderThickness="1"
+                                                BorderBrush="{DynamicResource LineBrush}" VerticalAlignment="Center"
+                                                Visibility="{Binding Swatch, Converter={StaticResource NullToCollapsed}}" />
+                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </MenuItem.ItemTemplate>
+                        </MenuItem>
+                        <!-- Picture: choose, remove, open the folder – together under one entry. -->
+                        <MenuItem Header="{t:T Pad.Picture}">
+                            <MenuItem Header="{t:T Pad.ChoosePicture}" Command="{Binding ChooseImageCommand}"
+                                      ToolTip="{t:T Pad.ChoosePictureTip}" />
+                            <MenuItem Header="{t:T Pad.RemovePicture}" Command="{Binding RemoveImageCommand}"
+                                      Visibility="{Binding HasImageConfigured, Converter={StaticResource BoolToVis}}" />
+                            <MenuItem Header="{t:T Pad.OpenPictureFolder}" Command="{Binding OpenImagesFolderCommand}"
+                                      ToolTip="{t:T Pad.OpenPictureFolderTip}" />
+                        </MenuItem>
                         <MenuItem Header="{t:T Pad.ShowInFolder}" Command="{Binding ShowInFolderCommand}" />
                         <Separator />
-                        <MenuItem Header="{t:T Pad.Remove}" Command="{Binding RemoveCommand}" />
+                        <MenuItem Header="{t:T Pad.Remove}" Command="{Binding RemoveCommand}" InputGestureText="{t:T Key.DelShort}" />
                     </ContextMenu>
                 </Grid.ContextMenu>
 
@@ -534,7 +557,7 @@
         <!-- ============================================================ pads, empty state, settings -->
         <Grid>
             <ScrollViewer x:Name="PadScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
-                <ItemsControl ItemsSource="{Binding Tiles}" Margin="16,16,16,20" ItemTemplate="{StaticResource PadTemplate}" Focusable="False">
+                <ItemsControl x:Name="PadList" ItemsSource="{Binding Tiles}" Margin="16,16,16,20" ItemTemplate="{StaticResource PadTemplate}" Focusable="False">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <views:PadPanel MinPadWidth="160" Gap="12" />

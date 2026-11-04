@@ -13,6 +13,7 @@
     <local:EqualsConverter x:Key="Eq" />
     <local:EqualsToVisibilityConverter x:Key="EqToVis" />
     <local:PositiveToVisibilityConverter x:Key="PosToVis" />
+    <local:NullToCollapsedConverter x:Key="NullToCollapsed" />
 
     <FontFamily x:Key="FontText">Segoe UI</FontFamily>
     <FontFamily x:Key="FontDisplay">Bahnschrift, Segoe UI</FontFamily>
@@ -637,22 +638,41 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="MenuItem">
-                    <Border x:Name="Bd" Padding="10,7" CornerRadius="4" Background="Transparent">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="20" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Path x:Name="Tick" Data="M 1,6 L 5,10 L 12,2" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.8" VerticalAlignment="Center" Visibility="Collapsed" />
-                            <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="False" VerticalAlignment="Center" />
-                        </Grid>
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Bd" Padding="10,7" CornerRadius="4" Background="Transparent">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Path x:Name="Tick" Data="M 1,6 L 5,10 L 12,2" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.8" VerticalAlignment="Center" Visibility="Collapsed" />
+                                <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="False" VerticalAlignment="Center" />
+                                <!-- Shortcut of the entry (F2, Del), quiet on the right. -->
+                                <TextBlock Grid.Column="2" Text="{TemplateBinding InputGestureText}" Foreground="{DynamicResource SubTextBrush}" FontSize="{DynamicResource SizeSmall}"
+                                           Margin="24,0,0,0" VerticalAlignment="Center" />
+                                <!-- Submenu: an arrow, and the entries open to the right. -->
+                                <Path x:Name="Arrow" Grid.Column="3" Data="M 0,0 L 4,4 L 0,8" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" Margin="16,0,0,0"
+                                      VerticalAlignment="Center" Visibility="Collapsed" />
+                            </Grid>
+                        </Border>
+                        <Popup x:Name="PART_Popup" Placement="Right" HorizontalOffset="4" VerticalOffset="-5" AllowsTransparency="True" Focusable="False" PopupAnimation="None"
+                               IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}">
+                            <Border Background="{DynamicResource RaisedBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="6" Padding="4" MinWidth="180">
+                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                            </Border>
+                        </Popup>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsHighlighted" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverOverlay}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Tick" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="Role" Value="SubmenuHeader">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Visible" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

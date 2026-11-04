@@ -513,4 +513,16 @@ Entf: Taste löschen</value></data>
   <data name="Keys.NumLockHint" xml:space="preserve"><value>Num-Tasten liefern „Num 1“ usw. nur bei eingeschaltetem NumLock.</value></data>
   <data name="Keys.FunctionTaken" xml:space="preserve"><value>{0} gehört schon zu „{1}“ und bleibt dort. Wähle eine andere Taste.</value></data>
   <data name="Key.IsFunctionKey" xml:space="preserve"><value>{0} ist schon die Taste für „{1}“. Wähle für dieses Pad eine andere Taste.</value></data>
+  <data name="Pad.Colour" xml:space="preserve"><value>Farbe</value></data>
+  <data name="Pad.Picture" xml:space="preserve"><value>Bild</value></data>
+  <data name="Pad.ColourAuto" xml:space="preserve"><value>Automatisch (nach Reihenfolge)</value></data>
+  <data name="Pad.ColourAccentMode" xml:space="preserve"><value>Alle Pads in der Akzentfarbe – unter Darstellung ändern …</value></data>
+  <data name="PadColour.Blue" xml:space="preserve"><value>Blau</value></data>
+  <data name="PadColour.Orange" xml:space="preserve"><value>Orange</value></data>
+  <data name="PadColour.Green" xml:space="preserve"><value>Grün</value></data>
+  <data name="PadColour.Pink" xml:space="preserve"><value>Pink</value></data>
+  <data name="PadColour.Teal" xml:space="preserve"><value>Petrol</value></data>
+  <data name="PadColour.Violet" xml:space="preserve"><value>Violett</value></data>
+  <data name="PadColour.Grey" xml:space="preserve"><value>Grau</value></data>
+  <data name="Key.DelShort" xml:space="preserve"><value>Entf</value></data>
 </root>

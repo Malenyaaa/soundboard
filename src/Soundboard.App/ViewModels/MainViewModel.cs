@@ -645,6 +645,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _paths.ReleaseImage(tile.Config.Image); // deleted later unless "Undo" brings the pad back
         _hotkeys.Remove(tile.Config.Id.ToString());
         ClearNotice("hotkey-" + tile.Config.Id);
+        RecolorAutomatic();
         RefreshHotkeyViews();
         ScheduleSave();
 
@@ -656,10 +657,39 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ = LoadTileAsync(restored);
             _ = LoadTileImageAsync(restored);
             _hotkeys.Set(restored.Config.Id.ToString(), HotkeyGesture.Parse(restored.Config.Hotkey));
+            RecolorAutomatic();
+            restored.RefreshTheme();
             RefreshHotkeyViews();
             ScheduleSave();
         });
     }
+
+    /// <summary>Right-click → Colour: one of the pad colours, or null for automatic (by order).</summary>
+    public void SetTileColor(TileViewModel tile, string? hex)
+    {
+        if (hex is null)
+        {
+            tile.Config.ColorChosen = false;
+        }
+        else
+        {
+            tile.Config.ColorChosen = true;
+            tile.Config.Color = hex;
+        }
+        RecolorAutomatic();
+        tile.RefreshTheme();
+        ScheduleSave();
+    }
+
+    /// <summary>Automatic pads take the colour of their place again (after adding, removing, moving).</summary>
+    private void RecolorAutomatic()
+    {
+        foreach (int i in Soundboard.Core.Design.PadPalette.Recolor(_profile.Tiles))
+            Tiles.FirstOrDefault(t => ReferenceEquals(t.Config, _profile.Tiles[i]))?.RefreshTheme();
+    }
+
+    /// <summary>The settings on the "Appearance" tab (pad colours, pad size, profile).</summary>
+    public void ShowAppearance() => OpenSettings(SettingsTabs.Design);
 
     public void ShowTileInFolder(TileViewModel tile)
     {

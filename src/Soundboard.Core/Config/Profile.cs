@@ -19,6 +19,12 @@ public sealed class TileConfig
     /// <summary>Background colour as #RRGGBB.</summary>
     public string Color { get; set; } = "#DDE7F5";
 
+    /// <summary>
+    /// The colour was picked for this pad (right-click → Colour). False = automatic: the pad takes
+    /// the colour of its place in the order, and moving or removing pads recolours it. Since version 5.
+    /// </summary>
+    public bool ColorChosen { get; set; }
+
     /// <summary>Global hotkey as token text (e.g. "NumPad1"); null = none.</summary>
     public string? Hotkey { get; set; }
 
@@ -99,7 +105,7 @@ public sealed class Profile
     /// <summary>Language of the interface: "en" or "de". New profiles start in English; profiles from before version 4 keep German.</summary>
     public string Language { get; set; } = Text.L.English;
 
-    public const int CurrentVersion = 4;
+    public const int CurrentVersion = 5;
 
     /// <summary>
     /// Brings an older or hand-edited profile up to date: missing design values get their
@@ -116,6 +122,13 @@ public sealed class Profile
             if (Design.AccentPalette.Migrate(AccentId) is { } accent) AccentId = accent;
             foreach (var t in Tiles)
                 if (t.Color is not null) t.Color = Design.PadPalette.Migrate(t.Color);
+        }
+        if (Version < 5)
+        {
+            // Version 5: pad colours can be automatic (by order) or chosen. A pad whose colour is not the
+            // one of its place keeps it as chosen, so nothing changes colour with the update.
+            for (int i = 0; i < Tiles.Count; i++)
+                Tiles[i].ColorChosen = !Design.PadPalette.SameHex(Tiles[i].Color, Design.PadPalette.ForIndex(i));
         }
         if (Version < CurrentVersion)
         {

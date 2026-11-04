@@ -59,6 +59,19 @@ public sealed class PadBrushes
     }
 }
 
+/// <summary>One entry of the "Colour" submenu of a pad.</summary>
+public sealed class PadColorChoice(string name, Brush? swatch, bool isChecked, System.Windows.Input.ICommand command)
+{
+    public string Name { get; } = name;
+
+    /// <summary>The colour as it lights up in the current mode; null for "Automatic" and the hint line.</summary>
+    public Brush? Swatch { get; } = swatch;
+
+    public bool IsChecked { get; } = isChecked;
+
+    public System.Windows.Input.ICommand Command { get; } = command;
+}
+
 /// <summary>One sound pad.</summary>
 public sealed partial class TileViewModel : ObservableObject, IKeyTarget
 {
@@ -98,6 +111,27 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
         Pad = new PadBrushes(ThemeManager.PadColorsFor(Config.Color));
         OnPropertyChanged(nameof(Pad));
         OnPropertyChanged(nameof(AnimationsOn));
+        OnPropertyChanged(nameof(ColorMenu));
+    }
+
+    /// <summary>"Colour" submenu: automatic (by order), the seven pad colours, and in accent mode a line that says why nothing changes.</summary>
+    public IReadOnlyList<PadColorChoice> ColorMenu
+    {
+        get
+        {
+            var list = new List<PadColorChoice>();
+            if (ThemeManager.PadMode == PadColorModes.Accent)
+                list.Add(new PadColorChoice(L.Get("Pad.ColourAccentMode"), null, false, new RelayCommand(_owner.ShowAppearance)));
+            list.Add(new PadColorChoice(L.Get("Pad.ColourAuto"), null, !Config.ColorChosen, new RelayCommand(() => _owner.SetTileColor(this, null))));
+            foreach (var (name, hex) in PadPalette.Hues)
+            {
+                var swatch = new SolidColorBrush(ThemeManager.ToColor(PadPalette.Derive(Rgb.Parse(hex), ThemeManager.IsDark).Lit));
+                swatch.Freeze();
+                list.Add(new PadColorChoice(L.Get("PadColour." + name), swatch, Config.ColorChosen && PadPalette.SameHex(Config.Color, hex),
+                    new RelayCommand(() => _owner.SetTileColor(this, hex))));
+            }
+            return list;
+        }
     }
 
     // ---------------------------------------------------------------- key
@@ -184,6 +218,7 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
         IsIssueOpen = open && IssueText is not null;
         OnPropertyChanged(nameof(VolumeText));
         OnPropertyChanged(nameof(HotkeyToolTip));
+        OnPropertyChanged(nameof(ColorMenu));
         RefreshStatus();
     }
 

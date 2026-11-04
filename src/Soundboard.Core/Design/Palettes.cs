@@ -206,6 +206,28 @@ public static class PadPalette
     /// <summary>Colour stored for the n-th new pad.</summary>
     public static string ForIndex(int n) => Hues[((n % Hues.Count) + Hues.Count) % Hues.Count].Hex;
 
+    /// <summary>Same colour, whatever the spelling ("#3a78d4", "3A78D4").</summary>
+    public static bool SameHex(string? a, string? b) =>
+        Rgb.TryParse(a, out var x) && Rgb.TryParse(b, out var y) && x == y;
+
+    /// <summary>
+    /// Colour of every pad in order: automatic pads take the colour of their place, chosen ones keep theirs.
+    /// Returns the indices whose colour changed.
+    /// </summary>
+    public static List<int> Recolor(IList<Config.TileConfig> tiles)
+    {
+        var changed = new List<int>();
+        for (int i = 0; i < tiles.Count; i++)
+        {
+            if (tiles[i].ColorChosen) continue;
+            var want = ForIndex(i);
+            if (SameHex(tiles[i].Color, want)) continue;
+            tiles[i].Color = want;
+            changed.Add(i);
+        }
+        return changed;
+    }
+
     public static PadColors Derive(Rgb color, bool dark)
     {
         var h = ColorMath.ToOklch(color).H;
