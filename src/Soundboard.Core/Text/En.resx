@@ -152,6 +152,7 @@
   <data name="Main.MonitorDeviceTip" xml:space="preserve"><value>Device for monitoring. The Windows settings stay unchanged.</value></data>
   <data name="Main.VolumeAll" xml:space="preserve"><value>Volume of all sounds</value></data>
   <data name="Main.VolumeAllTip" xml:space="preserve"><value>Volume of all sounds in this program (not the Windows volume).</value></data>
+  <data name="Main.VolumeMuted" xml:space="preserve"><value>Volume of all sounds: muted</value></data>
   <data name="Main.AddSounds" xml:space="preserve"><value>Add sounds…</value></data>
   <data name="Main.AddSoundsTip" xml:space="preserve"><value>Choose MP3, WAV, OGG or FLAC files. They are copied into the sound folder; dragging works too.</value></data>
   <data name="Main.SettingsTip" xml:space="preserve"><value>Settings: setup, microphone &amp; cable, keys, audio state, appearance</value></data>

@@ -152,6 +152,7 @@
   <data name="Main.MonitorDeviceTip" xml:space="preserve"><value>Gerät zum Mithören. Die Windows-Einstellungen bleiben unverändert.</value></data>
   <data name="Main.VolumeAll" xml:space="preserve"><value>Lautstärke aller Sounds</value></data>
   <data name="Main.VolumeAllTip" xml:space="preserve"><value>Lautstärke aller Sounds in diesem Programm (nicht die Windows-Lautstärke).</value></data>
+  <data name="Main.VolumeMuted" xml:space="preserve"><value>Lautstärke aller Sounds: stumm</value></data>
   <data name="Main.AddSounds" xml:space="preserve"><value>Sounds hinzufügen …</value></data>
   <data name="Main.AddSoundsTip" xml:space="preserve"><value>MP3-, WAV-, OGG- oder FLAC-Dateien auswählen. Sie werden in den Sound-Ordner kopiert; ziehen geht auch.</value></data>
   <data name="Main.SettingsTip" xml:space="preserve"><value>Einstellungen: Einrichtung, Mikrofon &amp; Kabel, Tasten, Audio-Zustand, Darstellung</value></data>
