@@ -4,7 +4,7 @@ using Soundboard.App.Icons;
 namespace IconGen;
 
 /// <summary>
-/// Renders the app icon in its fixed colour (#9932CC) at 16, 20, 24, 32, 48 and 256 px and
+/// Renders the app icon in its fixed colour (#222222) at 16, 20, 24, 32, 48 and 256 px and
 /// writes it as an ICO with PNG images.
 ///   dotnet run --project tools/IconGen               writes src/Soundboard.App/Assets/Soundboard.ico
 ///   dotnet run --project tools/IconGen -- &lt;file&gt;    writes to another file

@@ -13,10 +13,10 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.12.2 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.12.3 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, Vollbild (F11), englischer Oberfläche, umschaltbar auf Deutsch, und
-eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Lila #9932CC).
+eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -279,7 +279,7 @@ Ergebnis: `publish\Soundboard.exe` (portable, eine Datei, keine .NET-Installatio
 
 Das Symbol wird im Code gezeichnet (`src/Soundboard.App/Icons/AppIconDrawing.cs`): 16, 20 und
 24 px pixelgenau, die übrigen Größen aus einer Formel. Die EXE-, Fenster- und Installer-Datei
-`src/Soundboard.App/Assets/Soundboard.ico` (Lila #9932CC, 16/20/24/32/48/256 px, PNG-Einträge) ist
+`src/Soundboard.App/Assets/Soundboard.ico` (Fast-Schwarz #222222, 16/20/24/32/48/256 px, PNG-Einträge) ist
 eingecheckt. Nach einer Änderung an der Zeichnung neu erzeugen:
 
 ```powershell
@@ -287,7 +287,7 @@ dotnet run --project tools/IconGen
 ```
 
 Ein Test vergleicht die eingecheckte Datei mit der Zeichnung und schlägt fehl, wenn sie veraltet
-ist. Das Symbol im Infobereich zeichnet die App zur Laufzeit selbst, immer in Lila #9932CC wie das
+ist. Das Symbol im Infobereich zeichnet die App zur Laufzeit selbst, immer in Fast-Schwarz #222222 wie das
 App-Symbol (unabhängig von der Akzentfarbe) und in der Größe, die Windows für die Skalierung der
 Taskleiste vorsieht.
 
