@@ -72,7 +72,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_profile.MonitorDeviceId is null)
         {
             var def = _state.GetDefault(DeviceFlow.Render, DeviceRoleKind.Multimedia);
-            if (def?.Id is not null)
+            if (def?.Id is not null && !CableDetector.IsCableName(def.Name))
             {
                 _profile.MonitorDeviceId = def.Id;
                 _profile.MonitorDeviceName = def.Name;
@@ -109,6 +109,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _initialized = true;
         EnsureMonitor();
+        CableEnabled = _profile.CableEnabled;
+        EnsureCable();
+        if (!_profile.SetupSeen) SetupOpen = true;
         _progressTimer.Start();
     }
 
@@ -181,6 +184,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshDevices();
         if (MonitorEnabled && _sink is null) EnsureMonitor();
         else UpdateMonitorStatus();
+        if (_mixPurpose == MixPurpose.None) EnsureCable();
+        else if (_mixPurpose == MixPurpose.Cable && !Cable.IsReady) StopMix();
+        UpdateCableStatus();
     }
 
     private void RefreshDeviceViews()
@@ -198,7 +204,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             OutputChoices.Clear();
-            foreach (var d in _state.Devices.Where(d => d.Flow == DeviceFlow.Render && d.Status == DeviceStatus.Active))
+            foreach (var d in _state.Devices.Where(d => d.Flow == DeviceFlow.Render && d.Status == DeviceStatus.Active && !CableDetector.IsCableName(d.Name)))
                 OutputChoices.Add(new OutputChoice(d.Id, d.Name, true, d.Id == defaultRender?.Id));
 
             var id = _profile.MonitorDeviceId;
@@ -215,6 +221,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         RefreshMicChoices();
+        RefreshCable();
 
         StatusDefaults = $"Standard-Wiedergabe: {DefaultText(DeviceFlow.Render)}   ·   Standard-Aufnahme: {DefaultText(DeviceFlow.Capture)}";
     }
@@ -718,6 +725,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SnapshotHeader = "Audio-Zustand: noch nicht gesichert";
             SnapshotInfo = "Sichere den Zustand, solange alles so ist, wie du es willst. Danach siehst du hier jede Änderung.";
             ClearNotice("snapshot");
+            UpdateCableCompare();
             return;
         }
 
@@ -744,6 +752,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             ClearNotice("snapshot");
         }
+        UpdateCableCompare();
     }
 
     /// <summary>Puts the default devices back to the saved ones (and only those).</summary>
@@ -991,6 +1000,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         _player.SetMixActive(false);
         MixLevel = 0;
+        UpdateCableStatus();
         if (purpose == MixPurpose.FileTest && reason is not null)
         {
             TestStatus = "";
@@ -1030,9 +1040,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>Restarts the permanent mix output (if one is configured) after a change.</summary>
-    private void RestartMix()
-    {
-    }
+    private void RestartMix() => EnsureCable();
 
     /// <summary>Records microphone + sounds for 10 seconds into a WAV file (test without cable).</summary>
     [RelayCommand]
@@ -1098,6 +1106,218 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : mix.Underruns == 0 ? $"Mikrofon: {micName}, keine Aussetzer"
             : $"Mikrofon: {micName}, Aussetzer: {mix.Underruns}";
         if (text != StatusMix) StatusMix = text;
+    }
+
+    // ---------------------------------------------------------------- virtual cable
+
+    public const string CableDownloadUrl = "https://vb-cable.com";
+
+    /// <summary>The cable as found in the last device read.</summary>
+    public CableInfo Cable { get; private set; } = new(null, null);
+
+    [ObservableProperty]
+    private bool _cableEnabled;
+
+    [ObservableProperty]
+    private bool _cableFound;
+
+    [ObservableProperty]
+    private string _cableStatusText = "";
+
+    [ObservableProperty]
+    private string _statusCable = "";
+
+    /// <summary>What the comparison says about the driver installation (setup step 1).</summary>
+    [ObservableProperty]
+    private string _cableCompareText = "";
+
+    [ObservableProperty]
+    private bool _cableCompareProblem;
+
+    /// <summary>True while microphone + sounds really go to the cable.</summary>
+    public bool CableRunning => _mixPurpose == MixPurpose.Cable && _mix is not null;
+
+    partial void OnCableEnabledChanged(bool value)
+    {
+        if (_profile.CableEnabled == value) return;
+        _profile.CableEnabled = value;
+        ScheduleSave();
+        EnsureCable();
+    }
+
+    private void RefreshCable()
+    {
+        Cable = CableDetector.Detect(_state);
+        CableFound = Cable.IsReady;
+        CableStatusText = Cable.IsReady
+            ? $"Kabel gefunden: „{Cable.Input!.Name}“ (hier schickt das Soundboard hin) und „{Cable.Output!.Name}“ (das wählst du in Discord als Mikrofon)."
+            : Cable.IsKnown
+                ? "Das Kabel ist in Windows bekannt, aber deaktiviert oder nicht vorhanden. Aktiviere „CABLE Input“ und „CABLE Output“ in der Systemsteuerung unter Sound, oder installiere VB-CABLE neu und starte Windows neu."
+                : "Es ist kein virtuelles Kabel installiert.";
+        UpdateCableCompare();
+    }
+
+    private void UpdateCableCompare()
+    {
+        var cmp = Comparison;
+        if (cmp is null)
+        {
+            CableCompareText = "Noch keine Sicherung – klicke „Audio-Zustand jetzt sichern“, bevor du VB-CABLE installierst.";
+            CableCompareProblem = true;
+            return;
+        }
+        string when = cmp.Snapshot.TakenAt.ToString("dd.MM.yyyy, HH:mm", De);
+        bool cableNew = cmp.Rows.Any(r => r.Kind == ComparisonKind.Added && CableDetector.IsCableName(r.What));
+        if (cmp.DefaultsChanged)
+        {
+            CableCompareText = $"Seit der Sicherung vom {when} hat sich ein Windows-Standardgerät geändert: {string.Join("; ", cmp.DefaultChangeLines)}. „Wie vorher“ stellt es zurück.";
+            CableCompareProblem = true;
+        }
+        else
+        {
+            CableCompareText = cableNew
+                ? $"Verglichen mit der Sicherung vom {when}: Neu ist nur das Kabel – so soll es sein. Die Standardgeräte sind unverändert."
+                : $"Verglichen mit der Sicherung vom {when}: Die Windows-Standardgeräte sind unverändert.";
+            CableCompareProblem = false;
+        }
+    }
+
+    /// <summary>Starts or stops "microphone + sounds → cable" according to settings and devices.</summary>
+    private void EnsureCable()
+    {
+        if (!_initialized || _disposed) return;
+        if (_mixPurpose == MixPurpose.FileTest) return; // the test recording has the mix; the cable follows afterwards
+        if (_mixPurpose == MixPurpose.Cable) StopMix();
+
+        if (!CableEnabled)
+        {
+            ClearNotice("cable");
+            UpdateCableStatus();
+            return;
+        }
+        if (!Cable.IsReady)
+        {
+            ShowNotice("cable", Cable.IsKnown
+                    ? "Das virtuelle Kabel ist deaktiviert oder nicht vorhanden – Discord bekommt nichts. Die Einrichtung zeigt, was zu tun ist."
+                    : "Es ist kein virtuelles Kabel installiert – deshalb kommt in Discord noch nichts an. Die Einrichtung zeigt den Weg.",
+                "Einrichtung öffnen", OpenSetup);
+            UpdateCableStatus();
+            return;
+        }
+
+        IAudioOutput? output;
+        try
+        {
+            output = _audio.OpenOutput(Cable.Input!.Id, BufferSizes.Milliseconds(_profile.Buffer));
+        }
+        catch (SinkException ex)
+        {
+            ShowNotice("cable", ex.Message + " Starte Windows neu, falls VB-CABLE gerade erst installiert wurde.", "Erneut versuchen", EnsureCable);
+            UpdateCableStatus();
+            return;
+        }
+        if (output is null)
+        {
+            ShowNotice("cable", "„CABLE Input“ ließ sich nicht öffnen. Ist es in den Windows-Soundeinstellungen deaktiviert?", "Erneut versuchen", EnsureCable);
+            UpdateCableStatus();
+            return;
+        }
+
+        // Without a microphone the cable still carries the sounds; the mic notice says what is missing.
+        var mic = OpenMic("mic");
+        if (mic is not null) ClearNotice("mic");
+        if (StartMix(output, mic, MixPurpose.Cable, "cable"))
+        {
+            ClearNotice("cable");
+            WriteDirtyFlag(cableActive: true);
+        }
+        UpdateCableStatus();
+    }
+
+    private void UpdateCableStatus()
+    {
+        StatusCable = !CableEnabled ? "Kabel: aus"
+            : !Cable.IsReady ? "Kabel: fehlt"
+            : CableRunning ? "Kabel: sendet"
+            : _mixPurpose == MixPurpose.FileTest ? "Kabel: Pause (Test-Aufnahme)"
+            : "Kabel: gestört";
+        OnPropertyChanged(nameof(CableRunning));
+        if (!CableRunning) WriteDirtyFlag(cableActive: false);
+    }
+
+    /// <summary>One second of 440 Hz into the cable only (not on the headphones).</summary>
+    [RelayCommand]
+    private void PlayTestTone()
+    {
+        if (!CableRunning)
+        {
+            ShowNotice("tone", !CableEnabled
+                ? "Der Testton geht ins Kabel, aber „Ans Kabel senden“ ist aus. Setze das Häkchen und klicke noch einmal."
+                : !Cable.IsReady
+                    ? "Der Testton geht ins Kabel, aber es ist keins da. Installiere zuerst VB-CABLE (Schritt 1 der Einrichtung)."
+                    : "Die Übertragung ans Kabel läuft gerade nicht. Der gelbe Hinweis oben sagt, warum.",
+                CableEnabled ? null : "Ans Kabel senden", CableEnabled ? null : () => CableEnabled = true);
+            return;
+        }
+        ClearNotice("tone");
+        _mix!.Mixer.PlayTestTone();
+    }
+
+    [RelayCommand]
+    private void OpenCableWebsite() => OpenUrl(CableDownloadUrl);
+
+    public static void OpenUrl(string url)
+    {
+        try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) { }
+    }
+
+    // ---------------------------------------------------------------- setup panel
+
+    [ObservableProperty]
+    private bool _setupOpen;
+
+    /// <summary>1 = cable, 2 = Discord, 3 = noise suppression.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSetupStep1), nameof(IsSetupStep2), nameof(IsSetupStep3))]
+    private int _setupStep = 1;
+
+    public bool IsSetupStep1 => SetupStep == 1;
+    public bool IsSetupStep2 => SetupStep == 2;
+    public bool IsSetupStep3 => SetupStep == 3;
+
+    [RelayCommand]
+    private void OpenSetup()
+    {
+        RefreshDevices();
+        ClearNotice("cable"); // the panel says the same in detail
+        SetupStep = Cable.IsReady ? (SetupStep == 1 ? 1 : SetupStep) : 1;
+        SetupOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseSetup()
+    {
+        SetupOpen = false;
+        if (!_profile.SetupSeen)
+        {
+            _profile.SetupSeen = true;
+            ScheduleSave();
+        }
+    }
+
+    [RelayCommand]
+    private void GoToStep(string step)
+    {
+        if (int.TryParse(step, out int n) && n is >= 1 and <= 3) SetupStep = n;
+    }
+
+    [RelayCommand]
+    private void SearchCable()
+    {
+        RefreshDevices();
+        if (_mixPurpose == MixPurpose.None) EnsureCable();
+        RestoreResultText = "";
     }
 
     // ---------------------------------------------------------------- hotkeys

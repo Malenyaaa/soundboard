@@ -1,6 +1,7 @@
 <Window x:Class="Soundboard.App.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         Title="Soundboard"
         Width="1000" Height="700" MinWidth="560" MinHeight="420"
         Background="{DynamicResource WindowBg}" Foreground="{DynamicResource TextBrush}"
@@ -69,6 +70,47 @@
             </Setter>
         </Style>
 
+        <!-- Step tab of the setup panel: Tag = true marks the current step (underline + bold). -->
+        <Style x:Key="StepButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Margin" Value="0,0,4,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="4,4,0,0"
+                                    BorderBrush="Transparent" BorderThickness="1">
+                                <ContentPresenter x:Name="Cp" />
+                            </Border>
+                            <Border x:Name="Line" Height="3" VerticalAlignment="Bottom" Background="{DynamicResource SignalBrush}" Visibility="Hidden" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverOverlay}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PressedOverlay}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+                            </Trigger>
+                            <Trigger Property="Tag">
+                                <Trigger.Value>
+                                    <sys:Boolean>True</sys:Boolean>
+                                </Trigger.Value>
+                                <Setter TargetName="Line" Property="Visibility" Value="Visible" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style TargetType="Button" x:Key="PlainButton">
             <Setter Property="Padding" Value="10,4" />
             <Setter Property="Margin" Value="0,0,8,0" />
@@ -84,7 +126,7 @@
                         Command="{Binding OpenSoundsFolderCommand}" ToolTip="{Binding SoundsDir}" />
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock TextTrimming="CharacterEllipsis">
-                        <Run Text="{Binding StatusMonitor, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusHotkeys, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusMix, Mode=OneWay}" />
+                        <Run Text="{Binding StatusMonitor, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusHotkeys, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusMix, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusCable, Mode=OneWay}" />
                     </TextBlock>
                     <TextBlock Text="{Binding StatusDefaults}" Foreground="{DynamicResource SubTextBrush}" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
@@ -92,7 +134,8 @@
         </Border>
 
         <!-- Device list (read only) -->
-        <Expander DockPanel.Dock="Bottom" Margin="12,4,12,6" Header="{Binding DevicesHeader}">
+        <Expander DockPanel.Dock="Bottom" Margin="12,4,12,6" Header="{Binding DevicesHeader}"
+                  Visibility="{Binding SetupOpen, Converter={StaticResource NotBoolToVis}}">
             <DockPanel Margin="0,6,0,0">
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
                     <Button Content="Neu einlesen" Style="{StaticResource PlainButton}" Command="{Binding RefreshDevicesCommand}" />
@@ -119,7 +162,8 @@
         </Expander>
 
         <!-- Saved Windows audio state vs. now -->
-        <Expander DockPanel.Dock="Bottom" Margin="12,4,12,0" Header="{Binding SnapshotHeader}">
+        <Expander DockPanel.Dock="Bottom" Margin="12,4,12,0" Header="{Binding SnapshotHeader}"
+                  Visibility="{Binding SetupOpen, Converter={StaticResource NotBoolToVis}}">
             <DockPanel Margin="0,6,0,0">
                 <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
                     <Button Content="Wie vorher" Style="{StaticResource PlainButton}" Command="{Binding RestoreDefaultsCommand}" Margin="0,0,8,4"
@@ -159,6 +203,8 @@
         <!-- Header: playback controls -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Padding="12,10">
             <DockPanel>
+                <Button DockPanel.Dock="Right" Content="Einrichtung" Style="{StaticResource PlainButton}" Margin="0,0,12,0" VerticalAlignment="Center"
+                        Command="{Binding OpenSetupCommand}" ToolTip="Kabel, Discord und Rauschunterdrückung einrichten – Schritt für Schritt." />
                 <Button DockPanel.Dock="Right" Style="{StaticResource StopButton}" Content="■  Alles stoppen"
                         Command="{Binding StopAllCommand}" ToolTip="{Binding StopAllToolTip}" VerticalAlignment="Center" />
                 <WrapPanel VerticalAlignment="Center">
@@ -187,12 +233,15 @@
         </Border>
 
         <!-- Microphone path: microphone + sounds go into the mix (test file now, cable later) -->
-        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Padding="12,6,12,8">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Padding="12,6,12,8"
+                Visibility="{Binding SetupOpen, Converter={StaticResource NotBoolToVis}}">
             <WrapPanel VerticalAlignment="Center">
+                <CheckBox Content="Ans Kabel senden" IsChecked="{Binding CableEnabled}" VerticalAlignment="Center" Margin="0,4,20,4"
+                          ToolTip="Mikrofon und Sounds gehen ins virtuelle Kabel. In Discord wählst du „CABLE Output“ als Mikrofon." />
                 <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
                     <TextBlock Text="Mikrofon" VerticalAlignment="Center" />
                     <ComboBox ItemsSource="{Binding MicChoices}" SelectedItem="{Binding SelectedMic}" DisplayMemberPath="Display"
-                              Width="270" Margin="8,0,0,0"
+                              Width="300" Margin="8,0,0,0"
                               ToolTip="Dein echtes Mikrofon. Es wird mit den Sounds gemischt. Die Windows-Einstellungen bleiben unverändert." />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
@@ -202,10 +251,12 @@
                             ToolTip="Lautstärke deiner Stimme im Mix. 100 % = unverändert. Die Windows-Lautstärke des Mikrofons bleibt, wie sie ist." />
                     <TextBlock Text="{Binding MicVolumePercent, StringFormat={}{0:0} %}" Width="44" VerticalAlignment="Center" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,4,20,4" ToolTip="Wie laut das ist, was gerade gemischt wird (Stimme und Sounds).">
+                <StackPanel Orientation="Horizontal" Margin="0,4,20,4" ToolTip="Das sendet dein Kabel gerade: Stimme und Sounds.">
                     <TextBlock Text="Pegel" VerticalAlignment="Center" />
                     <ProgressBar Width="110" Height="8" Margin="8,0,0,0" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}"
                                  Foreground="{DynamicResource MeterBrush}" Background="{DynamicResource TrackBg}" BorderThickness="0" VerticalAlignment="Center" />
+                    <Button Content="Testton" Style="{StaticResource PlainButton}" Margin="8,0,0,0" Command="{Binding PlayTestToneCommand}"
+                            ToolTip="Schickt eine Sekunde lang einen Ton ins Kabel (nicht auf deinen Kopfhörer)." />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
                     <TextBlock Text="Puffer" VerticalAlignment="Center" />
@@ -226,7 +277,8 @@
         </Border>
 
         <!-- Yellow notices -->
-        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Notices}" Margin="12,0,12,0">
+        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Notices}" Margin="12,0,12,0"
+                      Visibility="{Binding SetupOpen, Converter={StaticResource NotBoolToVis}}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Border Background="{DynamicResource NoticeBg}" BorderBrush="{DynamicResource NoticeLine}" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,8,0,0">
@@ -330,6 +382,94 @@
                 <LineBreak />
                 <Run Text="oder nutze oben „Sounds hinzufügen …“." />
             </TextBlock>
+
+            <!-- Setup panel: covers the tiles while open -->
+            <Border Background="{DynamicResource WindowBg}" Visibility="{Binding SetupOpen, Converter={StaticResource BoolToVis}}">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Padding="16,10,16,0">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Einrichtung schließen" Style="{StaticResource PlainButton}" Margin="0"
+                                    Command="{Binding CloseSetupCommand}" VerticalAlignment="Top" />
+                            <StackPanel>
+                                <TextBlock Text="Einrichtung" FontSize="20" FontWeight="SemiBold" />
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Button Style="{StaticResource StepButton}" Command="{Binding GoToStepCommand}" CommandParameter="1"
+                                            Tag="{Binding IsSetupStep1}" Content="1  Kabel" />
+                                    <Button Style="{StaticResource StepButton}" Command="{Binding GoToStepCommand}" CommandParameter="2"
+                                            Tag="{Binding IsSetupStep2}" Content="2  Discord" />
+                                    <Button Style="{StaticResource StepButton}" Command="{Binding GoToStepCommand}" CommandParameter="3"
+                                            Tag="{Binding IsSetupStep3}" Content="3  Rauschunterdrückung" />
+                                </StackPanel>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="16,12,16,16" MaxWidth="760" HorizontalAlignment="Left">
+
+                            <!-- Step 1: cable -->
+                            <StackPanel Visibility="{Binding IsSetupStep1, Converter={StaticResource BoolToVis}}">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
+                                           Text="Das Soundboard mischt dein Mikrofon und die Sounds und schickt beides in ein virtuelles Audiokabel. Discord nimmt das Kabel als Mikrofon. Die Windows-Standardgeräte bleiben, wie sie sind." />
+
+                                <!-- Cable missing -->
+                                <Border Background="{DynamicResource NoticeBg}" BorderBrush="{DynamicResource NoticeLine}" BorderThickness="1" CornerRadius="4" Padding="12,10"
+                                        Visibility="{Binding CableFound, Converter={StaticResource NotBoolToVis}}">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding CableStatusText}" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource NoticeText}" />
+                                        <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource NoticeText}">
+                                            <Run Text="Gebraucht wird VB-CABLE von VB-Audio, zu finden auf" />
+                                            <Hyperlink Command="{Binding OpenCableWebsiteCommand}" Foreground="{DynamicResource NoticeText}">vb-cable.com</Hyperlink><Run Text=". VB-CABLE ist Donationware: kostenlos nutzbar, Spenden an VB-Audio sind willkommen („VB-CABLE is a donationware, all participations are welcome.“). Das Soundboard liefert es nicht mit." />
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,8,0,0" Foreground="{DynamicResource NoticeText}" LineHeight="20">
+                                            <Run Text="1. Zuerst „Audio-Zustand jetzt sichern“ klicken. So zeigt das Soundboard später, ob das Setup etwas verstellt hat." /><LineBreak />
+                                            <Run Text="2. Auf vb-cable.com das ZIP-Paket für Windows laden und entpacken." /><LineBreak />
+                                            <Run Text="3. VBCABLE_Setup_x64.exe mit Rechtsklick → „Als Administrator ausführen“ starten, dann „Install Driver“." /><LineBreak />
+                                            <Run Text="4. Windows neu starten und das Soundboard wieder öffnen. Es findet das Kabel und vergleicht mit der Sicherung." />
+                                        </TextBlock>
+                                        <WrapPanel Margin="0,10,0,0">
+                                            <Button Content="Audio-Zustand jetzt sichern" Style="{StaticResource PlainButton}" Command="{Binding SaveSnapshotNowCommand}" Margin="0,0,8,4" />
+                                            <Button Content="vb-cable.com öffnen" Style="{StaticResource PlainButton}" Command="{Binding OpenCableWebsiteCommand}" Margin="0,0,8,4" />
+                                            <Button Content="Nach dem Kabel suchen" Style="{StaticResource PlainButton}" Command="{Binding SearchCableCommand}" Margin="0,0,8,4" />
+                                        </WrapPanel>
+                                        <TextBlock Text="{Binding SnapshotHeader}" Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource NoticeText}" />
+                                        <TextBlock Text="{Binding RestoreResultText}" Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource NoticeText}"
+                                                   Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Cable found -->
+                                <StackPanel Visibility="{Binding CableFound, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="{Binding CableStatusText}" TextWrapping="Wrap" />
+                                    <Border Margin="0,10,0,0" Padding="12,8" CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}" Background="{DynamicResource SurfaceBg}">
+                                        <DockPanel>
+                                            <Button DockPanel.Dock="Right" Content="Wie vorher" Style="{StaticResource PlainButton}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                    Command="{Binding RestoreDefaultsCommand}"
+                                                    Visibility="{Binding CableCompareProblem, Converter={StaticResource BoolToVis}}" />
+                                            <TextBlock Text="{Binding CableCompareText}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                        </DockPanel>
+                                    </Border>
+                                    <TextBlock Text="{Binding RestoreResultText}" Margin="0,6,0,0" TextWrapping="Wrap"
+                                               Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
+                                    <CheckBox Content="Mikrofon und Sounds ans Kabel senden" IsChecked="{Binding CableEnabled}" Margin="0,12,0,0" />
+                                    <TextBlock Text="Das sendet dein Kabel gerade" FontWeight="SemiBold" Margin="0,14,0,4" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <ProgressBar Width="280" Height="12" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}"
+                                                     Foreground="{DynamicResource MeterBrush}" Background="{DynamicResource TrackBg}" BorderThickness="0" VerticalAlignment="Center" />
+                                        <Button Content="Testton senden" Style="{StaticResource PlainButton}" Margin="12,0,0,0" Command="{Binding PlayTestToneCommand}"
+                                                ToolTip="Schickt eine Sekunde lang einen Ton ins Kabel. Auf deinem Kopfhörer ist er nicht zu hören." />
+                                    </StackPanel>
+                                    <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource SubTextBrush}"
+                                               Text="Sprich: Der Balken schlägt aus. Gegenprobe ohne Discord: Windows-Systemsteuerung → Sound → Registerkarte „Aufnahme“ – bei „CABLE Output“ bewegt sich die Anzeige." />
+                                </StackPanel>
+
+                                <Button Content="Weiter zu Schritt 2" Style="{StaticResource PlainButton}" Command="{Binding GoToStepCommand}" CommandParameter="2"
+                                        HorizontalAlignment="Left" Margin="0,16,0,0" />
+                            </StackPanel>
+<!--STEP23-->
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
         </Grid>
     </DockPanel>
 </Window>

@@ -56,6 +56,12 @@ public sealed class Profile
     /// <summary>Mute the microphone while a sound plays. Default off.</summary>
     public bool BlockVoiceWhileSound { get; set; }
 
+    /// <summary>Send microphone + sounds to the virtual cable when it is there.</summary>
+    public bool CableEnabled { get; set; } = true;
+
+    /// <summary>The setup panel was shown once (first start).</summary>
+    public bool SetupSeen { get; set; }
+
     /// <summary>Global hotkey for "stop all" as token text; null = none.</summary>
     public string? StopAllHotkey { get; set; } = "Pause";
 
