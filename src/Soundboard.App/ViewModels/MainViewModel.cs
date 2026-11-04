@@ -98,10 +98,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MasterVolumePercent = Math.Round(Math.Clamp(_profile.MasterVolume, 0f, 1f) * 100);
         OverlayEnabled = _profile.Overlap == OverlapMode.Overlay;
         SameKeyAgain = _profile.SameKeyAgain;
+        PadSize = _profile.PadSize;
 
         InitMixSettings();
         RefreshDeviceViews();
-        Tiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoTiles));
+        Tiles.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasNoTiles));
+            ApplySearch();
+        };
         foreach (var t in _profile.Tiles)
         {
             var tile = new TileViewModel(this, t);
@@ -595,6 +600,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var rejected = new List<string>();
         var failed = new List<string>();
         int added = 0;
+        var newTiles = new List<TileViewModel>();
         bool pictureChosen = false;
         foreach (var file in files)
         {
@@ -631,10 +637,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var tile = new TileViewModel(this, config);
             Tiles.Add(tile);
             _ = LoadTileAsync(tile);
+            newTiles.Add(tile);
             added++;
         }
 
         if (added > 0) ScheduleSave();
+        ShowAdded(newTiles);
         if (rejected.Count > 0)
             ShowNotice("rejected", TF("Notice.Rejected", string.Join(", ", rejected)));
         else
@@ -1887,6 +1895,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         foreach (var t in Tiles.Where(t => t.HotkeyText is null && !_hotkeys.Bindings.Any(b => b.Owner == t.OwnerId)))
             t.HotkeyStateText = L.Get("Key.StateNone");
 
+        ApplySearch(); // the search also finds keys
         HotkeyProblems = problems;
         StatusHotkeys = HotkeysPaused ? L.Get("Status.KeysPaused")
             : problems > 0 ? L.F("Status.KeysProblems", active, problems)

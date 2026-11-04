@@ -541,4 +541,12 @@ Delete: remove key</value></data>
   <data name="Keys.SameKeyStop" xml:space="preserve"><value>Stop</value></data>
   <data name="Keys.SameKeyRestart" xml:space="preserve"><value>Play from the start</value></data>
   <data name="Keys.SameKeyHint" xml:space="preserve"><value>Only for the keys. A click on a playing pad always stops it.</value></data>
+  <data name="Search.Placeholder" xml:space="preserve"><value>Search pads</value></data>
+  <data name="Search.Tip" xml:space="preserve"><value>Finds pads by name or key (Ctrl+F). Esc empties the search.</value></data>
+  <data name="Search.Clear" xml:space="preserve"><value>Clear search</value></data>
+  <data name="Search.NoResults" xml:space="preserve"><value>No pad matches “{0}”. The search looks at names and keys.</value></data>
+  <data name="Design.PadSize" xml:space="preserve"><value>Pad size</value></data>
+  <data name="Design.PadLarge" xml:space="preserve"><value>Large</value></data>
+  <data name="Design.PadCompact" xml:space="preserve"><value>Compact</value></data>
+  <data name="Design.PadSizeHint" xml:space="preserve"><value>Compact pads are smaller and flatter, so many fit on one screen.</value></data>
 </root>

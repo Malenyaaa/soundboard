@@ -105,6 +105,9 @@ public sealed class Profile
     /// <summary>"Bunt" (every pad its own colour) or "Akzent" (all pads in the accent colour).</summary>
     public string PadColors { get; set; } = PadColorModes.Colorful;
 
+    /// <summary>"Large" (default) or "Compact": compact pads are smaller, so many fit on one screen.</summary>
+    public string PadSize { get; set; } = PadSizes.Large;
+
     /// <summary>Short transitions (pad lighting up). Windows' own "animation effects" setting is respected as well.</summary>
     public bool Animations { get; set; } = true;
 
@@ -161,6 +164,11 @@ public sealed class Profile
             AccentId = Design.AccentPalette.DefaultId;
             changed = true;
         }
+        if (PadSize is not (PadSizes.Large or PadSizes.Compact))
+        {
+            PadSize = PadSizes.Large;
+            changed = true;
+        }
         if (SameKeyAgain is not (SameKeyModes.Stop or SameKeyModes.Restart))
         {
             SameKeyAgain = SameKeyModes.Stop;
@@ -195,6 +203,12 @@ public static class AppearanceModes
     public const string Light = "Hell";
     public const string Dark = "Dunkel";
     public static readonly string[] All = [System, Light, Dark];
+}
+
+public static class PadSizes
+{
+    public const string Large = "Large";
+    public const string Compact = "Compact";
 }
 
 public static class SameKeyModes

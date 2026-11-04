@@ -85,7 +85,20 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
         Name = config.Name;
         VolumePercent = Math.Round(Math.Clamp(config.Volume, 0f, 1f) * 100);
         Pad = new PadBrushes(ThemeManager.PadColorsFor(config.Color));
+        _compact = owner.CompactPads;
     }
+
+    /// <summary>Hidden by the search above the pads.</summary>
+    [ObservableProperty]
+    private bool _isFilteredOut;
+
+    /// <summary>Compact pad size: the name gets two lines instead of three.</summary>
+    [ObservableProperty]
+    private bool _compact;
+
+    /// <summary>Just added: lit by a ring for a moment, so the eye finds it.</summary>
+    [ObservableProperty]
+    private bool _isJustAdded;
 
     public TileConfig Config { get; }
 
@@ -359,6 +372,7 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
         if (trimmed.Length == 0 || trimmed == Config.Name) return;
         Config.Name = trimmed;
         _owner.ScheduleSave();
+        _owner.RefreshSearch();
     }
 
     partial void OnVolumePercentChanged(double value) => _owner.OnTileVolumeChanged(this);

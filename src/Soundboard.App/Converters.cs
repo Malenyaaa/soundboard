@@ -4,11 +4,11 @@ using System.Windows.Data;
 
 namespace Soundboard.App;
 
-/// <summary>Visible when the bound text is not empty.</summary>
+/// <summary>Visible when the bound text is not empty; with the parameter "invert" when it is empty (placeholders).</summary>
 public sealed class TextToVisibilityConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        string.IsNullOrWhiteSpace(value as string) ? Visibility.Collapsed : Visibility.Visible;
+        string.IsNullOrWhiteSpace(value as string) ^ (parameter as string == "invert") ? Visibility.Collapsed : Visibility.Visible;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();

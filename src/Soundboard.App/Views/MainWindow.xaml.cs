@@ -15,6 +15,14 @@ public partial class MainWindow : Window
         InitializeComponent();
         _vm = vm;
         DataContext = _vm;
+        // The header measures its groups: again once laid out and after a language switch (other text widths).
+        Loaded += (_, _) => LayoutHeader(ActualWidth);
+        Core.Text.L.Changed += (_, _) => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => LayoutHeader(ActualWidth));
+        // New pads: scroll to the first one (its ring shows the rest).
+        _vm.PadsAdded += tile => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
+        {
+            if (Container(tile) is { } c) c.BringIntoView(new Rect(-16, -16, c.ActualWidth + 32, c.ActualHeight + 32));
+        });
         Text.UiLanguage.Attach(this);
     }
 
@@ -104,6 +112,14 @@ public partial class MainWindow : Window
         }
         if (_vm.Capturing is null)
         {
+            // Ctrl+F: to the search.
+            if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                SearchBox.Focus();
+                SearchBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
             // Ctrl+Z: take back the newest step (removed or moved pad …), except inside a text field.
             if (e.Key == Key.Z && Keyboard.Modifiers == ModifierKeys.Control && Keyboard.FocusedElement is not TextBox)
             {
@@ -136,6 +152,7 @@ public partial class MainWindow : Window
                 return;
             }
             if (e.Key == Key.Escape && Keyboard.FocusedElement is not TextBox { DataContext: TileViewModel { IsRenaming: true } }
+                && !(ReferenceEquals(Keyboard.FocusedElement, SearchBox) && _vm.SearchActive)
                 && !IsInOpenDropDown(e.OriginalSource as DependencyObject))
             {
                 var open = _vm.Tiles.FirstOrDefault(t => t.IsIssueOpen);
@@ -161,7 +178,11 @@ public partial class MainWindow : Window
     public void FocusPadAt(int index) => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
     {
         if (_vm.Tiles.Count == 0) return;
-        PadButton(_vm.Tiles[Math.Clamp(index, 0, _vm.Tiles.Count - 1)])?.Focus();
+        index = Math.Clamp(index, 0, _vm.Tiles.Count - 1);
+        // The nearest pad the search shows: forwards first, then backwards.
+        var tile = _vm.Tiles.Skip(index).FirstOrDefault(t => !t.IsFilteredOut)
+            ?? _vm.Tiles.Take(index).LastOrDefault(t => !t.IsFilteredOut);
+        if (tile is not null) PadButton(tile)?.Focus();
     });
 
     /// <summary>The pad button of a tile, null while it is not generated.</summary>
@@ -187,24 +208,70 @@ public partial class MainWindow : Window
 
     public void LayoutHeader(double width)
     {
-        // Measure what one row needs: monitor group + actions + stop button + gaps and padding.
+        // Measure the groups once, then pick the first arrangement that fits:
+        // one row; monitor + search + stop over the actions; or monitor + stop over actions + search.
         var free = new Size(double.PositiveInfinity, double.PositiveInfinity);
-        var monitor = (UIElement)HeaderGrid.Children[0];
-        monitor.Measure(free);
+        MonitorGroup.Measure(free);
         ActionGroup.Measure(free);
         StopButton.Measure(free);
-        double need = monitor.DesiredSize.Width + ActionGroup.DesiredSize.Width + StopButton.DesiredSize.Width + 24 + 16 + 32 + 8;
-        bool narrow = width < need;
-        Grid.SetRow(ActionGroup, narrow ? 1 : 0);
-        Grid.SetColumn(ActionGroup, narrow ? 0 : 1);
-        Grid.SetColumnSpan(ActionGroup, narrow ? 3 : 1);
-        ActionGroup.Margin = narrow ? new Thickness(0, 10, 0, 0) : new Thickness(24, 0, 16, 0);
+        const double gap = 16, wideGap = 16, searchMin = 140, searchMax = 280, searchTight = 120;
+        double inner = width - 32 - 8; // header padding, a little air for rounding and the window frame
+        double mon = MonitorGroup.DesiredSize.Width, act = ActionGroup.DesiredSize.Width, stop = StopButton.DesiredSize.Width;
+
+        if (inner >= mon + wideGap + act + gap + searchMin + gap + stop)
+        {
+            Place(ActionGroup, 0, 1, 1, new Thickness(wideGap, 0, gap, 0));
+            Place(SearchGroup, 0, 2, 1, new Thickness(0, 0, gap, 0));
+            SearchGroup.Width = Math.Min(searchMax, inner - (mon + wideGap + act + gap + gap + stop));
+        }
+        else if (inner >= mon + gap + searchMin + gap + stop && act <= inner)
+        {
+            Place(SearchGroup, 0, 1, 2, new Thickness(gap, 0, gap, 0));
+            Place(ActionGroup, 1, 0, 4, new Thickness(0, 10, 0, 0));
+            SearchGroup.Width = Math.Min(searchMax, inner - (mon + gap + gap + stop));
+        }
+        else if (inner - act - gap >= searchTight)
+        {
+            Place(ActionGroup, 1, 0, 2, new Thickness(0, 10, 0, 0));
+            Place(SearchGroup, 1, 2, 2, new Thickness(gap, 10, 0, 0));
+            SearchGroup.Width = Math.Min(searchMax, inner - act - gap);
+        }
+        else
+        {
+            Place(ActionGroup, 1, 0, 4, new Thickness(0, 10, 0, 0));
+            Place(SearchGroup, 2, 0, 4, new Thickness(0, 10, 0, 0));
+            SearchGroup.Width = Math.Min(searchMax * 1.5, inner);
+        }
+        SearchGroup.HorizontalAlignment = Grid.GetRow(SearchGroup) == 2 ? HorizontalAlignment.Left : HorizontalAlignment.Right;
 
         // The notice puts its buttons under the text when the window is narrow.
         bool narrowNotice = width < 760;
         DockPanel.SetDock(NoticeButtons, narrowNotice ? Dock.Bottom : Dock.Right);
         NoticeButtons.Margin = narrowNotice ? new Thickness(28, 8, 0, 0) : new Thickness(12, 0, 0, 0);
         NoticeButtons.HorizontalAlignment = HorizontalAlignment.Left;
+    }
+
+    private static void Place(UIElement e, int row, int column, int span, Thickness margin)
+    {
+        Grid.SetRow(e, row);
+        Grid.SetColumn(e, column);
+        Grid.SetColumnSpan(e, span);
+        if (e is FrameworkElement fe) fe.Margin = margin;
+    }
+
+    /// <summary>Esc in the search: empties it (a second Esc goes on to the pads).</summary>
+    private void OnSearchKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && _vm.SearchActive)
+        {
+            _vm.ClearSearchCommand.Execute(null);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape || e.Key == Key.Down)
+        {
+            FocusPadAt(0);
+            e.Handled = true;
+        }
     }
 
     /// <summary>Ctrl + mouse wheel over a pad: its volume in steps of 5 % (the plain wheel scrolls).</summary>

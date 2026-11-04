@@ -541,4 +541,12 @@ Entf: Taste löschen</value></data>
   <data name="Keys.SameKeyStop" xml:space="preserve"><value>Stoppen</value></data>
   <data name="Keys.SameKeyRestart" xml:space="preserve"><value>Von vorn spielen</value></data>
   <data name="Keys.SameKeyHint" xml:space="preserve"><value>Gilt nur für die Tasten. Ein Klick auf ein laufendes Pad stoppt es immer.</value></data>
+  <data name="Search.Placeholder" xml:space="preserve"><value>Pads suchen</value></data>
+  <data name="Search.Tip" xml:space="preserve"><value>Findet Pads nach Name oder Taste (Strg+F). Esc leert die Suche.</value></data>
+  <data name="Search.Clear" xml:space="preserve"><value>Suche leeren</value></data>
+  <data name="Search.NoResults" xml:space="preserve"><value>Kein Pad passt zu „{0}“. Gesucht wird in Namen und Tasten.</value></data>
+  <data name="Design.PadSize" xml:space="preserve"><value>Pad-Größe</value></data>
+  <data name="Design.PadLarge" xml:space="preserve"><value>Groß</value></data>
+  <data name="Design.PadCompact" xml:space="preserve"><value>Kompakt</value></data>
+  <data name="Design.PadSizeHint" xml:space="preserve"><value>Kompakte Pads sind kleiner und flacher, so passen viele auf einen Bildschirm.</value></data>
 </root>

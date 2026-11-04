@@ -293,7 +293,7 @@
                                     <StackPanel VerticalAlignment="Bottom">
                                         <TextBlock x:Name="Status" Text="{Binding StatusText}" FontSize="12" Margin="0,0,0,2"
                                                    Visibility="{Binding StatusText, Converter={StaticResource TextToVis}}" />
-                                        <TextBlock Text="{Binding Name}" FontFamily="{DynamicResource FontPad}" FontSize="16" LineHeight="19"
+                                        <TextBlock x:Name="PadName" Text="{Binding Name}" FontFamily="{DynamicResource FontPad}" FontSize="16" LineHeight="19"
                                                    LineStackingStrategy="BlockLineHeight" MaxHeight="57" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
                                 </DockPanel>
@@ -350,6 +350,10 @@
                         <TextBlock Text="{t:T Pad.DropPicture}" Foreground="{DynamicResource OnAccentBrush}" FontSize="12" />
                     </Border>
                 </Border>
+
+                <!-- Just added: a ring in the accent colour for a moment, so the eye finds the new pads. -->
+                <Border CornerRadius="13" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="3" Margin="-5" IsHitTestVisible="False"
+                        Visibility="{Binding IsJustAdded, Converter={StaticResource BoolToVis}}" />
 
                 <!-- Rename in place -->
                 <TextBox x:Name="RenameBox" Text="{Binding Name, UpdateSourceTrigger=Explicit}" VerticalAlignment="Bottom" Margin="8"
@@ -433,6 +437,10 @@
                 </MultiDataTrigger>
                 <DataTrigger Binding="{Binding HotkeyProblem}" Value="True">
                     <Setter TargetName="CapWarn" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Compact}" Value="True">
+                    <Setter TargetName="PadName" Property="MaxHeight" Value="38" />
+                    <Setter TargetName="PadName" Property="FontSize" Value="15" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding IsError}" Value="True">
                     <Setter TargetName="PadBtn" Property="BorderBrush" Value="{DynamicResource DiffText}" />
@@ -519,18 +527,20 @@
             <Grid x:Name="HeaderGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel x:Name="MonitorGroup" Orientation="Horizontal" VerticalAlignment="Center">
                     <CheckBox Style="{StaticResource Switch}" Content="{t:T Main.Monitor}" IsChecked="{Binding MonitorEnabled}"
                               ToolTip="{t:T Main.MonitorTip}" />
                     <ComboBox ItemsSource="{Binding OutputChoices}" SelectedItem="{Binding SelectedOutput}" DisplayMemberPath="Display"
-                              Width="210" Margin="12,0,0,0" ToolTip="{t:T Main.MonitorDeviceTip}" AutomationProperties.Name="{t:T Main.MonitorDeviceTip}" />
+                              Width="190" Margin="12,0,0,0" ToolTip="{t:T Main.MonitorDeviceTip}" AutomationProperties.Name="{t:T Main.MonitorDeviceTip}" />
                 </StackPanel>
                 <StackPanel x:Name="ActionGroup" Grid.Column="1" Orientation="Horizontal" Margin="24,0,16,0" VerticalAlignment="Center">
                     <views:VolumeIcon Percent="{Binding MasterVolumePercent}" Stroke="{DynamicResource TextBrush}" VerticalAlignment="Center"
@@ -548,7 +558,22 @@
                         <Path Data="{StaticResource GearGeometry}" Fill="{DynamicResource TextBrush}" Width="20" Height="20" Stretch="Uniform" />
                     </Button>
                 </StackPanel>
-                <Button x:Name="StopButton" Grid.Column="2" Style="{StaticResource StopButton}" Content="{t:T Main.Stop}" VerticalAlignment="Center"
+                <!-- Search: always there. Ctrl+F jumps here, Esc empties it. -->
+                <Grid x:Name="SearchGroup" Grid.Column="2" Margin="0,0,16,0" VerticalAlignment="Center" MinWidth="150" MaxWidth="280" HorizontalAlignment="Stretch">
+                    <TextBox x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="16,2,16,2" MinHeight="34" VerticalContentAlignment="Center"
+                             AutomationProperties.Name="{t:T Search.Placeholder}" ToolTip="{t:T Search.Tip}" KeyDown="OnSearchKeyDown" />
+                    <Path Data="M 6.5,1 A 5.5,5.5 0 1 1 6.49,1 Z M 10.6,10.6 L 15,15" Stroke="{DynamicResource SubTextBrush}" StrokeThickness="1.6"
+                          Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="9,0,0,0" IsHitTestVisible="False" />
+                    <TextBlock Text="{t:T Search.Placeholder}" Foreground="{DynamicResource SubTextBrush}" Margin="32,0,32,0" VerticalAlignment="Center"
+                               IsHitTestVisible="False" TextTrimming="CharacterEllipsis"
+                               Visibility="{Binding SearchText, Converter={StaticResource TextToVis}, ConverterParameter=invert}" />
+                    <Button Style="{StaticResource LinkButton}" Command="{Binding ClearSearchCommand}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Width="28" Height="28" Padding="0" Margin="0,0,2,0" ToolTip="{t:T Search.Clear}" AutomationProperties.Name="{t:T Search.Clear}"
+                            Visibility="{Binding SearchActive, Converter={StaticResource BoolToVis}}">
+                        <Path Data="M 1,1 L 9,9 M 9,1 L 1,9" Stroke="{DynamicResource TextBrush}" StrokeThickness="1.6" Width="10" Height="10" />
+                    </Button>
+                </Grid>
+                <Button x:Name="StopButton" Grid.Column="3" Style="{StaticResource StopButton}" Content="{t:T Main.Stop}" VerticalAlignment="Center"
                         Command="{Binding StopAllCommand}" ToolTip="{Binding StopAllToolTip}" />
             </Grid>
         </Border>
@@ -580,7 +605,7 @@
                 <ItemsControl x:Name="PadList" ItemsSource="{Binding Tiles}" Margin="16,16,16,20" ItemTemplate="{StaticResource PadTemplate}" Focusable="False">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <views:PadPanel MinPadWidth="160" Gap="12" />
+                            <views:PadPanel MinPadWidth="160" Gap="12" Compact="{Binding CompactPads}" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemContainerStyle>
@@ -588,6 +613,9 @@
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsIssueOpen}" Value="True">
                                     <Setter Property="Panel.ZIndex" Value="10" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsFilteredOut}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -623,6 +651,13 @@
                             HorizontalAlignment="Left" Margin="0,18,0,0" />
                 </StackPanel>
             </Grid>
+
+            <!-- Search without a match: say so, and the way back. -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="24,48,24,24" MaxWidth="460"
+                        Visibility="{Binding SearchHasNoResults, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{Binding SearchNoResultsText}" Style="{StaticResource P}" TextAlignment="Center" />
+                <Button Content="{t:T Search.Clear}" Command="{Binding ClearSearchCommand}" HorizontalAlignment="Center" Margin="0,12,0,0" />
+            </StackPanel>
 
             <!-- ======================================================== settings: covers the pads, header stays -->
             <Border Background="{DynamicResource WindowBg}" Visibility="{Binding SettingsOpen, Converter={StaticResource BoolToVis}}">
@@ -1004,6 +1039,15 @@
                                     <RadioButton Style="{StaticResource Segment}" GroupName="PadColors" Content="{t:T Design.AllAccent}"
                                                  IsChecked="{Binding PadColorMode, Converter={StaticResource Eq}, ConverterParameter=Akzent}" />
                                 </WrapPanel>
+
+                                <TextBlock Text="{t:T Design.PadSize}" Style="{StaticResource H2}" />
+                                <WrapPanel>
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="PadSize" Content="{t:T Design.PadLarge}"
+                                                 IsChecked="{Binding PadSize, Converter={StaticResource Eq}, ConverterParameter=Large}" />
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="PadSize" Content="{t:T Design.PadCompact}"
+                                                 IsChecked="{Binding PadSize, Converter={StaticResource Eq}, ConverterParameter=Compact}" />
+                                </WrapPanel>
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,6,0,0" Text="{t:T Design.PadSizeHint}" />
 
                                 <TextBlock Text="{t:T Design.Motion}" Style="{StaticResource H2}" />
                                 <CheckBox Style="{StaticResource Switch}" Content="{t:T Design.Glow}" IsChecked="{Binding Animations}" />
