@@ -16,17 +16,18 @@ public sealed class TrayIcon : IDisposable
     private readonly TaskbarIcon _icon;
     private readonly MainViewModel _vm;
     private readonly MenuItem _pauseItem;
+    private readonly GeneratedIconSource _iconSource;
 
     public TrayIcon(App app, MainViewModel vm)
     {
         _vm = vm;
-        var background = new SolidColorBrush(Color.FromRgb(0x1F, 0x5F, 0xA8));
+        var background = new SolidColorBrush(Themes.ThemeManager.ToColor(Core.Design.AccentPalette.Resolve(Themes.ThemeManager.AccentId, Themes.ThemeManager.CustomAccent, false).Fill));
         background.Freeze();
 
         var menu = new ContextMenu();
         menu.Items.Add(Item("Fenster öffnen", app.ShowMain));
         menu.Items.Add(Item("Alles stoppen", () => vm.StopAllCommand.Execute(null)));
-        _pauseItem = Item("Hotkeys pausieren", () => vm.HotkeysPaused = !vm.HotkeysPaused);
+        _pauseItem = Item("Tasten pausieren", () => vm.HotkeysPaused = !vm.HotkeysPaused);
         _pauseItem.IsCheckable = true;
         menu.Items.Add(_pauseItem);
         menu.Items.Add(new Separator());
@@ -38,7 +39,7 @@ public sealed class TrayIcon : IDisposable
         _icon = new TaskbarIcon
         {
             ToolTipText = Tooltip(),
-            IconSource = new GeneratedIconSource
+            IconSource = _iconSource = new GeneratedIconSource
             {
                 Text = "♪",
                 Foreground = Brushes.White,
@@ -54,6 +55,7 @@ public sealed class TrayIcon : IDisposable
         _icon.ForceCreate(false);
 
         vm.PropertyChanged += OnVmChanged;
+        Themes.ThemeManager.Changed += OnThemeChanged;
     }
 
     private static MenuItem Item(string header, Action action)
@@ -75,8 +77,17 @@ public sealed class TrayIcon : IDisposable
     public void ShowHint(string title, string text) =>
         _icon.ShowNotification(title, text, sound: false);
 
+    /// <summary>The note symbol follows the accent colour chosen in the settings.</summary>
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        var b = new SolidColorBrush(Themes.ThemeManager.ToColor(Core.Design.AccentPalette.Resolve(Themes.ThemeManager.AccentId, Themes.ThemeManager.CustomAccent, false).Fill));
+        b.Freeze();
+        _iconSource.Background = b;
+    }
+
     public void Dispose()
     {
+        Themes.ThemeManager.Changed -= OnThemeChanged;
         _vm.PropertyChanged -= OnVmChanged;
         _icon.Dispose();
     }

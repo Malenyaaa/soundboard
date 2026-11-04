@@ -13,7 +13,7 @@ namespace Soundboard.App.Views;
 
 /// <summary>
 /// Guided removal (<c>Soundboard.exe --uninstall</c>, also from the tray menu): check the
-/// audio state and offer "Wie vorher", delete the app's own data after a question (sounds
+/// audio state and offer "Standardgerät zurückstellen", delete the app's own data after a question (sounds
 /// kept unless unticked), explain how to remove the cable driver, and compare at the end.
 /// Snapshot and the noted Discord microphone are read once at the start, so they are still
 /// there for the last step after the data has been deleted.
@@ -75,7 +75,7 @@ public partial class UninstallWindow : Window
         var cmp = SnapshotService.Compare(_snapshot, now);
         string when = _snapshot.TakenAt.ToString("dd.MM.yyyy, HH:mm", De);
         StateText.Text = cmp.DefaultsChanged
-            ? $"Seit der Sicherung vom {when} weicht ein Windows-Standardgerät ab: {string.Join("; ", cmp.DefaultChangeLines)}. „Wie vorher“ stellt es zurück."
+            ? $"Seit der Sicherung vom {when} weicht ein Windows-Standardgerät ab: {string.Join("; ", cmp.DefaultChangeLines)}. „Standardgerät zurückstellen“ stellt es zurück."
             : $"Die Windows-Standardgeräte sind wie in der Sicherung vom {when}. Hier ist nichts zu tun.";
         RestoreButton.Visibility = cmp.DefaultsChanged ? Visibility.Visible : Visibility.Collapsed;
         Table.ItemsSource = cmp.Rows;

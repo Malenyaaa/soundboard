@@ -45,10 +45,22 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>While a tile waits for its hotkey, the next key press goes to it.</summary>
+    /// <summary>While a tile waits for its hotkey, the next key press goes to it. Esc closes the open box or the settings.</summary>
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (_vm.CapturingTile is null) return;
+        if (_vm.CapturingTile is null)
+        {
+            if (e.Key == Key.Escape && Keyboard.FocusedElement is not TextBox { DataContext: TileViewModel { IsRenaming: true } }
+                && !IsInOpenDropDown(e.OriginalSource as DependencyObject))
+            {
+                var open = _vm.Tiles.FirstOrDefault(t => t.IsIssueOpen);
+                if (open is not null) open.IsIssueOpen = false;
+                else if (_vm.SettingsOpen) _vm.CloseSettingsCommand.Execute(null);
+                else return;
+                e.Handled = true;
+            }
+            return;
+        }
         var key = e.Key == Key.System ? e.SystemKey : e.Key;
         int vk = KeyInterop.VirtualKeyFromKey(key);
         var m = Keyboard.Modifiers;
@@ -58,6 +70,53 @@ public partial class MainWindow : Window
         if (m.HasFlag(ModifierKeys.Shift)) mods |= HotkeyModifiers.Shift;
         if (m.HasFlag(ModifierKeys.Windows)) mods |= HotkeyModifiers.Win;
         if (_vm.OnCapturedKey(vk, mods)) e.Handled = true;
+    }
+
+    /// <summary>Esc inside an open list belongs to the list (it closes the list, not the settings).</summary>
+    private static bool IsInOpenDropDown(DependencyObject? source)
+    {
+        for (var d = source; d is not null; d = d is System.Windows.Media.Visual or System.Windows.Media.Media3D.Visual3D
+                 ? System.Windows.Media.VisualTreeHelper.GetParent(d) ?? LogicalTreeHelper.GetParent(d)
+                 : LogicalTreeHelper.GetParent(d))
+        {
+            if (d is ComboBox { IsDropDownOpen: true } or ComboBoxItem or System.Windows.Controls.ContextMenu) return true;
+        }
+        return false;
+    }
+
+    /// <summary>Narrow window: the volume and the buttons move into a second header row.</summary>
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e) => LayoutHeader(ActualWidth);
+
+    public void LayoutHeader(double width)
+    {
+        // Measure what one row needs: monitor group + actions + stop button + gaps and padding.
+        var free = new Size(double.PositiveInfinity, double.PositiveInfinity);
+        var monitor = (UIElement)HeaderGrid.Children[0];
+        monitor.Measure(free);
+        ActionGroup.Measure(free);
+        StopButton.Measure(free);
+        double need = monitor.DesiredSize.Width + ActionGroup.DesiredSize.Width + StopButton.DesiredSize.Width + 24 + 16 + 32 + 8;
+        bool narrow = width < need;
+        Grid.SetRow(ActionGroup, narrow ? 1 : 0);
+        Grid.SetColumn(ActionGroup, narrow ? 0 : 1);
+        Grid.SetColumnSpan(ActionGroup, narrow ? 3 : 1);
+        ActionGroup.Margin = narrow ? new Thickness(0, 10, 0, 0) : new Thickness(24, 0, 16, 0);
+
+        // The notice puts its buttons under the text when the window is narrow.
+        bool narrowNotice = width < 760;
+        DockPanel.SetDock(NoticeButtons, narrowNotice ? Dock.Bottom : Dock.Right);
+        NoticeButtons.Margin = narrowNotice ? new Thickness(28, 8, 0, 0) : new Thickness(12, 0, 0, 0);
+        NoticeButtons.HorizontalAlignment = HorizontalAlignment.Left;
+    }
+
+    /// <summary>Ctrl + mouse wheel over a pad: its volume in steps of 5 % (the plain wheel scrolls).</summary>
+    private void OnPadWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (Keyboard.Modifiers == ModifierKeys.Control && sender is FrameworkElement { DataContext: TileViewModel tile } && !tile.IsRenaming)
+        {
+            tile.NudgeVolume(e.Delta > 0 ? 1 : -1);
+            e.Handled = true;
+        }
     }
 
     protected override void OnDeactivated(EventArgs e)

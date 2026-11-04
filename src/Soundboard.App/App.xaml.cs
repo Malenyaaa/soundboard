@@ -37,7 +37,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        ThemeManager.FollowWindows(this);
+        ThemeManager.Start(this, Core.Config.ProfileStore.Peek(Core.Config.AppPaths.Default.ProfileFile));
         switch (Mode)
         {
             case StartMode.Watch:

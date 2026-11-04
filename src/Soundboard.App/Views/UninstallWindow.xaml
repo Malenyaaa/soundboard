@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Soundboard entfernen"
         Width="760" Height="780" MinWidth="480" MinHeight="400" WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource WindowBg}" Foreground="{DynamicResource TextBrush}">
+        Background="{DynamicResource WindowBg}" Foreground="{DynamicResource TextBrush}"
+        FontFamily="{DynamicResource FontText}" FontSize="{DynamicResource SizeText}">
     <Window.Resources>
         <Style x:Key="H" TargetType="TextBlock">
             <Setter Property="FontSize" Value="16" />
@@ -15,7 +16,7 @@
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="LineHeight" Value="21" />
         </Style>
-        <Style x:Key="B" TargetType="Button">
+        <Style x:Key="B" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Padding" Value="12,5" />
             <Setter Property="Margin" Value="0,8,8,0" />
             <Setter Property="HorizontalAlignment" Value="Left" />
@@ -31,7 +32,7 @@
     </Window.Resources>
 
     <DockPanel>
-        <Border DockPanel.Dock="Bottom" Background="{DynamicResource StatusBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="16,8">
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,1,0,0" Padding="16,8">
             <Button Content="Schließen" Padding="16,5" HorizontalAlignment="Right" Click="OnClose" IsCancel="True" />
         </Border>
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -49,7 +50,7 @@
                 <!-- 1 -->
                 <TextBlock Style="{StaticResource H}" Text="1. Audio-Zustand prüfen" />
                 <TextBlock x:Name="StateText" Style="{StaticResource P}" />
-                <Button x:Name="RestoreButton" Style="{StaticResource B}" Content="Wie vorher" Click="OnRestore"
+                <Button x:Name="RestoreButton" Style="{StaticResource B}" Content="Standardgerät zurückstellen" Click="OnRestore"
                         ToolTip="Stellt die Windows-Standardgeräte auf die gesicherten zurück. Sonst wird nichts verändert." />
                 <TextBlock x:Name="RestoreText" Style="{StaticResource P}" Margin="0,6,0,0" Visibility="Collapsed" />
 
@@ -83,11 +84,11 @@
                 <Button Style="{StaticResource B}" Content="Neu vergleichen" Click="OnCompare" />
                 <DataGrid x:Name="Table" AutoGenerateColumns="False" IsReadOnly="True" Margin="0,10,0,0" MaxHeight="320"
                           HeadersVisibility="Column" GridLinesVisibility="Horizontal" CanUserAddRows="False"
-                          HorizontalGridLinesBrush="{DynamicResource GridLine}" Background="{DynamicResource SurfaceBg}">
+                         >
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Was" Binding="{Binding What}" Width="2*" />
-                        <DataGridTextColumn Header="Gesichert" Binding="{Binding Saved}" Width="2*" />
-                        <DataGridTextColumn Header="Jetzt" Binding="{Binding Now}" Width="2*" />
+                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Was" Binding="{Binding What}" Width="2*" />
+                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Gesichert" Binding="{Binding Saved}" Width="2*" />
+                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Jetzt" Binding="{Binding Now}" Width="2*" />
                         <DataGridTemplateColumn Header="Ergebnis" Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

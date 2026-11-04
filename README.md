@@ -1,19 +1,20 @@
 # Soundboard für Windows
 
-Ein Soundboard für Windows 11: Sounds als Kacheln, per Klick oder globaler Taste abspielen,
+Ein Soundboard für Windows 11: Sounds als Pads, per Klick oder globaler Taste abspielen,
 selbst mithören – und zusammen mit dem eigenen Mikrofon über ein virtuelles Audiokabel in
 Discord schicken.
 
 Grundsatz: **Die Windows-Soundeinstellungen werden nicht verändert.** Das Programm liest
 Standardgeräte nur, öffnet Geräte ausschließlich per Endpunkt-ID im Shared Mode (nie
 exklusiv) und stellt weder Lautstärken noch Formate um. Die einzige Ausnahme ist der Knopf
-„Wie vorher“ (bzw. `--restore`): Er stellt auf ausdrücklichen Wunsch die
+„Standardgerät zurückstellen“ (bzw. `--restore`): Er stellt auf ausdrücklichen Wunsch die
 Windows-Standardgeräte auf die vorher gesicherten zurück – nur diese, nie das Kabel. Das
 ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.8.0.
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.9.0 mit
+überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe).
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer ist **noch ungetestet** (siehe unten).
 
@@ -32,7 +33,7 @@ Standardmikrofon und seine Standardwiedergabe.
 ## Einrichtung
 
 Die Einrichtung öffnet sich beim ersten Start und ist jederzeit über den Knopf
-„Einrichtung“ erreichbar.
+„Einstellungen“ (Zahnrad) → „Einrichtung“ erreichbar.
 
 ### 1. Virtuelles Kabel (VB-CABLE)
 
@@ -43,8 +44,8 @@ Die Einrichtung öffnet sich beim ersten Start und ist jederzeit über den Knopf
    „Install Driver“.
 4. Windows neu starten, Soundboard öffnen. Es findet „CABLE Input“ und „CABLE Output“ und
    vergleicht mit der Sicherung. Hat das Setup ein Standardgerät verstellt (Windows macht
-   neue Audiotreiber manchmal zum Standard), erscheint ein gelber Hinweis mit **„Wie
-   vorher“**.
+   neue Audiotreiber manchmal zum Standard), erscheint ein gelber Hinweis; „Ansehen“ öffnet den Vergleich mit
+   **„Standardgerät zurückstellen“**.
 5. Prüfen: Beim Sprechen schlägt „Das sendet dein Kabel gerade“ aus. Gegenprobe ohne
    Discord: Systemsteuerung → Sound → Registerkarte „Aufnahme“ → bei „CABLE Output“
    bewegt sich die Anzeige. „Testton senden“ schickt eine Sekunde 440 Hz nur ins Kabel.
@@ -75,35 +76,80 @@ Discords Dateien.
 
 ## Bedienung
 
+### Das Fenster
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ (●) Mithören [Kopfhörer  v]  ◁) ━━━●── 80 %  [Sounds hinzufügen …] [⚙] [■ Alles stoppen] │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│ ⚠ Ein Windows-Standardgerät weicht von der Sicherung ab …   [Ansehen] [Schließen] │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│ ┌Num 1───1,2 s┐ ┌Num 2──■ 3,5 s┐ ┌Num 3───6,0 s┐ ┌⚠ Num 3─1,8 s┐ ┌────────12,4 s┐ │
+│ │             │ │▓▓▓▓▓ leuchtet│ │             │ │             │ │              │ │
+│ │ Airhorn     │ │Trommelwirbel │ │ Applaus 85 %│ │ Ba-dum-tss  │ │ Grillen      │ │
+│ └─────────────┘ └──────────────┘ └─────────────┘ └─────────────┘ └──────────────┘ │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│ Kabel: sendet ▬▬▭   Mikrofon: an   Tasten: 6 aktiv                  Sound-Ordner │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+- **Pads:** Jeder Sound ist ein Pad. Klick spielt ab, nochmal klicken stoppt. Ein spielendes
+  Pad leuchtet in seiner Farbe auf; der dunklere Teil wandert von links nach rechts und zeigt,
+  wie weit der Sound ist. Oben links steht die Taste als Tastenkappe, oben rechts die Länge.
+  Eine Lautstärke unter 100 % steht unten rechts.
+- **Rechtsklick auf ein Pad:** Taste belegen oder entfernen, Lautstärke (Regler), umbenennen, im
+  Sound-Ordner zeigen, Pad entfernen (mit „Rückgängig“). **Strg + Mausrad** über einem Pad
+  ändert seine Lautstärke in 5-%-Schritten.
 - **Sounds hinzufügen:** MP3, WAV, OGG oder FLAC ins Fenster ziehen oder „Sounds hinzufügen …“.
-  Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt.
-- **Abspielen:** Kachel anklicken, nochmal klicken stoppt. Rechtsklick: Taste belegen,
-  umbenennen, im Ordner zeigen, entfernen (mit „Rückgängig“).
-- **Globale Tasten:** Rechtsklick → „Taste belegen …“, dann die Taste drücken; Enter nimmt den
-  Vorschlag (Num 1 … Num 9, Num 0). Die Tasten wirken überall, auch im Spiel – das Spiel sieht
-  sie dann nicht. **Pause** stoppt alles. Ist eine Taste doppelt vergeben oder von einem
-  anderen Programm belegt, steht das gelb da, mit einem Ausweg. „Hotkeys pausieren“ gibt alle
-  Tasten frei. Hinweis: Numpad-Tasten liefern nur bei eingeschaltetem NumLock „Num 1“ usw.
-- **Mithören auf:** Gerät, auf dem du die Sounds selbst hörst (per ID gemerkt).
-- **Mikrofon, Mikro-Lautstärke, Pegel:** das echte Mikrofon für den Mix; die Lautstärke wirkt
-  nur im Soundboard, nicht in Windows.
-- **Ans Kabel senden:** Mikrofon und Sounds gehen ins Kabel, solange das Häkchen gesetzt ist.
-- **Puffer klein/mittel/groß:** größer wählen, wenn die Stimme knackt. Die Statusleiste zählt
-  Aussetzer.
-- **Stimme blockieren:** Mikrofon ist stumm, solange ein Sound läuft (Standard aus).
-- **10 s Test aufnehmen:** nimmt Mikrofon und Sounds zehn Sekunden lang in eine WAV-Datei auf –
-  zum Anhören ohne Kabel und ohne Discord. Die Datei liegt im Ordner `Aufnahmen`.
-- **Audio-Zustand** (unten aufklappen): Vergleich „gesichert – jetzt“ für Standardgeräte,
-  Geräte, Lautstärken. Knöpfe „Wie vorher“, „Audio-Zustand jetzt sichern“, „Neu vergleichen“.
+  Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt. Ohne Sounds zeigt das
+  Fenster eine Ablagefläche mit demselben Knopf.
+- **Globale Tasten:** Klick auf die Tastenkappe (oder Rechtsklick → „Taste belegen …“), dann die
+  Taste drücken; Enter nimmt den Vorschlag (Num 1 … Num 9, Num 0). Die Tasten wirken überall,
+  auch im Spiel – das Spiel sieht sie dann nicht. **Pause** stoppt alles. Ist eine Taste doppelt
+  vergeben oder von einem anderen Programm belegt, wird ihre Kappe gelb mit Warnzeichen; ein
+  Klick darauf zeigt auf dem Pad, was los ist, mit dem Ausweg („Num 3 hierher holen“, „Andere
+  Taste wählen“). Numpad-Tasten liefern nur bei eingeschaltetem NumLock „Num 1“ usw.
+- **Mithören:** Schalter und Gerät, auf dem du die Sounds selbst hörst (per ID gemerkt).
+- **Alles stoppen:** der einzige rote Knopf; stoppt alle laufenden Sounds.
+- **Statuszeile:** Kabel (mit Pegel), Mikrofon, Tasten – ein Klick öffnet die passende
+  Einstellungsseite. Ein Warnzeichen erscheint, wenn das Kabel nicht sendet oder eine Taste
+  nicht wirkt. Die Windows-Standardgeräte stehen hier nicht; die zeigt Windows selbst.
+- **Hinweise:** Es steht immer höchstens ein gelber Hinweis über den Pads. Gibt es mehrere,
+  blättert „Nächster“ weiter.
 - **Fenster schließen** lässt das Programm im Infobereich (Notensymbol) weiterlaufen, damit
   Discord weiter dein Mikrofon bekommt. **Beenden** über Rechtsklick auf das Symbol; die
   Rückfrage sagt, dass Discord dann Stille vom Kabel hört, und zeigt den Vergleich mit der
   Sicherung.
 - **Absturz:** Ein kleiner Wächter-Prozess merkt, wenn das Programm unerwartet endet, und
-  meldet, was das für Discord heißt – mit „Neu starten“ und, falls nötig, „Wie vorher“.
+  meldet, was das für Discord heißt – mit „Neu starten“ und, falls nötig, „Standardgerät
+  zurückstellen“.
+
+### Einstellungen (Zahnrad)
+
+Die Einstellungen legen sich über die Pads; Kopfzeile und „Alles stoppen“ bleiben. Esc oder
+„Schließen“ führt zurück.
+
+| Reiter | Inhalt |
+|---|---|
+| Einrichtung | die drei Schritte: Kabel, Discord, Rauschunterdrückung (siehe oben) |
+| Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
+| Tasten | Tasten pausieren; alle Pads mit Taste und Zustand, Ausweg bei Konflikten; Sounds überlagern (aus: ein neuer Sound stoppt den laufenden) |
+| Audio-Zustand | Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken; „Standardgerät zurückstellen“, „Audio-Zustand jetzt sichern“, „Neu vergleichen“; darunter die Audiogeräte in Windows (nur angezeigt) |
+| Design | Darstellung (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); weiches Aufleuchten an/aus |
+
+**Akzentfarbe:** acht Farben nach Sanzo Wadas „A Dictionary of Color Combinations“ (Pfauenblau,
+Olympiablau, Blauviolett, Purpur, Orange, Olivgelb, Grün, Schiefer) oder eine eigene als
+Hex-Wert. Jede Farbe wird für hell und dunkel getrennt abgestimmt, bis Schrift darauf und die
+Farbe auf dem Grund mindestens 4,5 : 1 Kontrast haben. Muss eine eigene Farbe dafür
+abgedunkelt oder aufgehellt werden, sagt ein gelber Hinweis, zu welchem Wert. Die
+Windows-Akzentfarbe wird nicht benutzt.
+
+**Animationen:** Nur das Aufleuchten eines Pads blendet kurz ein (160 ms). Ist es im Reiter
+„Design“ aus oder sind in Windows die Animationseffekte ausgeschaltet, leuchtet das Pad sofort
+auf. Was per Taste ausgelöst wird, bewegt sich sonst nicht.
 
 Fehlt etwas (kein Kabel, kein Mikrofon, Taste belegt), erscheint ein gelber Hinweis mit dem
-nächsten Schritt. Knöpfe werden nie ausgegraut.
+nächsten Schritt – bei Pads direkt auf dem Pad. Knöpfe werden nie ausgegraut.
 
 ## Kommandozeile
 
@@ -126,7 +172,7 @@ dem Weg „von Hand“ ausgegeben.
 
 Rechtsklick auf das Notensymbol → **„Alles entfernen …“** oder `Soundboard.exe --uninstall`:
 
-1. **Audio-Zustand prüfen**, bei Abweichung „Wie vorher“.
+1. **Audio-Zustand prüfen**, bei Abweichung „Standardgerät zurückstellen“.
 2. **Eigene Daten löschen** – erst nach Rückfrage; „Sounds behalten“ ist vorausgewählt.
    Entfernt werden Einstellungen, Sicherungen, Test-Aufnahmen und der Autostart-Eintrag,
    falls gesetzt.
@@ -148,7 +194,7 @@ Alles liegt unter `%LOCALAPPDATA%\Soundboard\`:
 
 | Datei/Ordner | Inhalt |
 |---|---|
-| `config.json` | Kacheln, Tasten, Geräte-IDs, Lautstärken, Puffer |
+| `config.json` | Pads, Tasten, Geräte-IDs, Lautstärken, Puffer, Design (Darstellung, Akzentfarbe, Pad-Farben, Animationen) |
 | `Sounds\` | die hereingezogenen Sounds (Kopien) |
 | `Aufnahmen\` | 10-Sekunden-Testaufnahmen |
 | `audio-snapshot.json` | gesicherter Windows-Audio-Zustand (beim ersten Start automatisch) |

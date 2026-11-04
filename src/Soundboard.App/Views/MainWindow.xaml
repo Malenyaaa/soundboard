@@ -1,38 +1,70 @@
 <Window x:Class="Soundboard.App.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+        xmlns:views="clr-namespace:Soundboard.App.Views"
         Title="Soundboard"
         Width="1000" Height="700" MinWidth="560" MinHeight="420"
         Background="{DynamicResource WindowBg}" Foreground="{DynamicResource TextBrush}"
+        FontFamily="{DynamicResource FontText}" FontSize="{DynamicResource SizeText}"
+        TextOptions.TextFormattingMode="Display"
         AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown"
-        Closed="OnClosed">
+        SizeChanged="OnSizeChanged" Closed="OnClosed">
 
+    <!--
+        Leitsatz: a pad sampler on the desk. The housing (bars, settings) stays quiet grey;
+        the pads carry the colour and light up while they play.
+    -->
     <Window.Resources>
-        <!-- Clickable area of a tile: hover and pressed are visible, focus gets a frame. -->
-        <Style x:Key="TileButton" TargetType="Button">
-            <Setter Property="Background" Value="Transparent" />
+        <Style x:Key="H2" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="{DynamicResource SizeGroup}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,24,0,8" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style x:Key="P" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="21" />
+        </Style>
+        <Style x:Key="Sub" TargetType="TextBlock" BasedOn="{StaticResource P}">
+            <Setter Property="Foreground" Value="{DynamicResource SubTextBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="LineHeight" Value="19" />
+        </Style>
+        <Style x:Key="FormLabel" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,16,0" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style x:Key="Num" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{DynamicResource FontDisplay}" />
+            <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- The pad itself: rubber face, pressed = sinks in a little. Lit state comes from the data template. -->
+        <Style x:Key="PadButton" TargetType="Button">
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
-            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="Transparent"
-                                BorderThickness="2" CornerRadius="6,6,0,0" Padding="10,8,10,6">
-                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1.5" CornerRadius="10" SnapsToDevicePixels="True">
+                            <ContentPresenter Margin="12,10,12,10" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverOverlay}" />
+                                <Setter TargetName="Bd" Property="BorderThickness" Value="2.5" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PressedOverlay}" />
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.97" ScaleY="0.97" />
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -40,29 +72,33 @@
             </Setter>
         </Style>
 
-        <Style x:Key="StopButton" TargetType="Button">
-            <Setter Property="Foreground" Value="{DynamicResource OnStopBrush}" />
-            <Setter Property="Background" Value="{DynamicResource StopBg}" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Padding" Value="16,8" />
+        <!-- The key printed on a pad as a key cap (thicker lower edge). -->
+        <Style x:Key="KeyCap" TargetType="Button">
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+            <Setter Property="FontFamily" Value="{DynamicResource FontPad}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="7,2,7,1" />
+            <Setter Property="MinHeight" Value="28" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6"
-                                Padding="{TemplateBinding Padding}" BorderBrush="Transparent" BorderThickness="2">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <!-- transparent rim: the clickable area is 28 px high, the printed cap smaller -->
+                        <Border Background="Transparent" Padding="0,2">
+                            <Grid>
+                                <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="1,1,1,3" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter VerticalAlignment="Center" />
+                                </Border>
+                                <Border x:Name="Hover" CornerRadius="5" Background="{DynamicResource HoverOverlay}" Visibility="Collapsed" IsHitTestVisible="False" />
+                            </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource StopHover}" />
+                                <Setter TargetName="Hover" Property="Visibility" Value="Visible" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource StopPressed}" />
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource StopFocus}" />
+                                <Setter TargetName="Bd" Property="BorderThickness" Value="1,2,1,2" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -70,40 +106,34 @@
             </Setter>
         </Style>
 
-        <!-- Step tab of the setup panel: Tag = true marks the current step (underline + bold). -->
-        <Style x:Key="StepButton" TargetType="Button">
+        <!-- Colour chip in the design tab: selected = ring + tick. -->
+        <Style x:Key="Swatch" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0,0,10,10" />
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Padding" Value="10,6" />
-            <Setter Property="Margin" Value="0,0,4,0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid>
-                            <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="4,4,0,0"
-                                    BorderBrush="Transparent" BorderThickness="1">
-                                <ContentPresenter x:Name="Cp" />
-                            </Border>
-                            <Border x:Name="Line" Height="3" VerticalAlignment="Bottom" Background="{DynamicResource SignalBrush}" Visibility="Hidden" />
-                        </Grid>
+                    <ControlTemplate TargetType="RadioButton">
+                        <StackPanel Width="76" Background="Transparent">
+                            <Grid Width="44" Height="44" HorizontalAlignment="Center">
+                                <Border x:Name="Ring" CornerRadius="12" BorderThickness="2" BorderBrush="Transparent" />
+                                <Border x:Name="Chip" Margin="5" CornerRadius="8" Background="{Binding Swatch}" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}" />
+                                <TextBlock x:Name="Hash" Text="#" FontFamily="{DynamicResource FontDisplay}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource SubTextBrush}" Visibility="{Binding ShowHash, Converter={StaticResource BoolToVis}}" />
+                            </Grid>
+                            <TextBlock x:Name="Label" Text="{Binding Name}" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverOverlay}" />
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource LineBrush}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PressedOverlay}" />
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource SubTextBrush}" />
                             </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
-                            </Trigger>
-                            <Trigger Property="Tag">
-                                <Trigger.Value>
-                                    <sys:Boolean>True</sys:Boolean>
-                                </Trigger.Value>
-                                <Setter TargetName="Line" Property="Visibility" Value="Visible" />
-                                <Setter Property="FontWeight" Value="SemiBold" />
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource TextBrush}" />
+                                <Setter TargetName="Label" Property="FontWeight" Value="SemiBold" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -111,411 +141,714 @@
             </Setter>
         </Style>
 
-        <Style TargetType="Button" x:Key="PlainButton">
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="Margin" Value="0,0,8,0" />
-            <Setter Property="Cursor" Value="Hand" />
+        <Style x:Key="WarnIcon" TargetType="Path">
+            <Setter Property="Data" Value="{StaticResource WarnGeometry}" />
+            <Setter Property="Stroke" Value="{DynamicResource NoticeText}" />
+            <Setter Property="StrokeThickness" Value="1.6" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+            <Setter Property="StrokeStartLineCap" Value="Round" />
+            <Setter Property="StrokeEndLineCap" Value="Round" />
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="17" />
+            <Setter Property="Stretch" Value="None" />
+            <Setter Property="VerticalAlignment" Value="Top" />
         </Style>
+
+        <!-- One pad. -->
+        <DataTemplate x:Key="PadTemplate">
+            <Grid x:Name="Root" Background="Transparent" ToolTip="{Binding ToolTipText}" MouseWheel="OnPadWheel" ToolTipService.InitialShowDelay="800">
+                <Grid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Taste belegen …" Command="{Binding AssignHotkeyCommand}" />
+                        <MenuItem Header="Taste entfernen" Command="{Binding ClearHotkeyCommand}"
+                                  Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}" />
+                        <MenuItem Header="{Binding KeyIssueActionText}" Command="{Binding RunKeyIssueActionCommand}"
+                                  Visibility="{Binding HotkeyProblem, Converter={StaticResource BoolToVis}}" />
+                        <Separator />
+                        <MenuItem StaysOpenOnClick="True" Cursor="Arrow">
+                            <MenuItem.Header>
+                                <DockPanel Width="210">
+                                    <TextBlock DockPanel.Dock="Left" Text="Lautstärke" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding VolumeText}" Width="40" TextAlignment="Right" Style="{StaticResource Num}" />
+                                    <Slider Minimum="0" Maximum="100" Value="{Binding VolumePercent}" SmallChange="1" LargeChange="10" Margin="0,0,6,0"
+                                            ToolTip="Lautstärke dieses Pads. Auch mit Strg + Mausrad über dem Pad." />
+                                </DockPanel>
+                            </MenuItem.Header>
+                        </MenuItem>
+                        <MenuItem Header="Umbenennen" Command="{Binding RenameCommand}" />
+                        <MenuItem Header="Im Sound-Ordner zeigen" Command="{Binding ShowInFolderCommand}" />
+                        <Separator />
+                        <MenuItem Header="Pad entfernen" Command="{Binding RemoveCommand}" />
+                    </ContextMenu>
+                </Grid.ContextMenu>
+
+                <!-- Light around the pad while it plays (the LED shines through). -->
+                <Border x:Name="Glow" CornerRadius="10" Background="{Binding Pad.Lit}" Opacity="0" IsHitTestVisible="False" Visibility="Collapsed">
+                    <Border.Effect>
+                        <DropShadowEffect Color="{Binding Pad.GlowColor}" BlurRadius="24" ShadowDepth="0" Opacity="0.9" />
+                    </Border.Effect>
+                </Border>
+
+                <Button x:Name="PadBtn" Style="{StaticResource PadButton}" Command="{Binding ClickCommand}"
+                        Background="{Binding Pad.Face}" BorderBrush="{Binding Pad.Line}" Foreground="{Binding Pad.Text}"
+                        AutomationProperties.Name="{Binding Name}">
+                    <Grid>
+                        <!-- Played part: sweeps from left to right like a play head. -->
+                        <Border x:Name="Played" Margin="-12,-10" CornerRadius="9,0,0,9" Background="{Binding Pad.LitPlayed}" Visibility="Collapsed"
+                                RenderTransformOrigin="0,0.5" IsHitTestVisible="False">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="{Binding Progress}" />
+                            </Border.RenderTransform>
+                        </Border>
+                        <DockPanel>
+                            <DockPanel DockPanel.Dock="Bottom" LastChildFill="True">
+                                <TextBlock x:Name="Vol" DockPanel.Dock="Right" Text="{Binding VolumeText}" Style="{StaticResource Num}" FontSize="12" VerticalAlignment="Bottom" Margin="8,0,0,2"
+                                           Visibility="{Binding ShowVolume, Converter={StaticResource BoolToVis}}" />
+                                <StackPanel VerticalAlignment="Bottom">
+                                    <TextBlock x:Name="Status" Text="{Binding StatusText}" FontSize="12" Margin="0,0,0,2"
+                                               Visibility="{Binding StatusText, Converter={StaticResource TextToVis}}" />
+                                    <TextBlock Text="{Binding Name}" FontFamily="{DynamicResource FontPad}" FontSize="16" LineHeight="19"
+                                               LineStackingStrategy="BlockLineHeight" MaxHeight="57" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </DockPanel>
+                            <Border />
+                        </DockPanel>
+                    </Grid>
+                </Button>
+
+                <!-- Top row: key cap (left), length (right). The length never gives way. -->
+                <DockPanel VerticalAlignment="Top" Margin="11,8,12,0" LastChildFill="False">
+                    <TextBlock x:Name="Dur" DockPanel.Dock="Right" Text="{Binding DurationText}" Style="{StaticResource Num}" FontSize="13"
+                               Foreground="{Binding Pad.Text}" Margin="8,5,0,0" VerticalAlignment="Top" IsHitTestVisible="False" />
+                    <Rectangle x:Name="StopGlyph" DockPanel.Dock="Right" Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" VerticalAlignment="Top" Margin="8,8,0,0"
+                               Fill="{Binding Pad.LitText}" Visibility="Collapsed" IsHitTestVisible="False" />
+                    <Button x:Name="Cap" DockPanel.Dock="Left" Style="{StaticResource KeyCap}" Command="{Binding KeyCapClickCommand}"
+                            Background="{Binding Pad.CapBg}" BorderBrush="{Binding Pad.CapLine}" Foreground="{Binding Pad.Text}"
+                            Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}"
+                            ToolTip="{Binding HotkeyText, StringFormat={}{0} – Klick: andere Taste belegen}">
+                        <DockPanel>
+                            <Path x:Name="CapWarn" Style="{StaticResource WarnIcon}" DockPanel.Dock="Left" Width="13" Height="12" Stretch="Uniform" Margin="0,0,5,0" StrokeThickness="1.4" VerticalAlignment="Center"
+                                  Visibility="Collapsed" />
+                            <TextBlock Text="{Binding HotkeyText}" TextTrimming="CharacterEllipsis" />
+                        </DockPanel>
+                    </Button>
+                    <!-- No key yet: a ghost cap appears on hover. -->
+                    <Button x:Name="GhostCap" DockPanel.Dock="Left" Style="{StaticResource KeyCap}" Command="{Binding AssignHotkeyCommand}"
+                            Background="Transparent" BorderBrush="{Binding Pad.Line}" Foreground="{Binding Pad.Text}" FontFamily="{DynamicResource FontText}"
+                            Content="Taste …" ToolTip="Taste für dieses Pad belegen" Visibility="Collapsed" />
+                </DockPanel>
+
+                <!-- Rename in place -->
+                <TextBox x:Name="RenameBox" Text="{Binding Name, UpdateSourceTrigger=Explicit}" VerticalAlignment="Bottom" Margin="8"
+                         Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}"
+                         KeyDown="OnRenameKeyDown" LostKeyboardFocus="OnRenameLostFocus" IsVisibleChanged="OnRenameVisibleChanged" />
+
+                <!-- Waiting for a key -->
+                <Border CornerRadius="10" Background="{DynamicResource FieldBg}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2" Padding="12,10"
+                        Visibility="{Binding IsCapturingKey, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding CaptureHint}" TextWrapping="Wrap" FontSize="12" LineHeight="17" Foreground="{DynamicResource TextBrush}" />
+                </Border>
+
+                <!-- Problem of this pad: yellow box on the pad, with the way out. May grow over the row below. -->
+                <Canvas Visibility="{Binding IsIssueOpen, Converter={StaticResource BoolToVis}}">
+                <Border Style="{StaticResource NoticeBox}" CornerRadius="10" Padding="10,8"
+                        Width="{Binding ActualWidth, ElementName=Root}" MinHeight="{Binding ActualHeight, ElementName=Root}">
+                    <StackPanel>
+                        <DockPanel>
+                            <Path Style="{StaticResource WarnIcon}" Margin="0,1,6,0" />
+                            <TextBlock Text="{Binding IssueText}" TextWrapping="Wrap" FontSize="12" LineHeight="17" />
+                        </DockPanel>
+                        <WrapPanel Margin="0,6,0,0">
+                            <Button Style="{StaticResource NoticeButton}" Content="{Binding IssueActionText}" Command="{Binding RunIssueActionCommand}" FontSize="12"
+                                    Margin="0,0,6,4" Visibility="{Binding HasIssueAction, Converter={StaticResource BoolToVis}}" />
+                            <Button Style="{StaticResource NoticeButton}" Content="Schließen" Command="{Binding CloseIssueCommand}" FontSize="12" Margin="0,0,6,4" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+                </Canvas>
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                    <Setter TargetName="Glow" Property="Opacity" Value="1" />
+                    <Setter TargetName="Glow" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="PadBtn" Property="Background" Value="{Binding Pad.Lit}" />
+                    <Setter TargetName="PadBtn" Property="BorderBrush" Value="{Binding Pad.LitLine}" />
+                    <Setter TargetName="PadBtn" Property="Foreground" Value="{Binding Pad.LitText}" />
+                    <Setter TargetName="Dur" Property="Foreground" Value="{Binding Pad.LitText}" />
+                    <Setter TargetName="Played" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="StopGlyph" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsPlaying}" Value="True" />
+                        <Condition Binding="{Binding AnimationsOn}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard FillBehavior="Stop">
+                                <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.16">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase EasingMode="EaseOut" />
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </MultiDataTrigger.EnterActions>
+                </MultiDataTrigger>
+                <DataTrigger Binding="{Binding HotkeyProblem}" Value="True">
+                    <Setter TargetName="Cap" Property="Background" Value="{DynamicResource NoticeBg}" />
+                    <Setter TargetName="Cap" Property="BorderBrush" Value="{DynamicResource NoticeText}" />
+                    <Setter TargetName="Cap" Property="Foreground" Value="{DynamicResource NoticeText}" />
+                    <Setter TargetName="CapWarn" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Cap" Property="ToolTip" Value="Diese Taste funktioniert gerade nicht – klicken zeigt, warum" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsError}" Value="True">
+                    <Setter TargetName="PadBtn" Property="BorderBrush" Value="{DynamicResource NoticeLine}" />
+                </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsMouseOver, ElementName=Root}" Value="True" />
+                        <Condition Binding="{Binding HasHotkey}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter TargetName="GhostCap" Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsKeyboardFocusWithin, ElementName=Root}" Value="True" />
+                        <Condition Binding="{Binding HasHotkey}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter TargetName="GhostCap" Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
     </Window.Resources>
 
     <DockPanel>
-        <!-- Status line -->
-        <Border DockPanel.Dock="Bottom" Background="{DynamicResource StatusBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="12,5">
+        <!-- ============================================================ status line: one line, each part opens its tab -->
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,1,0,0" Padding="10,2">
             <DockPanel>
-                <Button DockPanel.Dock="Right" Content="Sound-Ordner öffnen" Style="{StaticResource PlainButton}" Margin="8,0,0,0"
-                        Command="{Binding OpenSoundsFolderCommand}" ToolTip="{Binding SoundsDir}" />
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock TextTrimming="CharacterEllipsis">
-                        <Run Text="{Binding StatusMonitor, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusHotkeys, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusMix, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusCable, Mode=OneWay}" />
-                    </TextBlock>
-                    <TextBlock Text="{Binding StatusDefaults}" Foreground="{DynamicResource SubTextBrush}" TextTrimming="CharacterEllipsis" />
-                </StackPanel>
-            </DockPanel>
-        </Border>
-
-        <!-- Device list (read only) -->
-        <Expander DockPanel.Dock="Bottom" Margin="12,4,12,6" Header="{Binding DevicesHeader}"
-                  Visibility="{Binding SetupOpen, Converter={StaticResource NotBoolToVis}}">
-            <DockPanel Margin="0,6,0,0">
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
-                    <Button Content="Neu einlesen" Style="{StaticResource PlainButton}" Command="{Binding RefreshDevicesCommand}" />
-                    <CheckBox VerticalAlignment="Center" Margin="0,0,12,0" IsChecked="{Binding ShowNotPresent}"
-                              Content="{Binding NotPresentCount}" ContentStringFormat="Auch nicht mehr vorhandene Geräte zeigen ({0})"
-                              ToolTip="Windows merkt sich früher benutzte Geräte. Sie sind ausgeblendet, damit die Liste übersichtlich bleibt." />
-                    <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource SubTextBrush}" TextWrapping="Wrap"
-                               Text="Die Liste aktualisiert sich auch von selbst, wenn ein Gerät dazukommt oder wegfällt." />
-                </StackPanel>
-                <DataGrid ItemsSource="{Binding Devices}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="230"
-                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" CanUserAddRows="False"
-                          SelectionUnit="FullRow" HorizontalGridLinesBrush="{DynamicResource GridLine}" Background="{DynamicResource SurfaceBg}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Richtung" Binding="{Binding Richtung}" />
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" />
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" />
-                        <DataGridTextColumn Header="Windows-Standard für" Binding="{Binding Standard}" />
-                        <DataGridTextColumn Header="Lautstärke" Binding="{Binding Lautstaerke}" />
-                        <DataGridTextColumn Header="Mix-Format" Binding="{Binding Format}" />
-                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="3*" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </DockPanel>
-        </Expander>
-
-        <!-- Saved Windows audio state vs. now -->
-        <Expander DockPanel.Dock="Bottom" Margin="12,4,12,0" Header="{Binding SnapshotHeader}"
-                  Visibility="{Binding SetupOpen, Converter={StaticResource NotBoolToVis}}">
-            <DockPanel Margin="0,6,0,0">
-                <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                    <Button Content="Wie vorher" Style="{StaticResource PlainButton}" Command="{Binding RestoreDefaultsCommand}" Margin="0,0,8,4"
-                            ToolTip="Stellt die Windows-Standardgeräte auf die gesicherten zurück. Sonst wird nichts verändert." />
-                    <Button Content="Audio-Zustand jetzt sichern" Style="{StaticResource PlainButton}" Command="{Binding SaveSnapshotNowCommand}" Margin="0,0,8,4"
-                            ToolTip="Merkt sich, wie Windows-Audio gerade eingestellt ist. Spätere Änderungen werden damit verglichen." />
-                    <Button Content="Neu vergleichen" Style="{StaticResource PlainButton}" Command="{Binding CompareAgainCommand}" Margin="0,0,16,4" />
-                    <TextBlock Text="{Binding SnapshotInfo}" VerticalAlignment="Center" Foreground="{DynamicResource SubTextBrush}" TextWrapping="Wrap" Margin="0,0,0,4" />
-                </WrapPanel>
-                <TextBlock DockPanel.Dock="Top" Text="{Binding RestoreResultText}" TextWrapping="Wrap" Margin="0,0,0,6"
-                           Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
-                <DataGrid ItemsSource="{Binding ComparisonRows}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="200"
-                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" CanUserAddRows="False"
-                          HorizontalGridLinesBrush="{DynamicResource GridLine}" Background="{DynamicResource SurfaceBg}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Was" Binding="{Binding What}" Width="2*" />
-                        <DataGridTextColumn Header="Gesichert" Binding="{Binding Saved}" Width="2*" />
-                        <DataGridTextColumn Header="Jetzt" Binding="{Binding Now}" Width="2*" />
-                        <DataGridTemplateColumn Header="Ergebnis" Width="Auto">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock x:Name="K" Text="{Binding KindText}" FontWeight="SemiBold" Foreground="{DynamicResource DiffText}" Margin="4,0" />
-                                    <DataTemplate.Triggers>
-                                        <DataTrigger Binding="{Binding KindText}" Value="gleich">
-                                            <Setter TargetName="K" Property="Foreground" Value="{DynamicResource OkText}" />
-                                            <Setter TargetName="K" Property="FontWeight" Value="Normal" />
-                                        </DataTrigger>
-                                    </DataTemplate.Triggers>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </DockPanel>
-        </Expander>
-
-        <!-- Header: playback controls -->
-        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Padding="12,10">
-            <DockPanel>
-                <Button DockPanel.Dock="Right" Content="Einrichtung" Style="{StaticResource PlainButton}" Margin="0,0,12,0" VerticalAlignment="Center"
-                        Command="{Binding OpenSetupCommand}" ToolTip="Kabel, Discord und Rauschunterdrückung einrichten – Schritt für Schritt." />
-                <Button DockPanel.Dock="Right" Style="{StaticResource StopButton}" Content="■  Alles stoppen"
-                        Command="{Binding StopAllCommand}" ToolTip="{Binding StopAllToolTip}" VerticalAlignment="Center" />
-                <WrapPanel VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
-                        <CheckBox Content="Mithören auf" IsChecked="{Binding MonitorEnabled}" VerticalAlignment="Center"
-                                  ToolTip="Spielt die Sounds auf diesem Gerät ab, damit du sie selbst hörst." />
-                        <ComboBox ItemsSource="{Binding OutputChoices}" SelectedItem="{Binding SelectedOutput}"
-                                  DisplayMemberPath="Display" Width="280" Margin="8,0,0,0"
-                                  ToolTip="Gerät für das Mithören. Die Windows-Einstellungen bleiben unverändert." />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
-                        <TextBlock Text="Lautstärke Sounds" VerticalAlignment="Center" />
-                        <Slider Minimum="0" Maximum="100" Width="140" Margin="8,0" VerticalAlignment="Center"
-                                Value="{Binding MasterVolumePercent}" SmallChange="1" LargeChange="10" IsMoveToPointEnabled="True"
-                                ToolTip="Gesamtlautstärke aller Sounds in diesem Programm (nicht die Windows-Lautstärke)." />
-                        <TextBlock Text="{Binding MasterVolumePercent, StringFormat={}{0:0} %}" Width="40" VerticalAlignment="Center" />
-                    </StackPanel>
-                    <CheckBox Content="Hotkeys pausieren" IsChecked="{Binding HotkeysPaused}" VerticalAlignment="Center" Margin="0,4,20,4"
-                              ToolTip="Gibt alle Tasten frei, z. B. wenn du im Spiel chattest. Nochmal klicken: Tasten wieder aktiv." />
-                    <CheckBox Content="Sounds überlagern" IsChecked="{Binding OverlayEnabled}" VerticalAlignment="Center" Margin="0,4,20,4"
-                              ToolTip="Aus: ein neuer Sound stoppt den laufenden. An: mehrere Sounds spielen gleichzeitig." />
-                    <Button Content="Sounds hinzufügen …" Style="{StaticResource PlainButton}" Command="{Binding AddFilesDialogCommand}"
-                            Margin="0,4,20,4" ToolTip="MP3-, WAV-, OGG- oder FLAC-Dateien auswählen. Sie werden in den Sound-Ordner kopiert." />
+                <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="Sound-Ordner" Command="{Binding OpenSoundsFolderCommand}"
+                        ToolTip="{Binding SoundsDir}" Foreground="{DynamicResource SubTextBrush}" />
+                <WrapPanel>
+                    <Button Style="{StaticResource LinkButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="kabel"
+                            ToolTip="Mikrofon und Sounds ans virtuelle Kabel – Einstellungen öffnen">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Style="{StaticResource WarnIcon}" Stroke="{DynamicResource DiffText}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                  Visibility="{Binding CableWarn, Converter={StaticResource BoolToVis}}" />
+                            <TextBlock Text="{Binding StatusCable}" VerticalAlignment="Center" />
+                            <ProgressBar Width="44" Height="6" Margin="8,0,0,0" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}" VerticalAlignment="Center"
+                                         Visibility="{Binding CableRunning, Converter={StaticResource BoolToVis}}"
+                                         ToolTip="Pegel: Das sendet dein Kabel gerade" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource LinkButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="kabel" Margin="12,0,0,0"
+                            Content="{Binding StatusMix}" ToolTip="Mikrofon im Mix – Einstellungen öffnen" />
+                    <Button Style="{StaticResource LinkButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="tasten" Margin="12,0,0,0"
+                            ToolTip="Globale Tasten der Pads – Einstellungen öffnen">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Style="{StaticResource WarnIcon}" Stroke="{DynamicResource DiffText}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                  Visibility="{Binding HotkeyProblems, Converter={StaticResource PosToVis}}" />
+                            <TextBlock Text="{Binding StatusHotkeys}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                 </WrapPanel>
             </DockPanel>
         </Border>
 
-        <!-- Microphone path: microphone + sounds go into the mix (test file now, cable later) -->
-        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Padding="12,6,12,8"
-                Visibility="{Binding SetupOpen, Converter={StaticResource NotBoolToVis}}">
-            <WrapPanel VerticalAlignment="Center">
-                <CheckBox Content="Ans Kabel senden" IsChecked="{Binding CableEnabled}" VerticalAlignment="Center" Margin="0,4,20,4"
-                          ToolTip="Mikrofon und Sounds gehen ins virtuelle Kabel. In Discord wählst du „CABLE Output“ als Mikrofon." />
-                <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
-                    <TextBlock Text="Mikrofon" VerticalAlignment="Center" />
-                    <ComboBox ItemsSource="{Binding MicChoices}" SelectedItem="{Binding SelectedMic}" DisplayMemberPath="Display"
-                              Width="300" Margin="8,0,0,0"
-                              ToolTip="Dein echtes Mikrofon. Es wird mit den Sounds gemischt. Die Windows-Einstellungen bleiben unverändert." />
+        <!-- ============================================================ header: only what is used while playing -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="16,10">
+            <Grid x:Name="HeaderGrid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox Style="{StaticResource Switch}" Content="Mithören" IsChecked="{Binding MonitorEnabled}"
+                              ToolTip="Spielt die Sounds auch auf deinem Kopfhörer, damit du sie selbst hörst." />
+                    <ComboBox ItemsSource="{Binding OutputChoices}" SelectedItem="{Binding SelectedOutput}" DisplayMemberPath="Display"
+                              Width="210" Margin="12,0,0,0" ToolTip="Gerät zum Mithören. Die Windows-Einstellungen bleiben unverändert." />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
-                    <TextBlock Text="Mikro-Lautstärke" VerticalAlignment="Center" />
-                    <Slider Minimum="0" Maximum="200" Width="110" Margin="8,0" VerticalAlignment="Center"
-                            Value="{Binding MicVolumePercent}" SmallChange="1" LargeChange="10" IsMoveToPointEnabled="True"
-                            ToolTip="Lautstärke deiner Stimme im Mix. 100 % = unverändert. Die Windows-Lautstärke des Mikrofons bleibt, wie sie ist." />
-                    <TextBlock Text="{Binding MicVolumePercent, StringFormat={}{0:0} %}" Width="44" VerticalAlignment="Center" />
+                <StackPanel x:Name="ActionGroup" Grid.Column="1" Orientation="Horizontal" Margin="24,0,16,0" VerticalAlignment="Center">
+                    <Path Data="M 1,7 L 5,7 L 10,2.5 L 10,17.5 L 5,13 L 1,13 Z M 13.5,6.5 Q 16,10 13.5,13.5 M 16,4 Q 20.5,10 16,16" Stroke="{DynamicResource TextBrush}" StrokeThickness="1.5"
+                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="21" Height="20" VerticalAlignment="Center"
+                          ToolTip="Lautstärke aller Sounds" />
+                    <Slider Minimum="0" Maximum="100" Width="110" Margin="8,0,8,0" VerticalAlignment="Center"
+                            Value="{Binding MasterVolumePercent}" SmallChange="1" LargeChange="10"
+                            AutomationProperties.Name="Lautstärke aller Sounds"
+                            ToolTip="Lautstärke aller Sounds in diesem Programm (nicht die Windows-Lautstärke)." />
+                    <TextBlock Text="{Binding MasterVolumePercent, StringFormat={}{0:0}&#x202F;%}" Width="40" Style="{StaticResource Num}" />
+                    <Button Content="Sounds hinzufügen …" Command="{Binding AddFilesDialogCommand}" Margin="16,0,0,0"
+                            ToolTip="MP3-, WAV-, OGG- oder FLAC-Dateien auswählen. Sie werden in den Sound-Ordner kopiert; ziehen geht auch." />
+                    <Button Style="{StaticResource IconButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="" Margin="8,0,0,0"
+                            AutomationProperties.Name="Einstellungen"
+                            ToolTip="Einstellungen: Einrichtung, Mikrofon &amp; Kabel, Tasten, Audio-Zustand, Design">
+                        <Path Data="{StaticResource GearGeometry}" Fill="{DynamicResource TextBrush}" Width="20" Height="20" Stretch="Uniform" />
+                    </Button>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,4,20,4" ToolTip="Das sendet dein Kabel gerade: Stimme und Sounds.">
-                    <TextBlock Text="Pegel" VerticalAlignment="Center" />
-                    <ProgressBar Width="110" Height="8" Margin="8,0,0,0" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}"
-                                 Foreground="{DynamicResource MeterBrush}" Background="{DynamicResource TrackBg}" BorderThickness="0" VerticalAlignment="Center" />
-                    <Button Content="Testton" Style="{StaticResource PlainButton}" Margin="8,0,0,0" Command="{Binding PlayTestToneCommand}"
-                            ToolTip="Schickt eine Sekunde lang einen Ton ins Kabel (nicht auf deinen Kopfhörer)." />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
-                    <TextBlock Text="Puffer" VerticalAlignment="Center" />
-                    <ComboBox ItemsSource="{Binding BufferChoices}" SelectedItem="{Binding SelectedBuffer}" DisplayMemberPath="Display"
-                              Width="140" Margin="8,0,0,0"
-                              ToolTip="Klein = weniger Verzögerung. Größer wählen, wenn die Stimme knackt oder Aussetzer hat." />
-                </StackPanel>
-                <CheckBox Content="Stimme blockieren" IsChecked="{Binding BlockVoice}" VerticalAlignment="Center" Margin="0,4,20,4"
-                          ToolTip="Dein Mikrofon ist stumm, solange ein Sound läuft." />
-                <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
-                    <Button Content="10 s Test aufnehmen" Style="{StaticResource PlainButton}" Command="{Binding RecordTestCommand}"
-                            ToolTip="Nimmt 10 Sekunden Mikrofon und Sounds in eine WAV-Datei auf. So hörst du ohne Kabel, wie der Mix klingt." />
-                    <TextBlock Text="{Binding TestStatus}" VerticalAlignment="Center" Foreground="{DynamicResource SubTextBrush}" TextWrapping="Wrap" MaxWidth="360" />
-                    <Button Content="Im Ordner zeigen" Style="{StaticResource PlainButton}" Margin="8,0,0,0" Command="{Binding ShowTestFileCommand}"
-                            Visibility="{Binding HasTestFile, Converter={StaticResource BoolToVis}}" />
-                </StackPanel>
-            </WrapPanel>
+                <Button x:Name="StopButton" Grid.Column="2" Style="{StaticResource StopButton}" Content="Alles stoppen" VerticalAlignment="Center"
+                        Command="{Binding StopAllCommand}" ToolTip="{Binding StopAllToolTip}" />
+            </Grid>
         </Border>
 
-        <!-- Yellow notices -->
-        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Notices}" Margin="12,0,12,0"
-                      Visibility="{Binding SetupOpen, Converter={StaticResource NotBoolToVis}}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Border Background="{DynamicResource NoticeBg}" BorderBrush="{DynamicResource NoticeLine}" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,8,0,0">
-                        <DockPanel>
-                            <Button DockPanel.Dock="Right" Content="Schließen" Style="{StaticResource PlainButton}" Margin="8,0,0,0"
-                                    Command="{Binding CloseCommand}" VerticalAlignment="Center" />
-                            <Button DockPanel.Dock="Right" Content="{Binding ActionText}" Style="{StaticResource PlainButton}" Margin="8,0,0,0"
-                                    Command="{Binding RunActionCommand}" VerticalAlignment="Center"
-                                    Visibility="{Binding HasAction, Converter={StaticResource BoolToVis}}" />
-                            <TextBlock DockPanel.Dock="Left" Text="⚠" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource NoticeText}" />
-                            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource NoticeText}" />
-                        </DockPanel>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <!-- ============================================================ the one yellow notice -->
+        <Border DockPanel.Dock="Top" Style="{StaticResource NoticeBox}" Margin="16,12,16,0"
+                Visibility="{Binding CurrentNotice.Text, Converter={StaticResource TextToVis}, FallbackValue=Collapsed}">
+            <DockPanel>
+                <WrapPanel x:Name="NoticeButtons" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <Button Style="{StaticResource NoticeButton}" Content="{Binding CurrentNotice.ActionText}" Command="{Binding CurrentNotice.RunActionCommand}" Margin="0,0,8,0"
+                            Visibility="{Binding CurrentNotice.HasAction, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" />
+                    <Button Style="{StaticResource NoticeButton}" Command="{Binding NextNoticeCommand}" Margin="0,0,8,0"
+                            Visibility="{Binding NoticeCountText, Converter={StaticResource TextToVis}}" ToolTip="Nächsten Hinweis zeigen">
+                        <TextBlock>
+                            <Run Text="Nächster" /><Run Text=" (" /><Run Text="{Binding NoticeCountText, Mode=OneWay}" /><Run Text=")" />
+                        </TextBlock>
+                    </Button>
+                    <Button Style="{StaticResource NoticeButton}" Content="Schließen" Command="{Binding CurrentNotice.CloseCommand}" />
+                </WrapPanel>
+                <Path Style="{StaticResource WarnIcon}" Margin="0,1,10,0" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding CurrentNotice.Text}" TextWrapping="Wrap" VerticalAlignment="Center" LineHeight="20" />
+            </DockPanel>
+        </Border>
 
-        <!-- Tiles -->
-        <Grid Background="Transparent">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding Tiles}" Margin="8">
+        <!-- ============================================================ pads, empty state, settings -->
+        <Grid>
+            <ScrollViewer x:Name="PadScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                <ItemsControl ItemsSource="{Binding Tiles}" Margin="16,16,16,20" ItemTemplate="{StaticResource PadTemplate}" Focusable="False">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel />
+                            <views:PadPanel MinPadWidth="160" Gap="12" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border x:Name="Tile" Width="176" Margin="6" CornerRadius="6" Background="{Binding Background}"
-                                    BorderBrush="{DynamicResource TileLine}" BorderThickness="1" ToolTip="{Binding ToolTipText}">
-                                <Border.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="Taste belegen …" Command="{Binding AssignHotkeyCommand}" />
-                                        <MenuItem Header="Taste entfernen" Command="{Binding ClearHotkeyCommand}"
-                                                  Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}" />
-                                        <Separator />
-                                        <MenuItem Header="Umbenennen" Command="{Binding RenameCommand}" />
-                                        <MenuItem Header="Im Sound-Ordner zeigen" Command="{Binding ShowInFolderCommand}" />
-                                        <Separator />
-                                        <MenuItem Header="Entfernen" Command="{Binding RemoveCommand}" />
-                                    </ContextMenu>
-                                </Border.ContextMenu>
-                                <StackPanel>
-                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=Explicit}" Margin="8,8,8,0" Padding="2"
-                                             Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}"
-                                             KeyDown="OnRenameKeyDown" LostKeyboardFocus="OnRenameLostFocus"
-                                             IsVisibleChanged="OnRenameVisibleChanged" />
-                                    <Grid>
-                                        <Button Style="{StaticResource TileButton}" Command="{Binding ClickCommand}" Height="88">
-                                            <DockPanel>
-                                                <DockPanel DockPanel.Dock="Bottom">
-                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding PlayGlyph}" FontSize="14" Foreground="{DynamicResource TileText}" />
-                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding HotkeyLabel}" Margin="0,0,10,0" FontSize="12" FontWeight="SemiBold"
-                                                               Foreground="{DynamicResource TileText}" VerticalAlignment="Center" />
-                                                    <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource TileSubText}" FontSize="12" />
-                                                </DockPanel>
-                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" Foreground="{DynamicResource TileText}"
-                                                           TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
-                                            </DockPanel>
-                                        </Button>
-                                        <Border Background="{DynamicResource SurfaceBg}" BorderBrush="{DynamicResource SignalBrush}" BorderThickness="2"
-                                                CornerRadius="6,6,0,0" Padding="10,6"
-                                                Visibility="{Binding IsCapturingKey, Converter={StaticResource BoolToVis}}">
-                                            <TextBlock Text="{Binding CaptureHint}" TextWrapping="Wrap" VerticalAlignment="Center"
-                                                       Foreground="{DynamicResource TextBrush}" FontSize="11.5" LineHeight="15" />
-                                        </Border>
-                                    </Grid>
-                                    <ProgressBar Height="5" Minimum="0" Maximum="1" Value="{Binding Progress}"
-                                                 Foreground="{DynamicResource SignalBrush}" Background="{DynamicResource TrackBg}" BorderThickness="0" />
-                                    <DockPanel Margin="8,4,8,6">
-                                        <TextBlock DockPanel.Dock="Left" Text="Lautst." VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TileSubText}" />
-                                        <TextBlock DockPanel.Dock="Right" Text="{Binding VolumePercent, StringFormat={}{0:0} %}" Width="36"
-                                                   TextAlignment="Right" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TileSubText}" />
-                                        <Slider Minimum="0" Maximum="100" Value="{Binding VolumePercent}" Margin="4,0" VerticalAlignment="Center"
-                                                SmallChange="1" LargeChange="10" IsMoveToPointEnabled="True"
-                                                ToolTip="Lautstärke dieses Sounds" />
-                                    </DockPanel>
-                                </StackPanel>
-                            </Border>
-                            <DataTemplate.Triggers>
-                                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
-                                    <Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource SignalBrush}" />
-                                    <Setter TargetName="Tile" Property="BorderThickness" Value="2" />
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsIssueOpen}" Value="True">
+                                    <Setter Property="Panel.ZIndex" Value="10" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding IsError}" Value="True">
-                                    <Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource NoticeLine}" />
-                                    <Setter TargetName="Tile" Property="BorderThickness" Value="2" />
-                                </DataTrigger>
-                            </DataTemplate.Triggers>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
                 </ItemsControl>
             </ScrollViewer>
 
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
-                       Margin="24" FontSize="15" Foreground="{DynamicResource SubTextBrush}" IsHitTestVisible="False"
-                       Visibility="{Binding HasNoTiles, Converter={StaticResource BoolToVis}}">
-                <Run Text="Noch keine Sounds." FontWeight="SemiBold" />
-                <LineBreak />
-                <Run Text="Zieh MP3-, WAV-, OGG- oder FLAC-Dateien in dieses Fenster" />
-                <LineBreak />
-                <Run Text="oder nutze oben „Sounds hinzufügen …“." />
-            </TextBlock>
+            <!-- Empty: an inviting drop pad -->
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24" MaxWidth="460"
+                  Visibility="{Binding HasNoTiles, Converter={StaticResource BoolToVis}}">
+                <Rectangle RadiusX="14" RadiusY="14" Stroke="{DynamicResource LineBrush}" StrokeThickness="2" StrokeDashArray="5 3" Fill="{DynamicResource FieldBg}" />
+                <StackPanel Margin="36,30">
+                    <Canvas Width="68" Height="56" HorizontalAlignment="Left" Margin="0,0,0,16">
+                        <Rectangle Canvas.Left="0" Canvas.Top="0" Width="20" Height="16" RadiusX="4" RadiusY="4" Fill="{DynamicResource AccentBrush}" />
+                        <Rectangle Canvas.Left="24" Canvas.Top="0" Width="20" Height="16" RadiusX="4" RadiusY="4" Stroke="{DynamicResource LineBrush}" StrokeThickness="1.5" />
+                        <Rectangle Canvas.Left="48" Canvas.Top="0" Width="20" Height="16" RadiusX="4" RadiusY="4" Stroke="{DynamicResource LineBrush}" StrokeThickness="1.5" />
+                        <Rectangle Canvas.Left="0" Canvas.Top="20" Width="20" Height="16" RadiusX="4" RadiusY="4" Stroke="{DynamicResource LineBrush}" StrokeThickness="1.5" />
+                        <Rectangle Canvas.Left="24" Canvas.Top="20" Width="20" Height="16" RadiusX="4" RadiusY="4" Stroke="{DynamicResource LineBrush}" StrokeThickness="1.5" />
+                        <Rectangle Canvas.Left="48" Canvas.Top="20" Width="20" Height="16" RadiusX="4" RadiusY="4" Stroke="{DynamicResource LineBrush}" StrokeThickness="1.5" />
+                        <Rectangle Canvas.Left="0" Canvas.Top="40" Width="20" Height="16" RadiusX="4" RadiusY="4" Stroke="{DynamicResource LineBrush}" StrokeThickness="1.5" />
+                        <Rectangle Canvas.Left="24" Canvas.Top="40" Width="20" Height="16" RadiusX="4" RadiusY="4" Stroke="{DynamicResource LineBrush}" StrokeThickness="1.5" />
+                        <Rectangle Canvas.Left="48" Canvas.Top="40" Width="20" Height="16" RadiusX="4" RadiusY="4" Stroke="{DynamicResource LineBrush}" StrokeThickness="1.5" />
+                    </Canvas>
+                    <TextBlock Text="Sounds hierher ziehen" FontFamily="{DynamicResource FontPad}" FontSize="24" />
+                    <TextBlock Style="{StaticResource P}" Margin="0,8,0,0"
+                               Text="MP3, WAV, OGG oder FLAC – einzeln oder als ganzer Ordner. Jeder Sound wird ein Pad, das du anklickst oder mit einer Taste auslöst. Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt." />
+                    <Button Style="{StaticResource PrimaryButton}" Content="Sounds hinzufügen …" Command="{Binding AddFilesDialogCommand}"
+                            HorizontalAlignment="Left" Margin="0,18,0,0" />
+                </StackPanel>
+            </Grid>
 
-            <!-- Setup panel: covers the tiles while open -->
-            <Border Background="{DynamicResource WindowBg}" Visibility="{Binding SetupOpen, Converter={StaticResource BoolToVis}}">
+            <!-- ======================================================== settings: covers the pads, header stays -->
+            <Border Background="{DynamicResource WindowBg}" Visibility="{Binding SettingsOpen, Converter={StaticResource BoolToVis}}">
                 <DockPanel>
-                    <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Padding="16,10,16,0">
-                        <DockPanel>
-                            <Button DockPanel.Dock="Right" Content="Einrichtung schließen" Style="{StaticResource PlainButton}" Margin="0"
-                                    Command="{Binding CloseSetupCommand}" VerticalAlignment="Top" />
+                    <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="16,12,16,0">
+                        <StackPanel>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="Schließen" Command="{Binding CloseSettingsCommand}" VerticalAlignment="Center"
+                                        ToolTip="Zurück zu den Pads (Esc)" />
+                                <TextBlock Text="Einstellungen" FontSize="{DynamicResource SizeTitle}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </DockPanel>
                             <StackPanel>
-                                <TextBlock Text="Einrichtung" FontSize="20" FontWeight="SemiBold" />
-                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <Button Style="{StaticResource StepButton}" Command="{Binding GoToStepCommand}" CommandParameter="1"
-                                            Tag="{Binding IsSetupStep1}" Content="1  Kabel" />
-                                    <Button Style="{StaticResource StepButton}" Command="{Binding GoToStepCommand}" CommandParameter="2"
-                                            Tag="{Binding IsSetupStep2}" Content="2  Discord" />
-                                    <Button Style="{StaticResource StepButton}" Command="{Binding GoToStepCommand}" CommandParameter="3"
-                                            Tag="{Binding IsSetupStep3}" Content="3  Rauschunterdrückung" />
-                                </StackPanel>
-                            </StackPanel>
-                        </DockPanel>
-                    </Border>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Margin="16,12,16,16" MaxWidth="760" HorizontalAlignment="Left">
-
-                            <!-- Step 1: cable -->
-                            <StackPanel Visibility="{Binding IsSetupStep1, Converter={StaticResource BoolToVis}}">
-                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
-                                           Text="Das Soundboard mischt dein Mikrofon und die Sounds und schickt beides in ein virtuelles Audiokabel. Discord nimmt das Kabel als Mikrofon. Die Windows-Standardgeräte bleiben, wie sie sind." />
-
-                                <!-- Cable missing -->
-                                <Border Background="{DynamicResource NoticeBg}" BorderBrush="{DynamicResource NoticeLine}" BorderThickness="1" CornerRadius="4" Padding="12,10"
-                                        Visibility="{Binding CableFound, Converter={StaticResource NotBoolToVis}}">
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding CableStatusText}" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource NoticeText}" />
-                                        <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource NoticeText}">
-                                            <Run Text="Gebraucht wird VB-CABLE von VB-Audio, zu finden auf" />
-                                            <Hyperlink Command="{Binding OpenCableWebsiteCommand}" Foreground="{DynamicResource NoticeText}">vb-cable.com</Hyperlink><Run Text=". VB-CABLE ist Donationware: kostenlos nutzbar, Spenden an VB-Audio sind willkommen („VB-CABLE is a donationware, all participations are welcome.“). Das Soundboard liefert es nicht mit." />
-                                        </TextBlock>
-                                        <TextBlock TextWrapping="Wrap" Margin="0,8,0,0" Foreground="{DynamicResource NoticeText}" LineHeight="20">
-                                            <Run Text="1. Zuerst „Audio-Zustand jetzt sichern“ klicken. So zeigt das Soundboard später, ob das Setup etwas verstellt hat." /><LineBreak />
-                                            <Run Text="2. Auf vb-cable.com das ZIP-Paket für Windows laden und entpacken." /><LineBreak />
-                                            <Run Text="3. VBCABLE_Setup_x64.exe mit Rechtsklick → „Als Administrator ausführen“ starten, dann „Install Driver“." /><LineBreak />
-                                            <Run Text="4. Windows neu starten und das Soundboard wieder öffnen. Es findet das Kabel und vergleicht mit der Sicherung." />
-                                        </TextBlock>
-                                        <WrapPanel Margin="0,10,0,0">
-                                            <Button Content="Audio-Zustand jetzt sichern" Style="{StaticResource PlainButton}" Command="{Binding SaveSnapshotNowCommand}" Margin="0,0,8,4" />
-                                            <Button Content="vb-cable.com öffnen" Style="{StaticResource PlainButton}" Command="{Binding OpenCableWebsiteCommand}" Margin="0,0,8,4" />
-                                            <Button Content="Nach dem Kabel suchen" Style="{StaticResource PlainButton}" Command="{Binding SearchCableCommand}" Margin="0,0,8,4" />
-                                        </WrapPanel>
-                                        <TextBlock Text="{Binding SnapshotHeader}" Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource NoticeText}" />
-                                        <TextBlock Text="{Binding RestoreResultText}" Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource NoticeText}"
-                                                   Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Cable found -->
-                                <StackPanel Visibility="{Binding CableFound, Converter={StaticResource BoolToVis}}">
-                                    <TextBlock Text="{Binding CableStatusText}" TextWrapping="Wrap" />
-                                    <Border Margin="0,10,0,0" Padding="12,8" CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}" Background="{DynamicResource SurfaceBg}">
-                                        <DockPanel>
-                                            <Button DockPanel.Dock="Right" Content="Wie vorher" Style="{StaticResource PlainButton}" Margin="8,0,0,0" VerticalAlignment="Center"
-                                                    Command="{Binding RestoreDefaultsCommand}"
-                                                    Visibility="{Binding CableCompareProblem, Converter={StaticResource BoolToVis}}" />
-                                            <TextBlock Text="{Binding CableCompareText}" TextWrapping="Wrap" VerticalAlignment="Center" />
-                                        </DockPanel>
-                                    </Border>
-                                    <TextBlock Text="{Binding RestoreResultText}" Margin="0,6,0,0" TextWrapping="Wrap"
-                                               Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
-                                    <CheckBox Content="Mikrofon und Sounds ans Kabel senden" IsChecked="{Binding CableEnabled}" Margin="0,12,0,0" />
-                                    <TextBlock Text="Das sendet dein Kabel gerade" FontWeight="SemiBold" Margin="0,14,0,4" />
-                                    <StackPanel Orientation="Horizontal">
-                                        <ProgressBar Width="280" Height="12" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}"
-                                                     Foreground="{DynamicResource MeterBrush}" Background="{DynamicResource TrackBg}" BorderThickness="0" VerticalAlignment="Center" />
-                                        <Button Content="Testton senden" Style="{StaticResource PlainButton}" Margin="12,0,0,0" Command="{Binding PlayTestToneCommand}"
-                                                ToolTip="Schickt eine Sekunde lang einen Ton ins Kabel. Auf deinem Kopfhörer ist er nicht zu hören." />
-                                    </StackPanel>
-                                    <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource SubTextBrush}"
-                                               Text="Sprich: Der Balken schlägt aus. Gegenprobe ohne Discord: Windows-Systemsteuerung → Sound → Registerkarte „Aufnahme“ – bei „CABLE Output“ bewegt sich die Anzeige." />
-                                </StackPanel>
-
-                                <Button Content="Weiter zu Schritt 2" Style="{StaticResource PlainButton}" Command="{Binding GoToStepCommand}" CommandParameter="2"
-                                        HorizontalAlignment="Left" Margin="0,16,0,0" />
-                            </StackPanel>
-                            <!-- Step 2: Discord -->
-                            <StackPanel Visibility="{Binding IsSetupStep2, Converter={StaticResource BoolToVis}}">
-                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
-                                           Text="Discord merkt sich sein Mikrofon selbst. Du stellst dort einmal auf das Kabel um; Windows bleibt dabei unverändert." />
-                                <TextBlock TextWrapping="Wrap" LineHeight="22">
-                                    <Run Text="1. In Discord unten links auf das Zahnrad (Benutzereinstellungen) → „Sprache &amp; Video“." /><LineBreak />
-                                    <Run Text="2. Eingabegerät: „CABLE Output (VB-Audio Virtual Cable)“ wählen." /><LineBreak />
-                                    <Run Text="3. Ausgabegerät nicht ändern – dort bleibt dein Kopfhörer oder Lautsprecher." /><LineBreak />
-                                    <Run Text="4. Mit dem Mikrofontest in Discord prüfen: sprechen und einen Sound abspielen." />
-                                </TextBlock>
-
-                                <TextBlock Text="Welches Mikrofon war in Discord vorher gewählt?" FontWeight="SemiBold" Margin="0,16,0,4" />
-                                <TextBox Text="{Binding DiscordPreviousMic, UpdateSourceTrigger=PropertyChanged}" MaxWidth="420" HorizontalAlignment="Left" MinWidth="320"
-                                         ToolTip="Steht dort „Default“, trag „Default“ ein." />
-                                <TextBlock TextWrapping="Wrap" Margin="0,4,0,0" Foreground="{DynamicResource SubTextBrush}"
-                                           Text="Schreib es ab, bevor du umstellst. Entfernst du das Kabel später, wählst du in Discord wieder dieses Gerät – das Soundboard zeigt dir den Namen dann an." />
-
-                                <TextBlock Text="Das sendet dein Kabel gerade" FontWeight="SemiBold" Margin="0,16,0,4" />
-                                <StackPanel Orientation="Horizontal">
-                                    <ProgressBar Width="280" Height="12" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}"
-                                                 Foreground="{DynamicResource MeterBrush}" Background="{DynamicResource TrackBg}" BorderThickness="0" VerticalAlignment="Center" />
-                                    <Button Content="Testton senden" Style="{StaticResource PlainButton}" Margin="12,0,0,0" Command="{Binding PlayTestToneCommand}"
-                                            ToolTip="Schickt eine Sekunde lang einen Ton ins Kabel. Discord zeigt ihn beim Mikrofontest an." />
-                                </StackPanel>
-                                <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource SubTextBrush}"
-                                           Text="Sprich: Der Balken schlägt aus, und in Discord bewegt sich die Anzeige beim Mikrofontest." />
-
-                                <Button Content="Weiter zu Schritt 3" Style="{StaticResource PlainButton}" Command="{Binding GoToStepCommand}" CommandParameter="3"
-                                        HorizontalAlignment="Left" Margin="0,16,0,0" />
-                            </StackPanel>
-
-                            <!-- Step 3: noise suppression -->
-                            <StackPanel Visibility="{Binding IsSetupStep3, Converter={StaticResource BoolToVis}}">
-                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
-                                           Text="Discords Rauschunterdrückung hält Soundboard-Sounds für Störgeräusche und dämpft sie. Stell in Discord unter „Sprache &amp; Video“ Folgendes ein:" />
-                                <TextBlock TextWrapping="Wrap" LineHeight="22">
-                                    <Run Text="1. Rauschunterdrückung: „Keine“ (oder „Standard“)." /><LineBreak />
-                                    <Run Text="2. Echounterdrückung: aus." /><LineBreak />
-                                    <Run Text="3. Automatische Verstärkung (Lautstärkeregelung): aus." />
-                                </TextBlock>
-                                <TextBlock Text="Push-to-Talk" FontWeight="SemiBold" Margin="0,16,0,4" />
-                                <TextBlock TextWrapping="Wrap"
-                                           Text="Discord behandelt das Kabel wie ein Mikrofon: Mit Push-to-Talk hören die anderen Sounds nur, solange du die Taste hältst. Angenehmer ist „Sprachaktivierung“ – oder du legst in Discord unter „Tastenbelegung“ eine zweite Push-to-Talk-Taste an und hältst sie beim Sound gedrückt." />
-                                <TextBlock TextWrapping="Wrap" Margin="0,12,0,0" Foreground="{DynamicResource SubTextBrush}"
-                                           Text="Das Soundboard kann diese Discord-Einstellungen weder prüfen noch ändern. Hak ab, wenn du sie eingestellt hast." />
-                                <CheckBox Content="In Discord eingestellt" IsChecked="{Binding DiscordSettingsDone}" Margin="0,8,0,0" />
-
-                                <Button Content="Einrichtung abschließen" Style="{StaticResource PlainButton}" Command="{Binding CloseSetupCommand}"
-                                        HorizontalAlignment="Left" Margin="0,16,0,0" />
+                                <WrapPanel Margin="-12,6,0,0">
+                                    <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="Einrichtung"
+                                                 IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=einrichtung}" />
+                                    <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="Mikrofon &amp; Kabel"
+                                                 IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=kabel}" />
+                                    <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="Tasten"
+                                                 IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=tasten}" />
+                                    <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="Audio-Zustand"
+                                                 IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=zustand}" />
+                                    <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="Design"
+                                                 IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=design}" />
+                                </WrapPanel>
                             </StackPanel>
                         </StackPanel>
+                    </Border>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <Grid Margin="16,16,16,24" MaxWidth="780" HorizontalAlignment="Left">
+
+                            <!-- ............................................ Einrichtung -->
+                            <StackPanel Visibility="{Binding SettingsTab, Converter={StaticResource EqToVis}, ConverterParameter=einrichtung}">
+                                <WrapPanel Margin="0,0,0,12">
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="SetupSteps" Content="1  Kabel"
+                                                 IsChecked="{Binding SetupStepText, Converter={StaticResource Eq}, ConverterParameter=1}" />
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="SetupSteps" Content="2  Discord"
+                                                 IsChecked="{Binding SetupStepText, Converter={StaticResource Eq}, ConverterParameter=2}" />
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="SetupSteps" Content="3  Rauschunterdrückung"
+                                                 IsChecked="{Binding SetupStepText, Converter={StaticResource Eq}, ConverterParameter=3}" />
+                                </WrapPanel>
+
+                                <!-- Step 1: cable -->
+                                <StackPanel Visibility="{Binding IsSetupStep1, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Style="{StaticResource P}" Margin="0,0,0,12"
+                                               Text="Das Soundboard mischt dein Mikrofon und die Sounds und schickt beides in ein virtuelles Audiokabel. Discord nimmt das Kabel als Mikrofon. Die Windows-Standardgeräte bleiben, wie sie sind." />
+
+                                    <Border Style="{StaticResource NoticeBox}" Padding="14,12" Visibility="{Binding CableFound, Converter={StaticResource NotBoolToVis}}">
+                                        <StackPanel>
+                                            <DockPanel>
+                                                <Path Style="{StaticResource WarnIcon}" Margin="0,1,8,0" />
+                                                <TextBlock Text="{Binding CableStatusText}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            </DockPanel>
+                                            <TextBlock TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="20">
+                                                <Run Text="Gebraucht wird VB-CABLE von VB-Audio, zu finden auf" />
+                                                <Hyperlink Command="{Binding OpenCableWebsiteCommand}" Foreground="{DynamicResource NoticeText}">vb-cable.com</Hyperlink><Run Text=". VB-CABLE ist Donationware: kostenlos nutzbar, Spenden an VB-Audio sind willkommen („VB-CABLE is a donationware, all participations are welcome.“). Das Soundboard liefert es nicht mit." />
+                                            </TextBlock>
+                                            <TextBlock TextWrapping="Wrap" Margin="0,8,0,0" LineHeight="21">
+                                                <Run Text="1. Zuerst „Audio-Zustand jetzt sichern“ klicken. So zeigt das Soundboard später, ob das Setup etwas verstellt hat." /><LineBreak />
+                                                <Run Text="2. Auf vb-cable.com das ZIP-Paket für Windows laden und entpacken." /><LineBreak />
+                                                <Run Text="3. VBCABLE_Setup_x64.exe mit Rechtsklick → „Als Administrator ausführen“ starten, dann „Install Driver“." /><LineBreak />
+                                                <Run Text="4. Windows neu starten und das Soundboard wieder öffnen. Es findet das Kabel und vergleicht mit der Sicherung." />
+                                            </TextBlock>
+                                            <WrapPanel Margin="0,10,0,0">
+                                                <Button Style="{StaticResource NoticeButton}" Content="Audio-Zustand jetzt sichern" Command="{Binding SaveSnapshotNowCommand}" Margin="0,0,8,6" />
+                                                <Button Style="{StaticResource NoticeButton}" Content="vb-cable.com öffnen" Command="{Binding OpenCableWebsiteCommand}" Margin="0,0,8,6" />
+                                                <Button Style="{StaticResource NoticeButton}" Content="Nach dem Kabel suchen" Command="{Binding SearchCableCommand}" Margin="0,0,8,6" />
+                                            </WrapPanel>
+                                            <TextBlock Text="{Binding SnapshotHeader}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding RestoreResultText}" Margin="0,4,0,0" TextWrapping="Wrap"
+                                                       Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <StackPanel Visibility="{Binding CableFound, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="{Binding CableStatusText}" Style="{StaticResource P}" />
+                                        <Border Margin="0,12,0,0" Padding="12,10" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource LineSoft}" Background="{DynamicResource FieldBg}">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="Standardgerät zurückstellen" Margin="12,0,0,0" VerticalAlignment="Center"
+                                                        Command="{Binding RestoreDefaultsCommand}"
+                                                        Visibility="{Binding CableCompareProblem, Converter={StaticResource BoolToVis}}"
+                                                        ToolTip="Stellt die Windows-Standardgeräte auf die gesicherten zurück. Sonst wird nichts verändert." />
+                                                <TextBlock Text="{Binding CableCompareText}" Style="{StaticResource P}" VerticalAlignment="Center" />
+                                            </DockPanel>
+                                        </Border>
+                                        <TextBlock Text="{Binding RestoreResultText}" Margin="0,6,0,0" Style="{StaticResource P}"
+                                                   Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
+                                        <CheckBox Style="{StaticResource Switch}" Content="Mikrofon und Sounds ans Kabel senden" IsChecked="{Binding CableEnabled}" Margin="0,16,0,0" />
+                                        <TextBlock Text="Das sendet dein Kabel gerade" Style="{StaticResource H2}" Margin="0,18,0,6" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <ProgressBar Width="280" Height="10" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}" VerticalAlignment="Center" />
+                                            <Button Content="Testton senden" Margin="12,0,0,0" Command="{Binding PlayTestToneCommand}"
+                                                    ToolTip="Schickt eine Sekunde lang einen Ton ins Kabel. Auf deinem Kopfhörer ist er nicht zu hören." />
+                                        </StackPanel>
+                                        <TextBlock Style="{StaticResource Sub}" Margin="0,8,0,0"
+                                                   Text="Sprich: Der Balken schlägt aus. Gegenprobe ohne Discord: Windows-Systemsteuerung → Sound → Registerkarte „Aufnahme“ – bei „CABLE Output“ bewegt sich die Anzeige." />
+                                    </StackPanel>
+
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Weiter zu Schritt 2" Command="{Binding GoToStepCommand}" CommandParameter="2"
+                                            HorizontalAlignment="Left" Margin="0,20,0,0" />
+                                </StackPanel>
+
+                                <!-- Step 2: Discord -->
+                                <StackPanel Visibility="{Binding IsSetupStep2, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Style="{StaticResource P}" Margin="0,0,0,10"
+                                               Text="Discord merkt sich sein Mikrofon selbst. Du stellst dort einmal auf das Kabel um; Windows bleibt dabei unverändert." />
+                                    <TextBlock TextWrapping="Wrap" LineHeight="23">
+                                        <Run Text="1. In Discord unten links auf das Zahnrad (Benutzereinstellungen) → „Sprache &amp; Video“." /><LineBreak />
+                                        <Run Text="2. Eingabegerät: „CABLE Output (VB-Audio Virtual Cable)“ wählen." /><LineBreak />
+                                        <Run Text="3. Ausgabegerät nicht ändern – dort bleibt dein Kopfhörer oder Lautsprecher." /><LineBreak />
+                                        <Run Text="4. Mit dem Mikrofontest in Discord prüfen: sprechen und einen Sound abspielen." />
+                                    </TextBlock>
+
+                                    <TextBlock Text="Welches Mikrofon war in Discord vorher gewählt?" Style="{StaticResource H2}" />
+                                    <TextBox Text="{Binding DiscordPreviousMic, UpdateSourceTrigger=PropertyChanged}" MaxWidth="420" HorizontalAlignment="Left" MinWidth="320"
+                                             ToolTip="Steht dort „Default“, trag „Default“ ein." />
+                                    <TextBlock Style="{StaticResource Sub}" Margin="0,6,0,0"
+                                               Text="Schreib es ab, bevor du umstellst. Entfernst du das Kabel später, wählst du in Discord wieder dieses Gerät – das Soundboard zeigt dir den Namen dann an." />
+
+                                    <TextBlock Text="Das sendet dein Kabel gerade" Style="{StaticResource H2}" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <ProgressBar Width="280" Height="10" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}" VerticalAlignment="Center" />
+                                        <Button Content="Testton senden" Margin="12,0,0,0" Command="{Binding PlayTestToneCommand}"
+                                                ToolTip="Schickt eine Sekunde lang einen Ton ins Kabel. Discord zeigt ihn beim Mikrofontest an." />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource Sub}" Margin="0,8,0,0"
+                                               Text="Sprich: Der Balken schlägt aus, und in Discord bewegt sich die Anzeige beim Mikrofontest." />
+
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Weiter zu Schritt 3" Command="{Binding GoToStepCommand}" CommandParameter="3"
+                                            HorizontalAlignment="Left" Margin="0,20,0,0" />
+                                </StackPanel>
+
+                                <!-- Step 3: noise suppression -->
+                                <StackPanel Visibility="{Binding IsSetupStep3, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Style="{StaticResource P}" Margin="0,0,0,10"
+                                               Text="Discords Rauschunterdrückung hält Soundboard-Sounds für Störgeräusche und dämpft sie. Stell in Discord unter „Sprache &amp; Video“ Folgendes ein:" />
+                                    <TextBlock TextWrapping="Wrap" LineHeight="23">
+                                        <Run Text="1. Rauschunterdrückung: „Keine“ (oder „Standard“)." /><LineBreak />
+                                        <Run Text="2. Echounterdrückung: aus." /><LineBreak />
+                                        <Run Text="3. Automatische Verstärkung (Lautstärkeregelung): aus." />
+                                    </TextBlock>
+                                    <TextBlock Text="Push-to-Talk" Style="{StaticResource H2}" />
+                                    <TextBlock Style="{StaticResource P}"
+                                               Text="Discord behandelt das Kabel wie ein Mikrofon: Mit Push-to-Talk hören die anderen Sounds nur, solange du die Taste hältst. Angenehmer ist „Sprachaktivierung“ – oder du legst in Discord unter „Tastenbelegung“ eine zweite Push-to-Talk-Taste an und hältst sie beim Sound gedrückt." />
+                                    <TextBlock Style="{StaticResource Sub}" Margin="0,12,0,0"
+                                               Text="Das Soundboard kann diese Discord-Einstellungen weder prüfen noch ändern. Hak ab, wenn du sie eingestellt hast." />
+                                    <CheckBox Content="In Discord eingestellt" IsChecked="{Binding DiscordSettingsDone}" Margin="0,8,0,0" />
+
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Einrichtung abschließen" Command="{Binding CloseSettingsCommand}"
+                                            HorizontalAlignment="Left" Margin="0,20,0,0" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- ............................................ Mikrofon & Kabel -->
+                            <StackPanel Visibility="{Binding SettingsTab, Converter={StaticResource EqToVis}, ConverterParameter=kabel}">
+                                <CheckBox Style="{StaticResource Switch}" Content="Mikrofon und Sounds ans Kabel senden" IsChecked="{Binding CableEnabled}"
+                                          ToolTip="In Discord wählst du „CABLE Output“ als Mikrofon." />
+                                <TextBlock Text="{Binding StatusCable}" Style="{StaticResource Sub}" Margin="48,2,0,0" />
+
+                                <Grid Margin="0,20,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="12" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="12" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="12" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Mikrofon" Style="{StaticResource FormLabel}" />
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding MicChoices}" SelectedItem="{Binding SelectedMic}" DisplayMemberPath="Display"
+                                              MaxWidth="400" HorizontalAlignment="Left" MinWidth="260"
+                                              ToolTip="Dein echtes Mikrofon. Es wird mit den Sounds gemischt. Die Windows-Einstellungen bleiben unverändert." />
+
+                                    <TextBlock Grid.Row="2" Text="Mikro-Lautstärke" Style="{StaticResource FormLabel}" />
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                                        <Slider Minimum="0" Maximum="200" Width="200" VerticalAlignment="Center" Value="{Binding MicVolumePercent}" SmallChange="1" LargeChange="10"
+                                                ToolTip="Lautstärke deiner Stimme im Mix. 100 % = unverändert. Die Windows-Lautstärke des Mikrofons bleibt, wie sie ist." />
+                                        <TextBlock Text="{Binding MicVolumePercent, StringFormat={}{0:0}&#x202F;%}" Width="48" Margin="10,0,0,0" Style="{StaticResource Num}" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="4" Text="Pegel im Kabel" Style="{StaticResource FormLabel}" />
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal">
+                                        <ProgressBar Width="200" Height="10" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}" VerticalAlignment="Center" />
+                                        <Button Content="Testton senden" Margin="12,0,0,0" Command="{Binding PlayTestToneCommand}"
+                                                ToolTip="Schickt eine Sekunde lang einen Ton ins Kabel (nicht auf deinen Kopfhörer)." />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="6" Text="Puffer" Style="{StaticResource FormLabel}" />
+                                    <StackPanel Grid.Row="6" Grid.Column="1">
+                                        <ComboBox ItemsSource="{Binding BufferChoices}" SelectedItem="{Binding SelectedBuffer}" DisplayMemberPath="Display"
+                                                  Width="180" HorizontalAlignment="Left" />
+                                        <TextBlock Style="{StaticResource Sub}" Margin="0,4,0,0" Text="Klein = weniger Verzögerung. Größer wählen, wenn die Stimme knackt oder Aussetzer hat." />
+                                    </StackPanel>
+                                </Grid>
+
+                                <CheckBox Style="{StaticResource Switch}" Content="Stimme stumm, solange ein Sound läuft" IsChecked="{Binding BlockVoice}" Margin="0,20,0,0"
+                                          ToolTip="Dein Mikrofon ist stumm, solange ein Sound läuft." />
+
+                                <TextBlock Text="Ohne Kabel testen" Style="{StaticResource H2}" />
+                                <TextBlock Style="{StaticResource Sub}" Text="Nimmt 10 Sekunden Mikrofon und Sounds in eine WAV-Datei auf. So hörst du ohne Kabel und ohne Discord, wie der Mix klingt." />
+                                <WrapPanel Margin="0,10,0,0">
+                                    <Button Content="10 s Test aufnehmen" Command="{Binding RecordTestCommand}" Margin="0,0,12,6" />
+                                    <Button Content="Im Ordner zeigen" Command="{Binding ShowTestFileCommand}" Margin="0,0,12,6"
+                                            Visibility="{Binding HasTestFile, Converter={StaticResource BoolToVis}}" />
+                                    <TextBlock Text="{Binding TestStatus}" VerticalAlignment="Center" Margin="0,0,0,6" TextWrapping="Wrap" MaxWidth="420" />
+                                </WrapPanel>
+                            </StackPanel>
+
+                            <!-- ............................................ Tasten -->
+                            <StackPanel Visibility="{Binding SettingsTab, Converter={StaticResource EqToVis}, ConverterParameter=tasten}">
+                                <CheckBox Style="{StaticResource Switch}" Content="Tasten pausieren" IsChecked="{Binding HotkeysPaused}"
+                                          ToolTip="Gibt alle Tasten frei, z. B. wenn du im Spiel chattest." />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0"
+                                           Text="Die Tasten der Pads wirken überall, auch im Spiel – das Spiel bekommt sie dann nicht. Pausiert gibt das Soundboard alle frei." />
+
+                                <TextBlock Text="Tasten der Pads" Style="{StaticResource H2}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,10">
+                                    <Run Text="„Alles stoppen“:" /> <Run Text="{Binding StopAllKeyText, Mode=OneWay}" FontWeight="SemiBold" /><Run Text=". Num-Tasten liefern „Num 1“ usw. nur bei eingeschaltetem NumLock." />
+                                </TextBlock>
+                                <Border BorderBrush="{DynamicResource LineSoft}" BorderThickness="1" CornerRadius="6" Background="{DynamicResource FieldBg}">
+                                    <ItemsControl ItemsSource="{Binding Tiles}" Grid.IsSharedSizeScope="True">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="12,8">
+                                                    <StackPanel>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" SharedSizeGroup="K" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
+                                                                <DockPanel Margin="0,2,0,0">
+                                                                    <Path x:Name="W" Style="{StaticResource WarnIcon}" Stroke="{DynamicResource DiffText}" Margin="0,0,6,0" Visibility="Collapsed" />
+                                                                    <TextBlock x:Name="S" Text="{Binding HotkeyStateText}" Foreground="{DynamicResource SubTextBrush}" FontSize="13" TextWrapping="Wrap" />
+                                                                </DockPanel>
+                                                                <Button Content="{Binding KeyIssueActionText}" Command="{Binding RunKeyIssueActionCommand}" FontSize="13" HorizontalAlignment="Left" Margin="0,6,0,0"
+                                                                        Visibility="{Binding HotkeyProblem, Converter={StaticResource BoolToVis}}" />
+                                                            </StackPanel>
+                                                            <TextBlock Grid.Column="1" Text="{Binding HotkeyText, TargetNullValue=–}" FontFamily="{DynamicResource FontPad}" VerticalAlignment="Center" Margin="0,0,16,0" />
+                                                            <Button x:Name="Change" Grid.Column="2" Content="Taste ändern …" Command="{Binding AssignHotkeyCommand}" FontSize="13" VerticalAlignment="Center" />
+                                                        </Grid>
+                                                        <Border Margin="0,8,0,0" Padding="10,6" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}"
+                                                                Visibility="{Binding IsCapturingKey, Converter={StaticResource BoolToVis}}">
+                                                            <TextBlock Text="{Binding CaptureHint}" TextWrapping="Wrap" />
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Border>
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding HasHotkey}" Value="False">
+                                                        <Setter TargetName="Change" Property="Content" Value="Taste belegen …" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding HotkeyProblem}" Value="True">
+                                                        <Setter TargetName="W" Property="Visibility" Value="Visible" />
+                                                        <Setter TargetName="S" Property="Foreground" Value="{DynamicResource DiffText}" />
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,8,0,0" Visibility="{Binding HasNoTiles, Converter={StaticResource BoolToVis}}"
+                                           Text="Noch keine Pads. Zieh Sounds ins Fenster, dann kannst du hier jedem eine Taste geben." />
+
+                                <TextBlock Text="Abspielen" Style="{StaticResource H2}" />
+                                <CheckBox Style="{StaticResource Switch}" Content="Sounds überlagern" IsChecked="{Binding OverlayEnabled}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0"
+                                           Text="Aus: Ein neuer Sound stoppt den laufenden. An: Mehrere Sounds spielen gleichzeitig." />
+                            </StackPanel>
+
+                            <!-- ............................................ Audio-Zustand -->
+                            <StackPanel Visibility="{Binding SettingsTab, Converter={StaticResource EqToVis}, ConverterParameter=zustand}">
+                                <TextBlock Text="{Binding SnapshotHeader}" FontSize="{DynamicResource SizeGroup}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Style="{StaticResource P}" Margin="0,8,0,0" Text="{Binding SnapshotAdvice}"
+                                           Visibility="{Binding SnapshotAdvice, Converter={StaticResource TextToVis}}" />
+                                <WrapPanel Margin="0,12,0,0">
+                                    <Button Content="Standardgerät zurückstellen" Command="{Binding RestoreDefaultsCommand}" Margin="0,0,8,6"
+                                            Visibility="{Binding SnapshotAdvice, Converter={StaticResource TextToVis}}"
+                                            ToolTip="Stellt die Windows-Standardgeräte auf die gesicherten zurück. Sonst wird nichts verändert." />
+                                    <Button Content="Audio-Zustand jetzt sichern" Command="{Binding SaveSnapshotNowCommand}" Margin="0,0,8,6"
+                                            ToolTip="Merkt sich, wie Windows-Audio gerade eingestellt ist. Spätere Änderungen werden damit verglichen." />
+                                    <Button Content="Neu vergleichen" Command="{Binding CompareAgainCommand}" Margin="0,0,8,6" />
+                                </WrapPanel>
+                                <TextBlock Text="{Binding RestoreResultText}" Style="{StaticResource P}" Margin="0,4,0,0"
+                                           Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
+                                <DataGrid ItemsSource="{Binding ComparisonRows}" MaxHeight="260" Margin="0,10,0,0">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Was" Binding="{Binding What}" Width="2*" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Gesichert" Binding="{Binding Saved}" Width="2*" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Jetzt" Binding="{Binding Now}" Width="2*" />
+                                        <DataGridTemplateColumn Header="Ergebnis" Width="Auto">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock x:Name="K" Text="{Binding KindText}" FontWeight="SemiBold" Foreground="{DynamicResource DiffText}" Margin="4,0" />
+                                                    <DataTemplate.Triggers>
+                                                        <DataTrigger Binding="{Binding KindText}" Value="gleich">
+                                                            <Setter TargetName="K" Property="Foreground" Value="{DynamicResource OkText}" />
+                                                            <Setter TargetName="K" Property="FontWeight" Value="Normal" />
+                                                        </DataTrigger>
+                                                    </DataTemplate.Triggers>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock Text="{Binding SnapshotInfo}" Style="{StaticResource Sub}" Margin="0,6,0,0" />
+
+                                <TextBlock Text="Audiogeräte in Windows" Style="{StaticResource H2}" Margin="0,28,0,4" />
+                                <TextBlock Text="{Binding DevicesHeader}" Style="{StaticResource Sub}" />
+                                <WrapPanel Margin="0,10,0,8">
+                                    <Button Content="Neu einlesen" Command="{Binding RefreshDevicesCommand}" Margin="0,0,16,0" />
+                                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding ShowNotPresent}"
+                                              Content="{Binding NotPresentCount}" ContentStringFormat="Auch nicht mehr vorhandene Geräte zeigen ({0})"
+                                              ToolTip="Windows merkt sich früher benutzte Geräte. Sie sind ausgeblendet, damit die Liste übersichtlich bleibt." />
+                                </WrapPanel>
+                                <DataGrid ItemsSource="{Binding Devices}" MaxHeight="260">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Richtung" Binding="{Binding Richtung}" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Name" Binding="{Binding Name}" Width="2*" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Status" Binding="{Binding Status}" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Windows-Standard für" Binding="{Binding Standard}" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Lautstärke" Binding="{Binding Lautstaerke}" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="Mix-Format" Binding="{Binding Format}" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="ID" Binding="{Binding Id}" Width="2*" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+
+                            <!-- ............................................ Design -->
+                            <StackPanel Visibility="{Binding SettingsTab, Converter={StaticResource EqToVis}, ConverterParameter=design}">
+                                <TextBlock Text="Darstellung" Style="{StaticResource H2}" Margin="0,0,0,8" />
+                                <WrapPanel>
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="Appearance" Content="Wie Windows"
+                                                 IsChecked="{Binding Appearance, Converter={StaticResource Eq}, ConverterParameter=System}" />
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="Appearance" Content="Hell"
+                                                 IsChecked="{Binding Appearance, Converter={StaticResource Eq}, ConverterParameter=Hell}" />
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="Appearance" Content="Dunkel"
+                                                 IsChecked="{Binding Appearance, Converter={StaticResource Eq}, ConverterParameter=Dunkel}" />
+                                </WrapPanel>
+
+                                <TextBlock Text="Akzentfarbe" Style="{StaticResource H2}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,10"
+                                           Text="Färbt Hauptknöpfe, Schalter, Regler und die Auswahl. Die Farben stammen aus Sanzo Wadas Farbwörterbuch und sind für hell und dunkel je eigens abgestimmt." />
+                                <ItemsControl ItemsSource="{Binding AccentChoices}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <RadioButton Style="{StaticResource Swatch}" GroupName="Accent" IsChecked="{Binding IsSelected}" ToolTip="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <TextBlock Text="Eigene Farbe (Hex)" Style="{StaticResource FormLabel}" />
+                                    <TextBox Width="130" Text="{Binding CustomAccentText, UpdateSourceTrigger=PropertyChanged}" FontFamily="{DynamicResource FontDisplay}"
+                                             ToolTip="Zum Beispiel #2E6E4C. Ist die Farbe zu hell oder zu dunkel für lesbare Schrift, wird sie angepasst." />
+                                </StackPanel>
+                                <Border Style="{StaticResource NoticeBox}" Margin="0,10,0,0" HorizontalAlignment="Left" MaxWidth="620"
+                                        Visibility="{Binding CustomAccentHint, Converter={StaticResource TextToVis}}">
+                                    <DockPanel>
+                                        <Path Style="{StaticResource WarnIcon}" Margin="0,1,8,0" />
+                                        <TextBlock Text="{Binding CustomAccentHint}" TextWrapping="Wrap" LineHeight="20" />
+                                    </DockPanel>
+                                </Border>
+
+                                <TextBlock Text="Pad-Farben" Style="{StaticResource H2}" />
+                                <WrapPanel>
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="PadColors" Content="Bunt – jedes Pad eine eigene Farbe"
+                                                 IsChecked="{Binding PadColorMode, Converter={StaticResource Eq}, ConverterParameter=Bunt}" />
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="PadColors" Content="Alle in der Akzentfarbe"
+                                                 IsChecked="{Binding PadColorMode, Converter={StaticResource Eq}, ConverterParameter=Akzent}" />
+                                </WrapPanel>
+
+                                <TextBlock Text="Bewegung" Style="{StaticResource H2}" />
+                                <CheckBox Style="{StaticResource Switch}" Content="Pads leuchten weich auf" IsChecked="{Binding Animations}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0"
+                                           Text="Aus: Pads leuchten sofort auf, ohne Übergang. Der Fortschritt läuft in beiden Fällen mit." />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0" Visibility="{Binding WindowsAnimationsOff, Converter={StaticResource BoolToVis}}"
+                                           Text="In Windows sind die Animationseffekte ausgeschaltet – deshalb gibt es auch hier keine Übergänge." />
+                            </StackPanel>
+                        </Grid>
                     </ScrollViewer>
                 </DockPanel>
             </Border>

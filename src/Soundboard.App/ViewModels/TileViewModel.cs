@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Soundboard.Core.Audio;
 using Soundboard.Core.Config;
+using Soundboard.Core.Design;
 using Soundboard.App.Themes;
 
 namespace Soundboard.App.ViewModels;
@@ -15,10 +16,47 @@ public enum TileState
     Error,
 }
 
-/// <summary>One sound tile.</summary>
+/// <summary>Brushes of one pad in the current mode (idle and lit).</summary>
+public sealed class PadBrushes
+{
+    public PadBrushes(PadColors c)
+    {
+        Face = B(c.Face);
+        Line = B(c.Line);
+        Text = B(c.Text);
+        CapBg = B(c.CapBg);
+        CapLine = B(c.CapLine);
+        Lit = B(c.Lit);
+        LitLine = B(c.LitLine);
+        LitPlayed = B(c.LitPlayed);
+        LitText = B(c.LitText);
+        GlowColor = ThemeManager.ToColor(c.Lit);
+    }
+
+    public Brush Face { get; }
+    public Brush Line { get; }
+    public Brush Text { get; }
+    public Brush CapBg { get; }
+    public Brush CapLine { get; }
+    public Brush Lit { get; }
+    public Brush LitLine { get; }
+    public Brush LitPlayed { get; }
+    public Brush LitText { get; }
+    public Color GlowColor { get; }
+
+    private static SolidColorBrush B(Rgb c)
+    {
+        var b = new SolidColorBrush(ThemeManager.ToColor(c));
+        b.Freeze();
+        return b;
+    }
+}
+
+/// <summary>One sound pad.</summary>
 public sealed partial class TileViewModel : ObservableObject
 {
     private readonly MainViewModel _owner;
+    private Action? _issueAction;
 
     public TileViewModel(MainViewModel owner, TileConfig config)
     {
@@ -26,7 +64,7 @@ public sealed partial class TileViewModel : ObservableObject
         Config = config;
         Name = config.Name;
         VolumePercent = Math.Round(Math.Clamp(config.Volume, 0f, 1f) * 100);
-        Background = ThemeManager.TileBrush(config.Color);
+        Pad = new PadBrushes(ThemeManager.PadColorsFor(config.Color));
     }
 
     public TileConfig Config { get; }
@@ -40,14 +78,25 @@ public sealed partial class TileViewModel : ObservableObject
     /// <summary>When play was requested; bridges the few ms until the audio thread picks it up.</summary>
     public DateTime PlayRequestedAt { get; set; }
 
-    public Brush Background { get; private set; }
+    public PadBrushes Pad { get; private set; }
+
+    /// <summary>Short transitions allowed (setting + Windows animation effects).</summary>
+    public bool AnimationsOn => ThemeManager.AnimationsOn;
+
+    public void RefreshTheme()
+    {
+        Pad = new PadBrushes(ThemeManager.PadColorsFor(Config.Color));
+        OnPropertyChanged(nameof(Pad));
+        OnPropertyChanged(nameof(AnimationsOn));
+    }
+
+    // ---------------------------------------------------------------- key
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasHotkey), nameof(HotkeyLabel))]
+    [NotifyPropertyChangedFor(nameof(HasHotkey))]
     private string? _hotkeyText;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HotkeyLabel))]
     private bool _hotkeyProblem;
 
     [ObservableProperty]
@@ -56,25 +105,103 @@ public sealed partial class TileViewModel : ObservableObject
     [ObservableProperty]
     private string _captureHint = "";
 
+    /// <summary>State of the key in words, for the list in the settings ("funktioniert", "doppelt …").</summary>
+    [ObservableProperty]
+    private string _hotkeyStateText = "";
+
     public bool HasHotkey => HotkeyText is not null;
 
-    /// <summary>Key shown on the tile; a warning sign when the key does not work.</summary>
-    public string HotkeyLabel => HotkeyText is null ? "" : HotkeyProblem ? "⚠ " + HotkeyText : HotkeyText;
+    // ---------------------------------------------------------------- problem shown on the pad
 
-    public void RefreshTheme()
+    /// <summary>Yellow box on the pad: what does not work here and the way out.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasIssueAction))]
+    private string? _issueText;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasIssueAction))]
+    private string? _issueActionText;
+
+    [ObservableProperty]
+    private bool _isIssueOpen;
+
+    public bool HasIssueAction => _issueAction is not null && !string.IsNullOrEmpty(IssueActionText);
+
+    // The pad keeps two problems apart: the file (cannot play) goes first, then the key.
+    private (string? Text, string? ActionText, Action? Action) _loadIssue;
+    private (string? Text, string? ActionText, Action? Action) _keyIssue;
+
+    /// <summary>Way out for a key problem (settings list, context menu); null without one.</summary>
+    [ObservableProperty]
+    private string? _keyIssueActionText;
+
+    /// <summary>Problem of the sound file (cannot be played). Null clears it.</summary>
+    public void SetIssue(string? text, string? actionText = null, Action? action = null)
     {
-        Background = ThemeManager.TileBrush(Config.Color);
-        OnPropertyChanged(nameof(Background));
+        _loadIssue = (text, actionText, action);
+        ShowIssue();
     }
+
+    /// <summary>Problem of the key (taken, refused). Null clears it.</summary>
+    public void SetKeyIssue(string? text, string? actionText = null, Action? action = null)
+    {
+        _keyIssue = (text, actionText, action);
+        KeyIssueActionText = text is null ? null : actionText;
+        ShowIssue();
+    }
+
+    private void ShowIssue()
+    {
+        var shown = _loadIssue.Text is not null ? _loadIssue : _keyIssue;
+        _issueAction = shown.Action;
+        IssueActionText = shown.ActionText;
+        IssueText = shown.Text;
+        OnPropertyChanged(nameof(HasIssueAction));
+        if (shown.Text is null) IsIssueOpen = false;
+    }
+
+    [RelayCommand]
+    private void RunIssueAction()
+    {
+        var action = _issueAction;
+        IsIssueOpen = false;
+        action?.Invoke();
+    }
+
+    [RelayCommand]
+    private void RunKeyIssueAction()
+    {
+        var action = _keyIssue.Action;
+        IsIssueOpen = false;
+        action?.Invoke();
+    }
+
+    [RelayCommand]
+    private void CloseIssue() => IsIssueOpen = false;
+
+    /// <summary>Click on the printed key: shows the problem if there is one, otherwise waits for a new key.</summary>
+    [RelayCommand]
+    private void KeyCapClick()
+    {
+        if (HotkeyProblem && _keyIssue.Text is not null)
+        {
+            if (_loadIssue.Text is null) IsIssueOpen = !IsIssueOpen;
+            else RunKeyIssueAction(); // the yellow box shows the file problem; go straight to the key fix
+        }
+        else _owner.BeginKeyCapture(this);
+    }
+
+    // ---------------------------------------------------------------- sound
 
     [ObservableProperty]
     private string _name;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(VolumeText), nameof(ShowVolume))]
     private double _volumePercent;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(StatusText), nameof(IsError), nameof(IsLoading))]
+    [NotifyPropertyChangedFor(nameof(DurationText), nameof(StatusText), nameof(IsError), nameof(IsLoading))]
     private TileState _state = TileState.Loading;
 
     [ObservableProperty]
@@ -82,7 +209,6 @@ public sealed partial class TileViewModel : ObservableObject
     private string? _errorText;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PlayGlyph))]
     private bool _isPlaying;
 
     [ObservableProperty]
@@ -95,30 +221,41 @@ public sealed partial class TileViewModel : ObservableObject
 
     public bool IsLoading => State == TileState.Loading;
 
-    public string PlayGlyph => IsPlaying ? "■" : "▶";
+    /// <summary>Length as printed on the pad ("3,5 s", "1:05 min"); empty while loading or broken.</summary>
+    public string DurationText => State == TileState.Ready && Clip is not null ? FormatDuration(Clip.Duration) : "";
 
+    /// <summary>Second line on the pad when it cannot play.</summary>
     public string StatusText => State switch
     {
         TileState.Loading => "wird geladen …",
-        TileState.Error => "⚠ nicht abspielbar",
-        _ => Clip is null ? "" : FormatDuration(Clip.Duration),
+        TileState.Error => "nicht abspielbar",
+        _ => "",
     };
+
+    public string VolumeText => $"{VolumePercent:0} %";
+
+    /// <summary>Only printed on the pad when it is not 100 %.</summary>
+    public bool ShowVolume => VolumePercent < 99.5;
 
     public float Volume => (float)(VolumePercent / 100.0);
 
     public string ToolTipText => State == TileState.Error && ErrorText is not null
         ? ErrorText
         : HotkeyText is null
-            ? "Klick: abspielen, nochmal klicken: stoppen. Rechtsklick: Taste belegen, umbenennen, entfernen"
+            ? "Klick: abspielen, nochmal klicken: stoppen. Strg + Mausrad: Lautstärke. Rechtsklick: Taste belegen, umbenennen, entfernen"
             : HotkeyProblem
-                ? $"Die Taste {HotkeyText} funktioniert gerade nicht – der gelbe Hinweis oben sagt, warum. Klick: abspielen, nochmal klicken: stoppen."
-                : $"Klick oder {HotkeyText}: abspielen, nochmal: stoppen. Rechtsklick: Taste ändern, umbenennen, entfernen";
+                ? $"Die Taste {HotkeyText} funktioniert gerade nicht – Klick auf die Taste oben links zeigt, warum. Klick aufs Pad: abspielen."
+                : $"Klick oder {HotkeyText}: abspielen, nochmal: stoppen. Strg + Mausrad: Lautstärke. Rechtsklick: Taste ändern, umbenennen, entfernen";
 
     public void RefreshStatus()
     {
         OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(DurationText));
         OnPropertyChanged(nameof(ToolTipText));
     }
+
+    /// <summary>Mouse wheel on the pad: ±5 %.</summary>
+    public void NudgeVolume(int steps) => VolumePercent = Math.Clamp(Math.Round(VolumePercent / 5) * 5 + steps * 5, 0, 100);
 
     partial void OnNameChanged(string value)
     {
@@ -137,7 +274,15 @@ public sealed partial class TileViewModel : ObservableObject
     partial void OnHotkeyProblemChanged(bool value) => OnPropertyChanged(nameof(ToolTipText));
 
     [RelayCommand]
-    private void Click() => _owner.OnTileClicked(this);
+    private void Click()
+    {
+        if (State == TileState.Error && IssueText is not null)
+        {
+            IsIssueOpen = true;
+            return;
+        }
+        _owner.OnTileClicked(this);
+    }
 
     [RelayCommand]
     private void Rename() => IsRenaming = true;
@@ -154,8 +299,8 @@ public sealed partial class TileViewModel : ObservableObject
     [RelayCommand]
     private void ShowInFolder() => _owner.ShowTileInFolder(this);
 
-    private static string FormatDuration(TimeSpan d) =>
+    public static string FormatDuration(TimeSpan d) =>
         d.TotalMinutes >= 1
-            ? $"{(int)d.TotalMinutes}:{d.Seconds:00} min"
-            : d.TotalSeconds.ToString("0.0", CultureInfo.GetCultureInfo("de-DE")) + " s";
+            ? $"{(int)d.TotalMinutes}:{d.Seconds:00} min"
+            : d.TotalSeconds.ToString("0.0", CultureInfo.GetCultureInfo("de-DE")) + " s";
 }

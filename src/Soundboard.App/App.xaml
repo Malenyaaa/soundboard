@@ -1,13 +1,6 @@
 <Application x:Class="Soundboard.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Soundboard.App"
              ShutdownMode="OnExplicitShutdown">
-    <Application.Resources>
-        <ResourceDictionary>
-            <BooleanToVisibilityConverter x:Key="BoolToVis" />
-            <local:TextToVisibilityConverter x:Key="TextToVis" />
-            <local:InverseBoolToVisibilityConverter x:Key="NotBoolToVis" />
-        </ResourceDictionary>
-    </Application.Resources>
+    <!-- Colours, controls and converters are installed by Themes.ThemeManager (Themes/Controls.xaml). -->
 </Application>
