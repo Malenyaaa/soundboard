@@ -1709,7 +1709,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : problems > 0 ? L.F("Status.KeysProblems", active, problems)
             : active == 0 ? L.Get("Status.KeysNone")
             : L.Count("Status.Keys", active);
-        UpdateFullScreenToolTip();
     }
 
     /// <summary>Key for "Stop", as shown in the settings.</summary>

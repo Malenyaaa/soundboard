@@ -13,9 +13,9 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.13.0 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.13.1 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
-Bildern als Pad-Hintergrund, Vollbild (F11), englischer Oberfläche, umschaltbar auf Deutsch, und
+Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
@@ -135,14 +135,6 @@ Discords Dateien.
 - **Regler** (Lautstärke aller Sounds, Mikro-Lautstärke, Pad-Lautstärke im Rechtsklick-Menü):
   Ein Klick auf eine Stelle der Leiste setzt den Wert dort, und ohne loszulassen lässt sich
   gleich weiterziehen. Mit der Tastatur: Pfeiltasten (1 %), Bild auf/ab (10 %).
-- **Vollbild:** F11 oder der Knopf mit den vier Ecken neben dem Zahnrad. Dann zeigt das Fenster
-  randlos über den ganzen Bildschirm nur noch die Pads – groß und gleichmäßig verteilt, die
-  Schrift wächst mit – und oben eine schlanke Leiste mit Lautstärke, „Vollbild beenden“ und
-  Stop. Die Leiste blendet sich nach gut zwei Sekunden ohne Mausbewegung aus und kommt bei
-  Bewegung wieder (ohne Übergang, wenn Animationen aus sind). F11 oder Esc führt zurück zur
-  vorherigen Fenstergröße. Das Vollbild wird nicht gespeichert; der nächste Start zeigt das
-  normale Fenster. Hat ein Pad F11 als globale Taste, gewinnt das Pad überall (auch im Fenster);
-  Vollbild geht dann über den Knopf, dessen Tooltip das sagt.
 - **Statuszeile:** Kabel (mit Pegel), Mikrofon, Tasten – ein Klick öffnet die passende
   Einstellungsseite. Ein Warnzeichen erscheint, wenn das Kabel nicht sendet oder eine Taste
   nicht wirkt. Fehlt das Kabel ganz, steht dort fett „Kabel fehlt“, und der Klick öffnet die
@@ -190,7 +182,7 @@ eigene Akzentfarbe und selbst gewählte Pad-Farben bleiben.
 
 **Animationen:** Nur das Aufleuchten eines Pads blendet kurz ein (160 ms). Ist es im Reiter
 „Darstellung“ aus oder sind in Windows die Animationseffekte ausgeschaltet, leuchtet das Pad sofort
-auf. Ebenso blendet die Leiste im Vollbild weich (260 ms) oder sofort aus. Was per Taste
+auf. Was per Taste
 ausgelöst wird, bewegt sich sonst nicht.
 
 Fehlt etwas (kein Mikrofon, Taste belegt), erscheint ein Hinweis mit Warnzeichen und dem nächsten

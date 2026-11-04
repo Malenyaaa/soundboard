@@ -1,9 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media.Animation;
-using System.Windows.Threading;
-using Soundboard.App.Themes;
 using Soundboard.App.ViewModels;
 using Soundboard.Core.Hotkeys;
 
@@ -12,11 +9,6 @@ namespace Soundboard.App.Views;
 public partial class MainWindow : Window
 {
     private readonly MainViewModel _vm;
-    private readonly DispatcherTimer _barTimer;
-    private WindowState _restoreState;
-    private WindowStyle _restoreStyle;
-    private ResizeMode _restoreResize;
-    private Point _lastMouse;
 
     public MainWindow(MainViewModel vm)
     {
@@ -24,16 +16,6 @@ public partial class MainWindow : Window
         _vm = vm;
         DataContext = _vm;
         Text.UiLanguage.Attach(this);
-        _barTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2.5) };
-        _barTimer.Tick += (_, _) => HideBar();
-        PreviewMouseMove += OnAnyMouseMove;
-        // Tabbing into the faded bar brings it back.
-        FullBar.IsKeyboardFocusWithinChanged += (_, _) => { if (_vm.IsFullScreen && FullBar.IsKeyboardFocusWithin) ShowBar(); };
-        // Settings opened from elsewhere (tray menu, a notice) need the normal window.
-        _vm.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(MainViewModel.SettingsOpen) && _vm.SettingsOpen) LeaveFullScreen();
-        };
     }
 
     // ---- hex field of the custom colour: the short form counts once the field is left
@@ -46,84 +28,6 @@ public partial class MainWindow : Window
         {
             _vm.CommitCustomAccentText();
             e.Handled = true;
-        }
-    }
-
-    // ---- full screen (F11)
-
-    private void OnFullScreenClick(object sender, RoutedEventArgs e) => ToggleFullScreen();
-
-    /// <summary>Borderless over the whole screen of the current monitor (taskbar covered), or back to the window as it was.</summary>
-    public void ToggleFullScreen()
-    {
-        if (_vm.IsFullScreen) LeaveFullScreen();
-        else EnterFullScreen();
-    }
-
-    private void EnterFullScreen()
-    {
-        _vm.PrepareFullScreen();
-        _restoreState = WindowState == WindowState.Minimized ? WindowState.Normal : WindowState;
-        _restoreStyle = WindowStyle;
-        _restoreResize = ResizeMode;
-        // A maximized window keeps its frame size; go through normal so the borderless one covers the taskbar.
-        if (WindowState == WindowState.Maximized) WindowState = WindowState.Normal;
-        WindowStyle = WindowStyle.None;
-        ResizeMode = ResizeMode.NoResize;
-        WindowState = WindowState.Maximized;
-        _vm.IsFullScreen = true;
-        ShowBar();
-    }
-
-    public void LeaveFullScreen()
-    {
-        if (!_vm.IsFullScreen) return;
-        _barTimer.Stop();
-        _vm.IsFullScreen = false;
-        WindowState = WindowState.Normal;
-        WindowStyle = _restoreStyle;
-        ResizeMode = _restoreResize;
-        WindowState = _restoreState;
-        FullBarContent.BeginAnimation(OpacityProperty, null);
-        FullBarContent.Opacity = 1;
-    }
-
-    /// <summary>Mouse moved: the bar comes back and hides again after a while without movement.</summary>
-    private void OnAnyMouseMove(object sender, MouseEventArgs e)
-    {
-        if (!_vm.IsFullScreen) return;
-        var p = e.GetPosition(this);
-        if (Math.Abs(p.X - _lastMouse.X) < 2 && Math.Abs(p.Y - _lastMouse.Y) < 2) return; // WPF also reports moves without movement
-        _lastMouse = p;
-        ShowBar();
-    }
-
-    private void ShowBar()
-    {
-        FullBarContent.BeginAnimation(OpacityProperty, null);
-        FullBarContent.Opacity = 1;
-        _barTimer.Stop();
-        _barTimer.Start();
-    }
-
-    private void HideBar()
-    {
-        _barTimer.Stop();
-        if (!_vm.IsFullScreen) return;
-        // Stays while the mouse is on it or a control in it has the keyboard focus.
-        if (FullBar.IsMouseOver || FullBar.IsKeyboardFocusWithin)
-        {
-            _barTimer.Start();
-            return;
-        }
-        if (ThemeManager.AnimationsOn)
-        {
-            var fade = new DoubleAnimation(0, TimeSpan.FromMilliseconds(260)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
-            FullBarContent.BeginAnimation(OpacityProperty, fade);
-        }
-        else
-        {
-            FullBarContent.Opacity = 0;
         }
     }
 
@@ -179,34 +83,25 @@ public partial class MainWindow : Window
         {
             e.Cancel = true;
             _vm.CancelKeyCapture();
-            LeaveFullScreen(); // the window comes back as a window
             Hide();
             app.OnHiddenToTray();
         }
     }
 
     /// <summary>
-    /// While a tile waits for its hotkey, the next key press goes to it. Esc closes the open box,
-    /// the settings or the full screen. F11 switches full screen (unless a pad has F11 as its
-    /// global key: then the key plays that pad everywhere, and the button in the header switches).
+    /// While a tile waits for its hotkey, the next key press goes to it. Esc closes the open box
+    /// or the settings.
     /// </summary>
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (_vm.CapturingTile is null)
         {
-            if (e.Key == Key.F11 && Keyboard.Modifiers == ModifierKeys.None)
-            {
-                ToggleFullScreen();
-                e.Handled = true;
-                return;
-            }
             if (e.Key == Key.Escape && Keyboard.FocusedElement is not TextBox { DataContext: TileViewModel { IsRenaming: true } }
                 && !IsInOpenDropDown(e.OriginalSource as DependencyObject))
             {
                 var open = _vm.Tiles.FirstOrDefault(t => t.IsIssueOpen);
                 if (open is not null) open.IsIssueOpen = false;
                 else if (_vm.SettingsOpen) _vm.CloseSettingsCommand.Execute(null);
-                else if (_vm.IsFullScreen) LeaveFullScreen();
                 else return;
                 e.Handled = true;
             }

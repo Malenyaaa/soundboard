@@ -310,7 +310,6 @@ public sealed partial class TileViewModel : ObservableObject
         if (trimmed.Length == 0 || trimmed == Config.Name) return;
         Config.Name = trimmed;
         _owner.ScheduleSave();
-        _owner.UpdateFullScreenToolTip();
     }
 
     partial void OnVolumePercentChanged(double value) => _owner.OnTileVolumeChanged(this);

@@ -14,7 +14,7 @@
 ; - VB-CABLE is not bundled; the app links to vb-cable.com.
 
 #define AppName "Soundboard"
-#define AppVersion "0.13.0"
+#define AppVersion "0.13.1"
 #define AppExe "Soundboard.exe"
 
 [Setup]

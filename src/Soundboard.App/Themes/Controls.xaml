@@ -785,7 +785,5 @@
         <Setter Property="VerticalAlignment" Value="Top" />
     </Style>
 
-    <!-- Four corners pointing outwards: full screen. -->
-    <Geometry x:Key="FullScreenGeometry">M 1.5,6 L 1.5,1.5 L 6,1.5 M 12,1.5 L 16.5,1.5 L 16.5,6 M 16.5,12 L 16.5,16.5 L 12,16.5 M 6,16.5 L 1.5,16.5 L 1.5,12</Geometry>
     <Geometry x:Key="GearGeometry">F0 M 17.09,8.26 L 19.52,8.76 L 19.52,11.24 L 17.09,11.74 L 16.24,13.79 L 17.61,15.85 L 15.85,17.61 L 13.79,16.24 L 11.74,17.09 L 11.24,19.52 L 8.76,19.52 L 8.26,17.09 L 6.21,16.24 L 4.15,17.61 L 2.39,15.85 L 3.76,13.79 L 2.91,11.74 L 0.48,11.24 L 0.48,8.76 L 2.91,8.26 L 3.76,6.21 L 2.39,4.15 L 4.15,2.39 L 6.21,3.76 L 8.26,2.91 L 8.76,0.48 L 11.24,0.48 L 11.74,2.91 L 13.79,3.76 L 15.85,2.39 L 17.61,4.15 L 16.24,6.21 Z M 10,6.8 A 3.2,3.2 0 1 0 10,13.2 A 3.2,3.2 0 1 0 10,6.8 Z</Geometry>
 </ResourceDictionary>

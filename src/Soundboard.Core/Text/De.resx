@@ -158,9 +158,6 @@
   <data name="Main.Stop" xml:space="preserve"><value>Stop</value></data>
   <data name="Main.StopTip" xml:space="preserve"><value>Stoppt alle laufenden Sounds sofort.</value></data>
   <data name="Main.StopTipKey" xml:space="preserve"><value>Stoppt alle laufenden Sounds sofort. Taste: {0} – wirkt überall, auch wenn ein Spiel im Vordergrund ist.</value></data>
-  <data name="Main.FullScreen" xml:space="preserve"><value>Vollbild</value></data>
-  <data name="Main.FullScreenTip" xml:space="preserve"><value>Vollbild (F11)</value></data>
-  <data name="Main.FullScreenTipTaken" xml:space="preserve"><value>Vollbild – F11 spielt das Pad „{0}“, deshalb geht es hier über diesen Knopf</value></data>
   <data name="Main.ChosenDevice" xml:space="preserve"><value>Gewähltes Gerät</value></data>
   <data name="Main.TheChosenDevice" xml:space="preserve"><value>Das gewählte Gerät</value></data>
   <data name="Main.TheMonitorDevice" xml:space="preserve"><value>das Mithörgerät</value></data>
@@ -169,8 +166,6 @@
   <data name="Main.TheChosenMic" xml:space="preserve"><value>Das gewählte Mikrofon</value></data>
   <data name="Main.TheMic" xml:space="preserve"><value>Das Mikrofon</value></data>
   <data name="Main.ReloadingSounds" xml:space="preserve"><value>Die Sounds werden gerade neu geladen, weil das Mithörgerät ein anderes Format hat.</value></data>
-  <data name="Full.Exit" xml:space="preserve"><value>Vollbild beenden</value></data>
-  <data name="Full.ExitTip" xml:space="preserve"><value>Zurück zum Fenster (F11 oder Esc)</value></data>
   <data name="Empty.Title" xml:space="preserve"><value>Sounds hierher ziehen</value></data>
   <data name="Empty.Text" xml:space="preserve"><value>MP3, WAV, OGG oder FLAC – einzeln oder als ganzer Ordner. Jeder Sound wird ein Pad, das du anklickst oder mit einer Taste auslöst. Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt.</value></data>
   <data name="Dialog.AddSounds" xml:space="preserve"><value>Sounds hinzufügen</value></data>

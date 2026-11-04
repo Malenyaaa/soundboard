@@ -374,8 +374,7 @@
 
     <DockPanel>
         <!-- ============================================================ status line: one line, each part opens its tab -->
-        <Border DockPanel.Dock="Bottom" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,1,0,0" Padding="10,2"
-                Visibility="{Binding IsFullScreen, Converter={StaticResource NotBoolToVis}}">
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,1,0,0" Padding="10,2">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="{t:T Status.SoundFolder}" Command="{Binding OpenSoundsFolderCommand}"
                         ToolTip="{Binding SoundsDir}" Foreground="{DynamicResource SubTextBrush}" />
@@ -416,28 +415,7 @@
         </Border>
 
         <!-- ============================================================ header: only what is used while playing -->
-        <!-- ============================================================ full screen: a slim bar with stop, volume and the way back -->
-        <Border x:Name="FullBar" DockPanel.Dock="Top" Background="{DynamicResource WindowBg}" Padding="20,10,20,0"
-                Visibility="{Binding IsFullScreen, Converter={StaticResource BoolToVis}}">
-            <DockPanel x:Name="FullBarContent" Height="44">
-                <Button DockPanel.Dock="Right" Style="{StaticResource StopButton}" Content="{t:T Main.Stop}" VerticalAlignment="Center"
-                        Command="{Binding StopAllCommand}" ToolTip="{Binding StopAllToolTip}" />
-                <Button DockPanel.Dock="Right" Content="{t:T Full.Exit}" Click="OnFullScreenClick" VerticalAlignment="Center" Margin="0,0,12,0"
-                        ToolTip="{t:T Full.ExitTip}" />
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Path Data="M 1,7 L 5,7 L 10,2.5 L 10,17.5 L 5,13 L 1,13 Z M 13.5,6.5 Q 16,10 13.5,13.5 M 16,4 Q 20.5,10 16,16" Stroke="{DynamicResource TextBrush}" StrokeThickness="1.5"
-                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="21" Height="20" VerticalAlignment="Center"
-                          ToolTip="{t:T Main.VolumeAll}" />
-                    <Slider Minimum="0" Maximum="100" Width="160" Margin="8,0,8,0" VerticalAlignment="Center"
-                            Value="{Binding MasterVolumePercent}" SmallChange="1" LargeChange="10"
-                            AutomationProperties.Name="{t:T Main.VolumeAll}" ToolTip="{t:T Main.VolumeAllTip}" />
-                    <TextBlock Text="{Binding MasterVolumeText}" Width="44" Style="{StaticResource Num}" />
-                </StackPanel>
-            </DockPanel>
-        </Border>
-
-        <Border DockPanel.Dock="Top" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="16,10"
-                Visibility="{Binding IsFullScreen, Converter={StaticResource NotBoolToVis}}">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="16,10">
             <Grid x:Name="HeaderGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -465,12 +443,7 @@
                     <TextBlock Text="{Binding MasterVolumeText}" Width="40" Style="{StaticResource Num}" />
                     <Button Content="{t:T Main.AddSounds}" Command="{Binding AddFilesDialogCommand}" Margin="16,0,0,0"
                             ToolTip="{t:T Main.AddSoundsTip}" />
-                    <Button Style="{StaticResource IconButton}" Click="OnFullScreenClick" Margin="8,0,0,0"
-                            AutomationProperties.Name="{t:T Main.FullScreen}" ToolTip="{Binding FullScreenToolTip}">
-                        <Path Data="{StaticResource FullScreenGeometry}" Stroke="{DynamicResource TextBrush}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                              StrokeLineJoin="Round" Width="18" Height="18" Stretch="None" />
-                    </Button>
-                    <Button Style="{StaticResource IconButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="" Margin="4,0,0,0"
+                    <Button Style="{StaticResource IconButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="" Margin="8,0,0,0"
                             AutomationProperties.Name="{t:T Settings.Title}"
                             ToolTip="{t:T Main.SettingsTip}">
                         <Path Data="{StaticResource GearGeometry}" Fill="{DynamicResource TextBrush}" Width="20" Height="20" Stretch="Uniform" />
@@ -481,9 +454,8 @@
             </Grid>
         </Border>
 
-        <!-- ============================================================ the one notice (not in full screen) -->
-        <Border DockPanel.Dock="Top" Visibility="{Binding IsFullScreen, Converter={StaticResource NotBoolToVis}}">
-        <Border Style="{StaticResource NoticeBox}" Margin="16,12,16,0"
+        <!-- ============================================================ the one notice -->
+        <Border DockPanel.Dock="Top" Style="{StaticResource NoticeBox}" Margin="16,12,16,0"
                 Visibility="{Binding CurrentNotice.Text, Converter={StaticResource TextToVis}, FallbackValue=Collapsed}">
             <DockPanel>
                 <WrapPanel x:Name="NoticeButtons" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
@@ -501,27 +473,14 @@
                 <TextBlock Text="{Binding CurrentNotice.Text}" TextWrapping="Wrap" VerticalAlignment="Center" LineHeight="20" />
             </DockPanel>
         </Border>
-        </Border>
 
         <!-- ============================================================ pads, empty state, settings -->
         <Grid>
-            <ScrollViewer x:Name="PadScroll" HorizontalScrollBarVisibility="Disabled" Focusable="False">
-                <ScrollViewer.Style>
-                    <Style TargetType="ScrollViewer">
-                        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
-                        <Style.Triggers>
-                            <!-- Full screen: the pads fill the screen instead of scrolling. -->
-                            <DataTrigger Binding="{Binding IsFullScreen}" Value="True">
-                                <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </ScrollViewer.Style>
+            <ScrollViewer x:Name="PadScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
                 <ItemsControl ItemsSource="{Binding Tiles}" Margin="16,16,16,20" ItemTemplate="{StaticResource PadTemplate}" Focusable="False">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <views:PadPanel MinPadWidth="160" Gap="12"
-                                            Fill="{Binding DataContext.IsFullScreen, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                            <views:PadPanel MinPadWidth="160" Gap="12" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemContainerStyle>

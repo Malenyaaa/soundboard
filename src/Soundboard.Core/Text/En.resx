@@ -158,9 +158,6 @@
   <data name="Main.Stop" xml:space="preserve"><value>Stop</value></data>
   <data name="Main.StopTip" xml:space="preserve"><value>Stops all playing sounds at once.</value></data>
   <data name="Main.StopTipKey" xml:space="preserve"><value>Stops all playing sounds at once. Key: {0} – works everywhere, even when a game is in front.</value></data>
-  <data name="Main.FullScreen" xml:space="preserve"><value>Full screen</value></data>
-  <data name="Main.FullScreenTip" xml:space="preserve"><value>Full screen (F11)</value></data>
-  <data name="Main.FullScreenTipTaken" xml:space="preserve"><value>Full screen – F11 plays the pad “{0}”, so use this button</value></data>
   <data name="Main.ChosenDevice" xml:space="preserve"><value>Chosen device</value></data>
   <data name="Main.TheChosenDevice" xml:space="preserve"><value>The chosen device</value></data>
   <data name="Main.TheMonitorDevice" xml:space="preserve"><value>the monitor device</value></data>
@@ -169,8 +166,6 @@
   <data name="Main.TheChosenMic" xml:space="preserve"><value>The chosen microphone</value></data>
   <data name="Main.TheMic" xml:space="preserve"><value>The microphone</value></data>
   <data name="Main.ReloadingSounds" xml:space="preserve"><value>The sounds are being reloaded because the monitor device uses another format.</value></data>
-  <data name="Full.Exit" xml:space="preserve"><value>Exit full screen</value></data>
-  <data name="Full.ExitTip" xml:space="preserve"><value>Back to the window (F11 or Esc)</value></data>
   <data name="Empty.Title" xml:space="preserve"><value>Drag sounds here</value></data>
   <data name="Empty.Text" xml:space="preserve"><value>MP3, WAV, OGG or FLAC – one by one or a whole folder. Each sound becomes a pad that you click or play with a key. The files are copied into the sound folder; the originals stay where they are.</value></data>
   <data name="Dialog.AddSounds" xml:space="preserve"><value>Add sounds</value></data>
