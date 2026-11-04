@@ -25,8 +25,8 @@ public sealed class VolumeIcon : Grid
     private static readonly Duration Draw = new(TimeSpan.FromMilliseconds(160));
     private static readonly IEasingFunction EaseOut = Frozen(new CubicEase { EasingMode = EasingMode.EaseOut });
 
-    // Slash length in units of the stroke thickness (√(17² + 16²) / 1.5 ≈ 15.6), rounded up.
-    private const double SlashUnits = 16;
+    // Slash length in units of the stroke thickness (√(14² + 15²) / 1.5 ≈ 13.7), rounded up.
+    private const double SlashUnits = 14;
 
     private readonly Path _body;
     private readonly Path[] _arcs;
@@ -72,7 +72,7 @@ public sealed class VolumeIcon : Grid
             Part("M 15.2,5 Q 18.8,10 15.2,15"),
             Part("M 17.8,2.6 Q 22.6,10 17.8,17.4"),
         ];
-        _slash = Part("M 2,2 L 19,18");
+        _slash = Part("M 0.5,2.5 L 14.5,17.5");
         _slash.StrokeDashArray = [SlashUnits, SlashUnits + 4];
         _slash.StrokeDashCap = PenLineCap.Round;
         Update(animate: false);
