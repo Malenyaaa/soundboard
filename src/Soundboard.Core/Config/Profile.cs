@@ -83,6 +83,9 @@ public sealed class Profile
     /// <summary>Global hotkey for "stop all" as token text; null = none.</summary>
     public string? StopAllHotkey { get; set; } = "Pause";
 
+    /// <summary>Global hotkey that switches the microphone mute on and off; null = none (default).</summary>
+    public string? MuteMicHotkey { get; set; }
+
     public List<TileConfig> Tiles { get; set; } = [];
 
     // ---- design (since version 2); stored as text so an unknown value never breaks loading

@@ -18,6 +18,7 @@ public sealed class TrayIcon : IDisposable
     private readonly TaskbarIcon _icon;
     private readonly MainViewModel _vm;
     private readonly MenuItem _pauseItem;
+    private readonly MenuItem _muteItem;
     private readonly List<(MenuItem Item, string Key)> _texts = [];
     private (Rgb Accent, int Size) _drawn;
 
@@ -31,6 +32,11 @@ public sealed class TrayIcon : IDisposable
         _pauseItem = Item("Keys.Pause", () => vm.HotkeysPaused = !vm.HotkeysPaused);
         _pauseItem.IsCheckable = true;
         menu.Items.Add(_pauseItem);
+        // Ticked = the microphone is muted; the sounds keep going to the cable.
+        _muteItem = Item("Keys.MuteMic", () => vm.MicMuted = !vm.MicMuted);
+        _muteItem.IsCheckable = true;
+        _muteItem.IsChecked = vm.MicMuted;
+        menu.Items.Add(_muteItem);
         menu.Items.Add(new Separator());
         menu.Items.Add(Item("Tab.Setup", () => { app.ShowMain(); vm.OpenSetupCommand.Execute(null); }));
         menu.Items.Add(Item("Tray.Uninstall", app.RequestUninstall));
@@ -83,12 +89,15 @@ public sealed class TrayIcon : IDisposable
         return item;
     }
 
-    private string Tooltip() => $"Soundboard – {_vm.StatusCable}";
+    private string Tooltip() => _vm.MicMuted
+        ? $"Soundboard – {_vm.StatusCable} – {L.Get("Status.MicMuted")}"
+        : $"Soundboard – {_vm.StatusCable}";
 
     private void OnVmChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MainViewModel.StatusCable)) _icon.ToolTipText = Tooltip();
+        if (e.PropertyName is nameof(MainViewModel.StatusCable) or nameof(MainViewModel.MicMuted)) _icon.ToolTipText = Tooltip();
         if (e.PropertyName == nameof(MainViewModel.HotkeysPaused)) _pauseItem.IsChecked = _vm.HotkeysPaused;
+        if (e.PropertyName == nameof(MainViewModel.MicMuted)) _muteItem.IsChecked = _vm.MicMuted;
     }
 
     /// <summary>Short Windows notification (no sound).</summary>

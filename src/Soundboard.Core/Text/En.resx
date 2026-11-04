@@ -525,4 +525,8 @@ Delete: remove key</value></data>
   <data name="PadColour.Violet" xml:space="preserve"><value>Violet</value></data>
   <data name="PadColour.Grey" xml:space="preserve"><value>Grey</value></data>
   <data name="Key.DelShort" xml:space="preserve"><value>Del</value></data>
+  <data name="Keys.MuteMic" xml:space="preserve"><value>Mute microphone</value></data>
+  <data name="Status.MicMuted" xml:space="preserve"><value>Microphone: muted</value></data>
+  <data name="Status.MicMutedTip" xml:space="preserve"><value>Click to switch the microphone on again. The sounds still go to the cable.</value></data>
+  <data name="Notice.FunctionKeyTaken" xml:space="preserve"><value>The key {0} for “{1}” is taken by another program, so it does nothing.</value></data>
 </root>

@@ -72,6 +72,7 @@ public sealed partial class MainViewModel
         UpdateCustomAccentHint();
         UpdateAutostartTexts();
         OnPropertyChanged(nameof(StopAllToolTip));
+        OnPropertyChanged(nameof(StatusMicTip));
         OnPropertyChanged(nameof(MasterVolumeText));
         OnPropertyChanged(nameof(MicVolumeText));
         OnPropertyChanged(nameof(Language));

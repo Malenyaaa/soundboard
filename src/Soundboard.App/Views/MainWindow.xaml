@@ -481,8 +481,25 @@
                                          ToolTip="{t:T Status.LevelTip}" />
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource LinkButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="kabel" Margin="12,0,0,0"
-                            Content="{Binding StatusMix}" ToolTip="{t:T Status.MicTip}" />
+                    <!-- Microphone: muted shows the warning sign and bold text; a click unmutes. -->
+                    <Button Style="{StaticResource LinkButton}" Command="{Binding MicStatusClickCommand}" Margin="12,0,0,0"
+                            ToolTip="{Binding StatusMicTip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Style="{StaticResource WarnIcon}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                  Visibility="{Binding MicMuted, Converter={StaticResource BoolToVis}}" />
+                            <TextBlock Text="{Binding StatusMix}" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding MicMuted}" Value="True">
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Button>
                     <Button Style="{StaticResource LinkButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="tasten" Margin="12,0,0,0"
                             ToolTip="{t:T Status.KeysTip}">
                         <StackPanel Orientation="Horizontal">

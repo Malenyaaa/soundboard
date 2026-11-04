@@ -525,4 +525,8 @@ Entf: Taste löschen</value></data>
   <data name="PadColour.Violet" xml:space="preserve"><value>Violett</value></data>
   <data name="PadColour.Grey" xml:space="preserve"><value>Grau</value></data>
   <data name="Key.DelShort" xml:space="preserve"><value>Entf</value></data>
+  <data name="Keys.MuteMic" xml:space="preserve"><value>Mikrofon stumm</value></data>
+  <data name="Status.MicMuted" xml:space="preserve"><value>Mikrofon: stumm</value></data>
+  <data name="Status.MicMutedTip" xml:space="preserve"><value>Klicken schaltet das Mikrofon wieder ein. Die Sounds gehen weiter aufs Kabel.</value></data>
+  <data name="Notice.FunctionKeyTaken" xml:space="preserve"><value>Die Taste {0} für „{1}“ ist von einem anderen Programm belegt und wirkt deshalb nicht.</value></data>
 </root>

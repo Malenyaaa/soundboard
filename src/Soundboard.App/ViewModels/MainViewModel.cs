@@ -1028,10 +1028,36 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnMicVolumePercentChanged(double value)
     {
         float v = (float)Math.Clamp(value / 100.0, 0, 2);
-        if (_mix is not null) _mix.Mixer.VoiceVolume = v;
+        if (_mix is not null) _mix.Mixer.VoiceVolume = EffectiveMicVolume;
         if (Math.Abs(_profile.MicVolume - v) < 0.0001f) return;
         _profile.MicVolume = v;
         ScheduleSave();
+    }
+
+    /// <summary>
+    /// Microphone muted (key, tray, status line). Only the voice goes silent; the sounds keep going
+    /// to the cable. Not stored: after a restart the microphone is on again.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(StatusMicTip))]
+    private bool _micMuted;
+
+    private float EffectiveMicVolume => MicMuted ? 0f : (float)Math.Clamp(MicVolumePercent / 100.0, 0, 2);
+
+    public string StatusMicTip => L.Get(MicMuted ? "Status.MicMutedTip" : "Status.MicTip");
+
+    partial void OnMicMutedChanged(bool value)
+    {
+        if (_mix is not null) _mix.Mixer.VoiceVolume = EffectiveMicVolume;
+        UpdateMixStatus();
+    }
+
+    /// <summary>Click on the microphone in the status line: unmutes; otherwise opens its settings.</summary>
+    [RelayCommand]
+    private void MicStatusClick()
+    {
+        if (MicMuted) MicMuted = false;
+        else OpenSettings(SettingsTabs.MicAndCable);
     }
 
     /// <summary>Opens the chosen microphone. Null plus a notice if that is not possible.</summary>
@@ -1068,7 +1094,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             session = new MixSession(output, mic, _player.Mix, _profile.Buffer);
             session.Mixer.BlockVoiceWhileSound = BlockVoice;
-            session.Mixer.VoiceVolume = (float)(MicVolumePercent / 100.0);
+            session.Mixer.VoiceVolume = EffectiveMicVolume;
             session.Stopped += OnMixStopped;
             _player.SetMixActive(true);
             _mix = session;
@@ -1219,7 +1245,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             TestStatus = L.F("Test.Running", left);
         }
 
-        string text = mix is null || !mix.HasVoice
+        string text = MicMuted ? L.Get("Status.MicMuted")
+            : mix is null || !mix.HasVoice
             ? L.Get("Status.MicOff")
             : mix.Underruns == 0 ? L.Get("Status.MicOn")
             : L.Count("Status.MicDropouts", mix.Underruns);
@@ -1544,6 +1571,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // ---------------------------------------------------------------- hotkeys
 
     private const string StopAllOwner = "stop-all";
+    private const string MuteMicOwner = "mute-mic";
 
     [ObservableProperty]
     private bool _hotkeysPaused;
@@ -1556,6 +1584,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>The key for "Stop all sounds" (default Pause, may be none).</summary>
     public FunctionKeyViewModel StopKey { get; private set; } = null!;
+
+    /// <summary>The key for "Mute microphone" (a switch; default none).</summary>
+    public FunctionKeyViewModel MuteKey { get; private set; } = null!;
 
     /// <summary>Pad or function row currently waiting for a key press, or null.</summary>
     public IKeyTarget? Capturing { get; private set; }
@@ -1574,6 +1605,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         StopKey = new FunctionKeyViewModel(this, StopAllOwner, "Keys.StopAll");
         FunctionKeys.Add(StopKey);
+        MuteKey = new FunctionKeyViewModel(this, MuteMicOwner, "Keys.MuteMic");
+        FunctionKeys.Add(MuteKey);
     }
 
     private bool IsFunctionOwner(string owner) => FunctionKeys.Any(f => f.OwnerId == owner);
@@ -1581,6 +1614,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private string? FunctionKeyToken(string owner) => owner switch
     {
         StopAllOwner => _profile.StopAllHotkey,
+        MuteMicOwner => _profile.MuteMicHotkey,
         _ => null,
     };
 
@@ -1589,6 +1623,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         switch (owner)
         {
             case StopAllOwner: _profile.StopAllHotkey = token; break;
+            case MuteMicOwner: _profile.MuteMicHotkey = token; break;
         }
     }
 
@@ -1621,6 +1656,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (owner == StopAllOwner)
         {
             StopAll();
+            return;
+        }
+        if (owner == MuteMicOwner)
+        {
+            MicMuted = !MicMuted;
             return;
         }
         var tile = Tiles.FirstOrDefault(t => t.OwnerId == owner);
@@ -1841,8 +1881,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             problems++;
             f.SetProblem(L.F(b.State == HotkeyState.Failed ? "Key.Refused" : "Key.TakenByOther", g?.Display), L.Get("Action.OtherKey"), () => BeginKeyCapture(f));
-            if (f.OwnerId == StopAllOwner)
-                ShowNotice(noticeKey, () => L.F("Notice.StopKeyTaken", g?.Display), T("Action.OtherKey"), () => ChooseFunctionKey(f));
+            ShowNotice(noticeKey, f.OwnerId == StopAllOwner
+                    ? () => L.F("Notice.StopKeyTaken", g?.Display)
+                    : () => L.F("Notice.FunctionKeyTaken", g?.Display, f.Name),
+                T("Action.OtherKey"), () => ChooseFunctionKey(f));
         }
         else
         {

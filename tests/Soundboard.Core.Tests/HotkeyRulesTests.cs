@@ -58,8 +58,11 @@ public sealed class HotkeyRulesTests
         {
             var file = Path.Combine(dir, "config.json");
             Assert.AreEqual("Pause", new Profile().StopAllHotkey, "default stays Pause");
-            ProfileStore.Save(file, new Profile { StopAllHotkey = null });
-            Assert.IsNull(ProfileStore.Load(file).Profile.StopAllHotkey);
+            Assert.IsNull(new Profile().MuteMicHotkey, "mute has no key until one is chosen");
+            ProfileStore.Save(file, new Profile { StopAllHotkey = null, MuteMicHotkey = "Ctrl+Alt+M" });
+            var back = ProfileStore.Load(file).Profile;
+            Assert.IsNull(back.StopAllHotkey);
+            Assert.AreEqual("Ctrl+Alt+M", back.MuteMicHotkey);
         }
         finally
         {
