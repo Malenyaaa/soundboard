@@ -737,7 +737,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ShowNotice("crash", T(changed ? "Notice.CrashChanged" : "Notice.CrashSame"),
                 changed ? T("Action.Restore") : null,
                 changed ? RestoreDefaults : null);
+            HideNoticeAfter("crash", TimeSpan.FromSeconds(3));
         }
+    }
+
+    /// <summary>Removes the notice shown under <paramref name="key"/> after a delay, unless it
+    /// has been replaced or closed in the meantime.</summary>
+    private void HideNoticeAfter(string key, TimeSpan delay)
+    {
+        var shown = Notices.FirstOrDefault(n => n.Key == key);
+        if (shown is null) return;
+        var timer = new DispatcherTimer { Interval = delay };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            if (Notices.Contains(shown)) Notices.Remove(shown);
+        };
+        timer.Start();
     }
 
     private void WriteDirtyFlag(bool cableActive)
