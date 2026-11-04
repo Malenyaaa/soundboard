@@ -533,4 +533,8 @@ Entf: Taste löschen</value></data>
   <data name="Notice.UndoMore.One" xml:space="preserve"><value>{1} Danach lässt sich noch ein Schritt zurücknehmen.</value></data>
   <data name="Notice.UndoMore.Other" xml:space="preserve"><value>{1} Danach lassen sich noch {0} Schritte zurücknehmen.</value></data>
   <data name="Notice.NothingToUndo" xml:space="preserve"><value>Nichts zum Rückgängigmachen.</value></data>
+  <data name="Hint.Title" xml:space="preserve"><value>Soundboard: nichts abgespielt</value></data>
+  <data name="Hint.StillLoading" xml:space="preserve"><value>„{0}“ lädt noch. Drück die Taste gleich noch einmal.</value></data>
+  <data name="Hint.CannotPlay" xml:space="preserve"><value>„{0}“ lässt sich nicht abspielen – die Datei fehlt oder ist kaputt. Öffne das Soundboard, dort steht der Grund.</value></data>
+  <data name="Hint.Nowhere" xml:space="preserve"><value>„{0}“ hat kein Ziel: Mithören ist aus oder gestört, und ans Kabel geht nichts. Öffne das Soundboard, um es einzuschalten.</value></data>
 </root>

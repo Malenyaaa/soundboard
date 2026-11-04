@@ -471,16 +471,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         tile.SetIssue(() => L.F("Pad.LoadIssue", error), T("Action.RemovePad"), () => RemoveTile(tile));
     }
 
-    public void OnTileClicked(TileViewModel tile)
+    /// <summary>
+    /// A global key did nothing (reason, text). The app turns it into a quiet Windows notification
+    /// when the window is not in front – otherwise the notice in the window says it.
+    /// </summary>
+    public event Action<string, string>? KeyWithoutEffect;
+
+    public void OnTileClicked(TileViewModel tile) => PlayOrStop(tile, fromKey: false);
+
+    private void PlayOrStop(TileViewModel tile, bool fromKey)
     {
         if (tile.IsRenaming) return;
         switch (tile.State)
         {
             case TileState.Loading:
                 ShowNotice("play", TF("Notice.StillLoading", tile.Name));
+                if (fromKey) KeyWithoutEffect?.Invoke("loading", L.F("Hint.StillLoading", tile.Name));
                 return;
             case TileState.Error:
                 tile.IsIssueOpen = true;
+                if (fromKey) KeyWithoutEffect?.Invoke("error", L.F("Hint.CannotPlay", tile.Name));
                 return;
         }
 
@@ -496,6 +506,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             ShowNotice("play", T(MonitorEnabled ? "Notice.NowhereMonitorBroken" : "Notice.NowhereMonitorOff"),
                 MonitorEnabled ? null : T("Action.MonitorOn"), MonitorEnabled ? null : () => MonitorEnabled = true);
+            if (fromKey) KeyWithoutEffect?.Invoke("nowhere", L.F("Hint.Nowhere", tile.Name));
             return;
         }
         ClearNotice("play");
@@ -1664,7 +1675,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
         var tile = Tiles.FirstOrDefault(t => t.OwnerId == owner);
-        if (tile is not null) OnTileClicked(tile);
+        if (tile is not null) PlayOrStop(tile, fromKey: true);
     }
 
     /// <summary>

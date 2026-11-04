@@ -533,4 +533,8 @@ Delete: remove key</value></data>
   <data name="Notice.UndoMore.One" xml:space="preserve"><value>{1} One more step can be undone after this.</value></data>
   <data name="Notice.UndoMore.Other" xml:space="preserve"><value>{1} {0} more steps can be undone after this.</value></data>
   <data name="Notice.NothingToUndo" xml:space="preserve"><value>Nothing to undo.</value></data>
+  <data name="Hint.Title" xml:space="preserve"><value>Soundboard: nothing played</value></data>
+  <data name="Hint.StillLoading" xml:space="preserve"><value>“{0}” is still loading. Press the key again in a moment.</value></data>
+  <data name="Hint.CannotPlay" xml:space="preserve"><value>“{0}” cannot be played – the file is missing or broken. Open the soundboard to see why.</value></data>
+  <data name="Hint.Nowhere" xml:space="preserve"><value>“{0}” has nowhere to go: monitoring is off or not working, and nothing goes to the cable. Open the soundboard to switch it on.</value></data>
 </root>

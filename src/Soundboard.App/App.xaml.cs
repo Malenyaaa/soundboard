@@ -75,6 +75,7 @@ public partial class App : Application
         _window = new Views.MainWindow(_vm);
         MainWindow = _window;
         _tray = new TrayIcon(this, _vm);
+        _vm.KeyWithoutEffect += OnKeyWithoutEffect;
         Instance?.ListenForShow(() => Dispatcher.BeginInvoke(ShowMain));
         Watcher.StartFor(Environment.ProcessId);
         if (!StartInTray) _window.Show();
@@ -132,6 +133,20 @@ public partial class App : Application
         _window.Show();
         if (_window.WindowState == WindowState.Minimized) _window.WindowState = WindowState.Normal;
         _window.Activate();
+    }
+
+    /// <summary>At most one notification per reason every 10 seconds.</summary>
+    private readonly HintThrottle _keyHints = new(TimeSpan.FromSeconds(10));
+
+    /// <summary>
+    /// A global key did nothing. In front, the window's notice says it; behind a game or another
+    /// window a quiet Windows notification does, so the key does not seem dead.
+    /// </summary>
+    private void OnKeyWithoutEffect(string reason, string text)
+    {
+        if (_window is { IsVisible: true, IsActive: true }) return;
+        if (!_keyHints.ShouldShow(reason, DateTime.UtcNow)) return;
+        _tray?.ShowHint(L.Get("Hint.Title"), text);
     }
 
     /// <summary>The window was closed with X: keep running in the tray, say so once.</summary>
