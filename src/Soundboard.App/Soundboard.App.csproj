@@ -9,7 +9,14 @@
     <!-- Single-file publish: also pack the native WPF libraries into the EXE. -->
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- EXE, taskbar and start menu; the windows load the same file as a resource.
+         Regenerate with tools/IconGen (see README). -->
+    <ApplicationIcon>Assets\Soundboard.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Soundboard.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />

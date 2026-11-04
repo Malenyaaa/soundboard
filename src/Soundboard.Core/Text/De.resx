@@ -457,13 +457,13 @@ Entf: Taste löschen</value></data>
   <data name="Tray.Uninstall" xml:space="preserve"><value>Alles entfernen …</value></data>
   <data name="Tray.Quit" xml:space="preserve"><value>Beenden …</value></data>
   <data name="Tray.StillRunningTitle" xml:space="preserve"><value>Soundboard läuft weiter</value></data>
-  <data name="Tray.StillRunning" xml:space="preserve"><value>Mikrofon und Sounds gehen weiter ans Kabel. Öffnen und Beenden über das Notensymbol im Infobereich.</value></data>
+  <data name="Tray.StillRunning" xml:space="preserve"><value>Mikrofon und Sounds gehen weiter ans Kabel. Öffnen und Beenden über das Soundboard-Symbol im Infobereich.</value></data>
   <data name="Watch.Restart" xml:space="preserve"><value>Soundboard neu starten</value></data>
   <data name="Watch.StartFailed" xml:space="preserve"><value>Das Soundboard ließ sich nicht starten ({0}). Starte es bitte von Hand.</value></data>
   <data name="Watch.NoSnapshot" xml:space="preserve"><value>Es gibt keine Sicherung, auf die sich zurückstellen ließe.</value></data>
   <data name="Uninstall.Title" xml:space="preserve"><value>Soundboard entfernen</value></data>
   <data name="Uninstall.Intro" xml:space="preserve"><value>Diese Anleitung führt durch den Rückbau: Audio-Zustand prüfen, die eigenen Daten des Soundboards löschen und das virtuelle Kabel entfernen. Nichts davon passiert still – jeder Schritt startet erst auf deinen Klick.</value></data>
-  <data name="Uninstall.Running" xml:space="preserve"><value>Das Soundboard läuft noch. Beende es zuerst: Rechtsklick auf das Notensymbol im Infobereich → „Beenden …“. Diese Anleitung merkt es von selbst.</value></data>
+  <data name="Uninstall.Running" xml:space="preserve"><value>Das Soundboard läuft noch. Beende es zuerst: Rechtsklick auf das Soundboard-Symbol im Infobereich → „Beenden …“. Diese Anleitung merkt es von selbst.</value></data>
   <data name="Uninstall.H1" xml:space="preserve"><value>1. Audio-Zustand prüfen</value></data>
   <data name="Uninstall.H2" xml:space="preserve"><value>2. Eigene Daten des Soundboards löschen</value></data>
   <data name="Uninstall.H3" xml:space="preserve"><value>3. Virtuelles Kabel entfernen (VB-CABLE)</value></data>
@@ -490,7 +490,7 @@ Entf: Taste löschen</value></data>
   <data name="Uninstall.WillDelete" xml:space="preserve"><value>Gelöscht wird im Datenordner {0}:</value></data>
   <data name="Uninstall.AutostartEntry" xml:space="preserve"><value>Eintrag „mit Windows starten“</value></data>
   <data name="Uninstall.FoldersStay" xml:space="preserve"><value>Sound- und Bilder-Ordner bleiben.</value></data>
-  <data name="Uninstall.StillRunning" xml:space="preserve"><value>Das Soundboard läuft noch und hält seine Dateien offen. Beende es zuerst über das Notensymbol im Infobereich → „Beenden …“, dann noch einmal klicken.</value></data>
+  <data name="Uninstall.StillRunning" xml:space="preserve"><value>Das Soundboard läuft noch und hält seine Dateien offen. Beende es zuerst über das Soundboard-Symbol im Infobereich → „Beenden …“, dann noch einmal klicken.</value></data>
   <data name="Uninstall.AskKeep" xml:space="preserve"><value>Einstellungen, Sicherungen und Test-Aufnahmen des Soundboards löschen? Sound- und Bilder-Ordner bleiben. Das lässt sich nicht rückgängig machen.</value></data>
   <data name="Uninstall.AskAll" xml:space="preserve"><value>Einstellungen, Sicherungen, Test-Aufnahmen UND alle Sounds und Pad-Bilder des Soundboards löschen? Das lässt sich nicht rückgängig machen.</value></data>
   <data name="Uninstall.AskTitle" xml:space="preserve"><value>Eigene Daten löschen</value></data>

@@ -13,9 +13,10 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.11.1 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.12.0 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
-Bildern als Pad-Hintergrund, Vollbild (F11) und englischer Oberfläche, umschaltbar auf Deutsch.
+Bildern als Pad-Hintergrund, Vollbild (F11), englischer Oberfläche, umschaltbar auf Deutsch, und
+eigenem App-Symbol (Taste mit Wellenform; im Infobereich in der gewählten Akzentfarbe).
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -149,8 +150,8 @@ Discords Dateien.
   Windows-Standardgeräte stehen hier nicht; die zeigt Windows selbst.
 - **Hinweise:** Es steht immer höchstens ein gelber Hinweis über den Pads. Gibt es mehrere,
   blättert „Nächster“ weiter.
-- **Fenster schließen** lässt das Programm im Infobereich (Notensymbol) weiterlaufen, damit
-  Discord weiter dein Mikrofon bekommt. **Beenden** über Rechtsklick auf das Symbol; die
+- **Fenster schließen** lässt das Programm im Infobereich (Soundboard-Symbol: Taste mit
+  Wellenform) weiterlaufen, damit Discord weiter dein Mikrofon bekommt. **Beenden** über Rechtsklick auf das Symbol; die
   Rückfrage sagt, dass Discord dann Stille vom Kabel hört, und zeigt den Vergleich mit der
   Sicherung.
 - **Absturz:** Ein kleiner Wächter-Prozess merkt, wenn das Programm unerwartet endet, und
@@ -230,7 +231,7 @@ dem Weg „von Hand“ ausgegeben.
 
 ## Rückbau
 
-Rechtsklick auf das Notensymbol → **„Alles entfernen …“** oder `Soundboard.exe --uninstall`:
+Rechtsklick auf das Soundboard-Symbol im Infobereich → **„Alles entfernen …“** oder `Soundboard.exe --uninstall`:
 
 1. **Audio-Zustand prüfen**, bei Abweichung „Standardgerät zurückstellen“.
 2. **Eigene Daten löschen** – erst nach Rückfrage; „Sounds behalten“ ist vorausgewählt und
@@ -274,12 +275,27 @@ dotnet publish src/Soundboard.App -c Release -r win-x64 --self-contained -p:Publ
 
 Ergebnis: `publish\Soundboard.exe` (portable, eine Datei, keine .NET-Installation nötig).
 
+### App-Symbol
+
+Das Symbol wird im Code gezeichnet (`src/Soundboard.App/Icons/AppIconDrawing.cs`): 16, 20 und
+24 px pixelgenau, die übrigen Größen aus einer Formel. Die EXE-, Fenster- und Installer-Datei
+`src/Soundboard.App/Assets/Soundboard.ico` (Petrol, 16/20/24/32/48/256 px, PNG-Einträge) ist
+eingecheckt. Nach einer Änderung an der Zeichnung neu erzeugen:
+
+```powershell
+dotnet run --project tools/IconGen
+```
+
+Ein Test vergleicht die eingecheckte Datei mit der Zeichnung und schlägt fehl, wenn sie veraltet
+ist. Das Symbol im Infobereich zeichnet die App zur Laufzeit selbst, in der gewählten
+Akzentfarbe und in der Größe, die Windows für die Skalierung der Taskleiste vorsieht.
+
 ## Installer (gebaut, Installation noch ungetestet)
 
 `installer/soundboard.iss` ist ein Skript für [Inno Setup 6](https://jrsoftware.org/isinfo.php):
 Installation nur für den eigenen Benutzer nach `%LOCALAPPDATA%\Programs\Soundboard`, ohne
-Adminrechte, Startmenü-Eintrag, „Mit Windows starten“ als abwählbare Option. Der Installer
-spricht Englisch, auf einem deutschen Windows Deutsch. Beim
+Adminrechte, Startmenü-Eintrag (mit dem Symbol der EXE), „Mit Windows starten“ als abwählbare
+Option. Der Installer spricht Englisch, auf einem deutschen Windows Deutsch. Beim
 Deinstallieren startet die Anleitung `--uninstall`; bei stiller Deinstallation nur
 `--restore`. Das Skript kompiliert mit Inno Setup 6.7 ohne Warnungen; Installieren und
 Deinstallieren sind **noch nicht ausprobiert**. Bauen nach dem Publish:

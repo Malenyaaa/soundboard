@@ -457,13 +457,13 @@ Delete: remove key</value></data>
   <data name="Tray.Uninstall" xml:space="preserve"><value>Remove everything…</value></data>
   <data name="Tray.Quit" xml:space="preserve"><value>Quit…</value></data>
   <data name="Tray.StillRunningTitle" xml:space="preserve"><value>Soundboard keeps running</value></data>
-  <data name="Tray.StillRunning" xml:space="preserve"><value>Microphone and sounds keep going to the cable. Open and quit via the note icon in the notification area.</value></data>
+  <data name="Tray.StillRunning" xml:space="preserve"><value>Microphone and sounds keep going to the cable. Open and quit via the Soundboard icon in the notification area.</value></data>
   <data name="Watch.Restart" xml:space="preserve"><value>Restart soundboard</value></data>
   <data name="Watch.StartFailed" xml:space="preserve"><value>The soundboard could not be started ({0}). Please start it by hand.</value></data>
   <data name="Watch.NoSnapshot" xml:space="preserve"><value>There is no saved state to go back to.</value></data>
   <data name="Uninstall.Title" xml:space="preserve"><value>Remove soundboard</value></data>
   <data name="Uninstall.Intro" xml:space="preserve"><value>This guide walks you through the removal: check the audio state, delete the soundboard’s own data and remove the virtual cable. Nothing happens silently – each step starts only when you click.</value></data>
-  <data name="Uninstall.Running" xml:space="preserve"><value>The soundboard is still running. Quit it first: right-click the note icon in the notification area → “Quit…”. This guide notices it by itself.</value></data>
+  <data name="Uninstall.Running" xml:space="preserve"><value>The soundboard is still running. Quit it first: right-click the Soundboard icon in the notification area → “Quit…”. This guide notices it by itself.</value></data>
   <data name="Uninstall.H1" xml:space="preserve"><value>1. Check the audio state</value></data>
   <data name="Uninstall.H2" xml:space="preserve"><value>2. Delete the soundboard’s own data</value></data>
   <data name="Uninstall.H3" xml:space="preserve"><value>3. Remove the virtual cable (VB-CABLE)</value></data>
@@ -490,7 +490,7 @@ Delete: remove key</value></data>
   <data name="Uninstall.WillDelete" xml:space="preserve"><value>Will be deleted from the data folder {0}:</value></data>
   <data name="Uninstall.AutostartEntry" xml:space="preserve"><value>“Start with Windows” entry</value></data>
   <data name="Uninstall.FoldersStay" xml:space="preserve"><value>The sound and picture folders stay.</value></data>
-  <data name="Uninstall.StillRunning" xml:space="preserve"><value>The soundboard is still running and keeps its files open. Quit it first via the note icon in the notification area → “Quit…”, then click again.</value></data>
+  <data name="Uninstall.StillRunning" xml:space="preserve"><value>The soundboard is still running and keeps its files open. Quit it first via the Soundboard icon in the notification area → “Quit…”, then click again.</value></data>
   <data name="Uninstall.AskKeep" xml:space="preserve"><value>Delete the soundboard’s settings, saves and test recordings? The sound and picture folders stay. This cannot be undone.</value></data>
   <data name="Uninstall.AskAll" xml:space="preserve"><value>Delete the soundboard’s settings, saves, test recordings AND all sounds and pad pictures? This cannot be undone.</value></data>
   <data name="Uninstall.AskTitle" xml:space="preserve"><value>Delete own data</value></data>

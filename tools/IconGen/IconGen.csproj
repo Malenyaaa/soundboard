@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Writes src/Soundboard.App/Assets/Soundboard.ico. Not part of the solution: the app needs
+       the finished ICO to build, so this tool compiles the two icon files of the app directly
+       instead of referencing the app project. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>IconGen</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\Soundboard.App\Icons\AppIconDrawing.cs" Link="Icons\AppIconDrawing.cs" />
+    <Compile Include="..\..\src\Soundboard.App\Icons\IcoFile.cs" Link="Icons\IcoFile.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Soundboard.Core\Soundboard.Core.csproj" />
+  </ItemGroup>
+
+</Project>

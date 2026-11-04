@@ -14,7 +14,7 @@
 ; - VB-CABLE is not bundled; the app links to vb-cable.com.
 
 #define AppName "Soundboard"
-#define AppVersion "0.11.1"
+#define AppVersion "0.12.0"
 #define AppExe "Soundboard.exe"
 
 [Setup]
@@ -38,6 +38,8 @@ LicenseFile=..\LICENSE
 ; The running app holds this mutex; setup and uninstall ask to close it first.
 AppMutex=Soundboard.SingleInstance
 CloseApplications=no
+SetupIconFile=..\src\Soundboard.App\Assets\Soundboard.ico
+; Add/remove programs shows the icon inside the EXE (the same file).
 UninstallDisplayIcon={app}\{#AppExe}
 UninstallDisplayName={#AppName}
 ; Language: English, or German when Windows runs in German; no dialog asking for it.
