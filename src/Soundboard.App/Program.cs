@@ -8,6 +8,8 @@ internal static class Program
     [STAThread]
     public static int Main(string[] args)
     {
+        bool cli = args.Any(a => Is(a, "--check") || Is(a, "--restore") || Is(a, "--help") || Is(a, "-h") || Is(a, "/?"));
+        if (cli) Cli.UseProfileLanguage();
         if (args.Any(a => Is(a, "--check")))
             return Cli.RunCheck();
         if (args.Any(a => Is(a, "--restore")))

@@ -43,7 +43,7 @@ public sealed class FileSink : IAudioOutput
     public void Start(ISampleProvider source)
     {
         if (source.WaveFormat.SampleRate != SourceFormat.SampleRate || source.WaveFormat.Channels != SourceFormat.Channels)
-            throw new ArgumentException("Quelle muss im Format der Datei liefern.", nameof(source));
+            throw new ArgumentException("The source must deliver the format of the file.", nameof(source));
         if (_thread is not null) return;
         _source = source;
         _stop = false;

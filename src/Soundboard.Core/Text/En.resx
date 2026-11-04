@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Format.DateTime" xml:space="preserve"><value>d MMM yyyy, HH:mm</value></data>
+  <data name="Format.DateTimeSeconds" xml:space="preserve"><value>d MMM yyyy, HH:mm:ss</value></data>
+  <data name="Format.Percent" xml:space="preserve"><value>{0:0}%</value></data>
+  <data name="Format.HzChannels" xml:space="preserve"><value>{0:N0} Hz, {1} channels</value></data>
+  <data name="Format.Seconds" xml:space="preserve"><value>{0:0.0} s</value></data>
+  <data name="Format.Minutes" xml:space="preserve"><value>{0}:{1:00} min</value></data>
+  <data name="Flow.Render" xml:space="preserve"><value>Playback</value></data>
+  <data name="Flow.Capture" xml:space="preserve"><value>Recording</value></data>
+  <data name="Role.Console" xml:space="preserve"><value>console</value></data>
+  <data name="Role.Multimedia" xml:space="preserve"><value>multimedia</value></data>
+  <data name="Role.Communications" xml:space="preserve"><value>communications</value></data>
+  <data name="Status.Active" xml:space="preserve"><value>active</value></data>
+  <data name="Status.Disabled" xml:space="preserve"><value>disabled</value></data>
+  <data name="Status.NotPresent" xml:space="preserve"><value>not present</value></data>
+  <data name="Status.Unplugged" xml:space="preserve"><value>unplugged</value></data>
+  <data name="Status.Unknown" xml:space="preserve"><value>unknown</value></data>
+  <data name="Volume.Muted" xml:space="preserve"><value>{0}, muted</value></data>
+  <data name="Mix.Int" xml:space="preserve"><value>{0:N0} Hz, {1} channels, {2}-bit</value></data>
+  <data name="Mix.Float" xml:space="preserve"><value>{0:N0} Hz, {1} channels, {2}-bit float</value></data>
+  <data name="Device.NoName" xml:space="preserve"><value>(no name)</value></data>
+  <data name="Device.NameUnreadable" xml:space="preserve"><value>(name not readable)</value></data>
+  <data name="Check.Title" xml:space="preserve"><value>Soundboard – audio state (read only, nothing changed), {0}</value></data>
+  <data name="Check.Defaults" xml:space="preserve"><value>Default devices</value></data>
+  <data name="Check.NoDefault" xml:space="preserve"><value>(none)</value></data>
+  <data name="Check.RenderDevices" xml:space="preserve"><value>Playback devices ({0})</value></data>
+  <data name="Check.CaptureDevices" xml:space="preserve"><value>Recording devices ({0})</value></data>
+  <data name="Check.NoDevices" xml:space="preserve"><value>(none)</value></data>
+  <data name="Check.DefaultFor" xml:space="preserve"><value>  Default for: {0}</value></data>
+  <data name="Check.Unreadable" xml:space="preserve"><value>not readable</value></data>
+  <data name="Check.VolumeLine" xml:space="preserve"><value>      Volume: {0} · mix format: {1}</value></data>
+  <data name="Check.ReadFailed" xml:space="preserve"><value>The audio state could not be read: {0}</value></data>
+  <data name="Buffer.Small" xml:space="preserve"><value>small (20 ms)</value></data>
+  <data name="Buffer.Medium" xml:space="preserve"><value>medium (40 ms)</value></data>
+  <data name="Buffer.Large" xml:space="preserve"><value>large (80 ms)</value></data>
+  <data name="Mic.AccessDenied" xml:space="preserve"><value>Windows is blocking access to the microphone. Allow it under Windows Settings → Privacy &amp; security → Microphone → “Let desktop apps access your microphone”.</value></data>
+  <data name="Mic.FormatUnsupported" xml:space="preserve"><value>A microphone format with {0} bits is not supported.</value></data>
+  <data name="Device.NoAnswer" xml:space="preserve"><value>The device does not respond ({0}).</value></data>
+  <data name="Output.OpenFailed" xml:space="preserve"><value>The output device could not be opened ({0}). Is another program using it exclusively?</value></data>
+  <data name="Sound.FormatUnsupported" xml:space="preserve"><value>The format “{0}” is not supported. Use MP3, WAV, OGG or FLAC.</value></data>
+  <data name="Sound.Unreadable" xml:space="preserve"><value>“{0}” could not be read. The file may be damaged or not a real {1} file. ({2})</value></data>
+  <data name="Sound.NoAudio" xml:space="preserve"><value>“{0}” has no audio track.</value></data>
+  <data name="Sound.TooLong" xml:space="preserve"><value>“{0}” is longer than {1:0} minutes. Please use a shorter file.</value></data>
+  <data name="Sound.Empty" xml:space="preserve"><value>“{0}” contains no sound (length 0).</value></data>
+  <data name="Image.Formats" xml:space="preserve"><value>PNG, JPG, GIF, BMP or WebP</value></data>
+  <data name="Image.DialogFilter" xml:space="preserve"><value>Pictures (PNG, JPG, GIF, BMP, WebP)|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp|All files|*.*</value></data>
+  <data name="Image.Missing" xml:space="preserve"><value>The picture file “{0}” is no longer there. Was it moved or deleted?</value></data>
+  <data name="Image.NotPicture" xml:space="preserve"><value>“{0}” is not a picture a pad can show. Use {1}.</value></data>
+  <data name="Image.Unreadable" xml:space="preserve"><value>“{0}” cannot be read as a picture – the file is damaged or has the wrong extension. Use {1}.</value></data>
+  <data name="Snapshot.Unreadable" xml:space="preserve"><value>The saved audio state could not be read ({0}).</value></data>
+  <data name="Snapshot.ChangeLine" xml:space="preserve"><value>{0}: was “{1}”, now “{2}”</value></data>
+  <data name="Compare.Default" xml:space="preserve"><value>Default {0}</value></data>
+  <data name="Compare.None" xml:space="preserve"><value>none</value></data>
+  <data name="Compare.Gone" xml:space="preserve"><value>no longer there</value></data>
+  <data name="Compare.State" xml:space="preserve"><value>{0} – state</value></data>
+  <data name="Compare.Volume" xml:space="preserve"><value>{0} – volume</value></data>
+  <data name="Compare.Muted" xml:space="preserve"><value>{0} – muted</value></data>
+  <data name="Compare.Yes" xml:space="preserve"><value>yes</value></data>
+  <data name="Compare.No" xml:space="preserve"><value>no</value></data>
+  <data name="Kind.Same" xml:space="preserve"><value>same</value></data>
+  <data name="Kind.Changed" xml:space="preserve"><value>changed</value></data>
+  <data name="Kind.Added" xml:space="preserve"><value>new</value></data>
+  <data name="Kind.Missing" xml:space="preserve"><value>missing</value></data>
+  <data name="Report.SavedAt" xml:space="preserve"><value>Saved {0} – now:</value></data>
+  <data name="Report.Unchanged.One" xml:space="preserve"><value>  1 more device unchanged.</value></data>
+  <data name="Report.Unchanged.Other" xml:space="preserve"><value>  {0} more devices unchanged.</value></data>
+  <data name="Report.ResultSame" xml:space="preserve"><value>Result: everything as saved.</value></data>
+  <data name="Report.ResultDiff.One" xml:space="preserve"><value>Result: 1 difference.</value></data>
+  <data name="Report.ResultDiff.Other" xml:space="preserve"><value>Result: {0} differences.</value></data>
+  <data name="Report.ByHand" xml:space="preserve"><value>Set back by hand:</value></data>
+  <data name="Restore.AlreadySame" xml:space="preserve"><value>was already right</value></data>
+  <data name="Restore.Restored" xml:space="preserve"><value>set back to “{0}”</value></data>
+  <data name="Restore.NoSaved" xml:space="preserve"><value>no saved default, nothing changed</value></data>
+  <data name="Restore.NotAvailable" xml:space="preserve"><value>“{0}” is not there, nothing changed</value></data>
+  <data name="Restore.Cable" xml:space="preserve"><value>the saved device was a virtual cable, nothing changed</value></data>
+  <data name="Restore.Failed" xml:space="preserve"><value>failed ({0})</value></data>
+  <data name="Restore.WhereRender" xml:space="preserve"><value>Output</value></data>
+  <data name="Restore.WhereCapture" xml:space="preserve"><value>Input</value></data>
+  <data name="Restore.HowComm" xml:space="preserve"><value>Control Panel → Sound → “{0}” tab → right-click “{1}” → “Set as Default Communication Device”</value></data>
+  <data name="Restore.HowDefault" xml:space="preserve"><value>Windows Settings → System → Sound → {0}: choose “{1}”</value></data>
+  <data name="Restore.WhyNotAvailable" xml:space="preserve"><value> (the device is not connected or is disabled right now)</value></data>
+  <data name="Restore.WhyCable" xml:space="preserve"><value> (the soundboard never makes a virtual cable the default)</value></data>
+  <data name="Restore.WhyError" xml:space="preserve"><value> (Windows says: {0})</value></data>
+  <data name="Crash.Headline" xml:space="preserve"><value>The soundboard closed unexpectedly.</value></data>
+  <data name="Crash.CableIdle" xml:space="preserve"><value>Discord is listening to your cable, but nothing feeds it – your microphone is silent in Discord right now.</value></data>
+  <data name="Crash.Restart" xml:space="preserve"><value>Restart the soundboard, or: {0}</value></data>
+  <data name="Crash.NoSnapshot" xml:space="preserve"><value>There is no saved audio state, so nothing was compared.</value></data>
+  <data name="Crash.DefaultsSame" xml:space="preserve"><value>The Windows default devices are as saved.</value></data>
+  <data name="Crash.DefaultsChanged" xml:space="preserve"><value>A Windows default device differs from the saved state (the soundboard did not change it):</value></data>
+  <data name="Traces.Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Traces.SettingsTemp" xml:space="preserve"><value>Settings (temporary copy)</value></data>
+  <data name="Traces.SettingsBroken" xml:space="preserve"><value>Settings (old, unreadable version)</value></data>
+  <data name="Traces.Snapshot" xml:space="preserve"><value>Saved audio state</value></data>
+  <data name="Traces.Running" xml:space="preserve"><value>“Running” marker</value></data>
+  <data name="Traces.Recordings" xml:space="preserve"><value>Test recordings</value></data>
+  <data name="Traces.Sounds" xml:space="preserve"><value>Sound folder with all sounds</value></data>
+  <data name="Traces.Images" xml:space="preserve"><value>Picture folder with all pad pictures</value></data>
+  <data name="Traces.DataDirEmpty" xml:space="preserve"><value>Data folder (was empty)</value></data>
+  <data name="Traces.DataDir" xml:space="preserve"><value>Data folder</value></data>
+  <data name="Profile.Unreadable" xml:space="preserve"><value>The settings could not be read and were reset.</value></data>
+  <data name="Profile.UnreadableBackup" xml:space="preserve"><value>The settings could not be read and were reset. The old file is in the data folder as “{0}”.</value></data>
+  <data name="Key.Ctrl" xml:space="preserve"><value>Ctrl</value></data>
+  <data name="Key.Alt" xml:space="preserve"><value>Alt</value></data>
+  <data name="Key.Shift" xml:space="preserve"><value>Shift</value></data>
+  <data name="Key.Win" xml:space="preserve"><value>Win</value></data>
+  <data name="Key.Unknown" xml:space="preserve"><value>Key {0}</value></data>
+  <data name="Key.Decimal" xml:space="preserve"><value>Num .</value></data>
+  <data name="Key.Scroll" xml:space="preserve"><value>Scroll Lock</value></data>
+  <data name="Key.Insert" xml:space="preserve"><value>Insert</value></data>
+  <data name="Key.Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Key.Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Key.End" xml:space="preserve"><value>End</value></data>
+  <data name="Key.PageUp" xml:space="preserve"><value>Page Up</value></data>
+  <data name="Key.PageDown" xml:space="preserve"><value>Page Down</value></data>
+  <data name="Key.Space" xml:space="preserve"><value>Space</value></data>
+  <data name="Key.Left" xml:space="preserve"><value>Left arrow</value></data>
+  <data name="Key.Up" xml:space="preserve"><value>Up arrow</value></data>
+  <data name="Key.Right" xml:space="preserve"><value>Right arrow</value></data>
+  <data name="Key.Down" xml:space="preserve"><value>Down arrow</value></data>
+  <data name="Key.PrintScreen" xml:space="preserve"><value>Print Screen</value></data>
+  <data name="Accent.blue" xml:space="preserve"><value>Blue</value></data>
+  <data name="Accent.teal" xml:space="preserve"><value>Teal</value></data>
+  <data name="Accent.green" xml:space="preserve"><value>Green</value></data>
+  <data name="Accent.orange" xml:space="preserve"><value>Orange</value></data>
+  <data name="Accent.pink" xml:space="preserve"><value>Pink</value></data>
+  <data name="Accent.violet" xml:space="preserve"><value>Violet</value></data>
+  <data name="Accent.custom" xml:space="preserve"><value>Custom</value></data>
+  <data name="Sound.Missing" xml:space="preserve"><value>The file is missing: {0}</value></data>
+  <data name="Mic.NoAnswer" xml:space="preserve"><value>The microphone does not respond ({0}).</value></data>
+  <data name="Snapshot.Empty" xml:space="preserve"><value>The saved audio state is empty.</value></data>
+  <data name="Common.Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Action.Retry" xml:space="preserve"><value>Try again</value></data>
+  <data name="Action.Undo" xml:space="preserve"><value>Undo</value></data>
+  <data name="Action.RemovePad" xml:space="preserve"><value>Remove pad</value></data>
+  <data name="Action.SaveState" xml:space="preserve"><value>Save audio state now</value></data>
+  <data name="Action.Restore" xml:space="preserve"><value>Restore default device</value></data>
+  <data name="Action.View" xml:space="preserve"><value>View</value></data>
+  <data name="Action.MonitorOn" xml:space="preserve"><value>Switch monitor on</value></data>
+  <data name="Action.ChooseMic" xml:space="preserve"><value>Choose microphone</value></data>
+  <data name="Action.RecordAgain" xml:space="preserve"><value>Record again</value></data>
+  <data name="Action.CableOn" xml:space="preserve"><value>Switch on sending to the cable</value></data>
+  <data name="Action.OpenSetup" xml:space="preserve"><value>Open setup</value></data>
+  <data name="Action.OtherKey" xml:space="preserve"><value>Choose another key</value></data>
+  <data name="Action.OtherPicture" xml:space="preserve"><value>Choose another picture</value></data>
+  <data name="Main.Monitor" xml:space="preserve"><value>Monitor</value></data>
+  <data name="Main.MonitorTip" xml:space="preserve"><value>Also plays the sounds on your headphones, so you hear them yourself.</value></data>
+  <data name="Main.MonitorDeviceTip" xml:space="preserve"><value>Device for monitoring. The Windows settings stay unchanged.</value></data>
+  <data name="Main.VolumeAll" xml:space="preserve"><value>Volume of all sounds</value></data>
+  <data name="Main.VolumeAllTip" xml:space="preserve"><value>Volume of all sounds in this program (not the Windows volume).</value></data>
+  <data name="Main.AddSounds" xml:space="preserve"><value>Add sounds…</value></data>
+  <data name="Main.AddSoundsTip" xml:space="preserve"><value>Choose MP3, WAV, OGG or FLAC files. They are copied into the sound folder; dragging works too.</value></data>
+  <data name="Main.SettingsTip" xml:space="preserve"><value>Settings: setup, microphone &amp; cable, keys, audio state, appearance</value></data>
+  <data name="Main.Stop" xml:space="preserve"><value>Stop</value></data>
+  <data name="Main.StopTip" xml:space="preserve"><value>Stops all playing sounds at once.</value></data>
+  <data name="Main.StopTipKey" xml:space="preserve"><value>Stops all playing sounds at once. Key: {0} – works everywhere, even when a game is in front.</value></data>
+  <data name="Main.FullScreen" xml:space="preserve"><value>Full screen</value></data>
+  <data name="Main.FullScreenTip" xml:space="preserve"><value>Full screen (F11)</value></data>
+  <data name="Main.FullScreenTipTaken" xml:space="preserve"><value>Full screen – F11 plays the pad “{0}”, so use this button</value></data>
+  <data name="Main.ChosenDevice" xml:space="preserve"><value>Chosen device</value></data>
+  <data name="Main.TheChosenDevice" xml:space="preserve"><value>The chosen device</value></data>
+  <data name="Main.TheMonitorDevice" xml:space="preserve"><value>the monitor device</value></data>
+  <data name="Main.NoDevice" xml:space="preserve"><value>no device</value></data>
+  <data name="Main.ChosenMic" xml:space="preserve"><value>Chosen microphone</value></data>
+  <data name="Main.TheChosenMic" xml:space="preserve"><value>The chosen microphone</value></data>
+  <data name="Main.TheMic" xml:space="preserve"><value>The microphone</value></data>
+  <data name="Main.ReloadingSounds" xml:space="preserve"><value>The sounds are being reloaded because the monitor device uses another format.</value></data>
+  <data name="Full.Exit" xml:space="preserve"><value>Exit full screen</value></data>
+  <data name="Full.ExitTip" xml:space="preserve"><value>Back to the window (F11 or Esc)</value></data>
+  <data name="Empty.Title" xml:space="preserve"><value>Drag sounds here</value></data>
+  <data name="Empty.Text" xml:space="preserve"><value>MP3, WAV, OGG or FLAC – one by one or a whole folder. Each sound becomes a pad that you click or play with a key. The files are copied into the sound folder; the originals stay where they are.</value></data>
+  <data name="Dialog.AddSounds" xml:space="preserve"><value>Add sounds</value></data>
+  <data name="Dialog.SoundFilter" xml:space="preserve"><value>Sounds (MP3, WAV, OGG, FLAC)|*.mp3;*.wav;*.ogg;*.flac|All files|*.*</value></data>
+  <data name="Dialog.ChoosePicture" xml:space="preserve"><value>Choose a picture for “{0}”</value></data>
+  <data name="Status.SoundFolder" xml:space="preserve"><value>Sound folder</value></data>
+  <data name="Status.CableOff" xml:space="preserve"><value>Cable: off</value></data>
+  <data name="Status.CableMissing" xml:space="preserve"><value>No cable</value></data>
+  <data name="Status.CableSending" xml:space="preserve"><value>Cable: sending</value></data>
+  <data name="Status.CablePaused" xml:space="preserve"><value>Cable: paused for the test</value></data>
+  <data name="Status.CableBroken" xml:space="preserve"><value>Cable: not working</value></data>
+  <data name="Status.CableTip" xml:space="preserve"><value>Microphone and sounds to the virtual cable – open settings</value></data>
+  <data name="Status.CableMissingTip" xml:space="preserve"><value>No virtual cable installed, so nothing reaches Discord yet – click to open the setup, which shows the way</value></data>
+  <data name="Status.LevelTip" xml:space="preserve"><value>Level: what your cable is sending right now</value></data>
+  <data name="Status.MicTip" xml:space="preserve"><value>Microphone in the mix – open settings</value></data>
+  <data name="Status.KeysTip" xml:space="preserve"><value>Global keys of the pads – open settings</value></data>
+  <data name="Status.MicOff" xml:space="preserve"><value>Microphone: off</value></data>
+  <data name="Status.MicOn" xml:space="preserve"><value>Microphone: on</value></data>
+  <data name="Status.MicDropouts.One" xml:space="preserve"><value>Microphone: 1 dropout</value></data>
+  <data name="Status.MicDropouts.Other" xml:space="preserve"><value>Microphone: {0} dropouts</value></data>
+  <data name="Status.KeysPaused" xml:space="preserve"><value>Keys: paused</value></data>
+  <data name="Status.KeysProblems" xml:space="preserve"><value>Keys: {0} active, {1} not working</value></data>
+  <data name="Status.KeysNone" xml:space="preserve"><value>Keys: none assigned</value></data>
+  <data name="Status.Keys.One" xml:space="preserve"><value>Keys: 1 active</value></data>
+  <data name="Status.Keys.Other" xml:space="preserve"><value>Keys: {0} active</value></data>
+  <data name="Status.MonitorOff" xml:space="preserve"><value>Monitor: off</value></data>
+  <data name="Status.MonitorBroken" xml:space="preserve"><value>Monitor: not working ({0})</value></data>
+  <data name="Status.MonitorOn" xml:space="preserve"><value>Monitor: on – {0} ({1:N0} Hz, {2} channels)</value></data>
+  <data name="Notice.Count" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="Notice.Next" xml:space="preserve"><value>Next</value></data>
+  <data name="Notice.NextTip" xml:space="preserve"><value>Show the next notice</value></data>
+  <data name="Notice.MonitorNone" xml:space="preserve"><value>No device is chosen for monitoring, and Windows reports no default playback device. Connect headphones or speakers and choose them at the top under “Monitor”.</value></data>
+  <data name="Notice.MonitorMissing" xml:space="preserve"><value>The monitor device “{0}” is not connected or is disabled in Windows. Connect it – monitoring then starts by itself – or choose another device at the top under “Monitor”.</value></data>
+  <data name="Notice.MonitorSinkError" xml:space="preserve"><value>{0} Choose another device at the top under “Monitor”, or close the other program.</value></data>
+  <data name="Notice.MonitorNoAnswer" xml:space="preserve"><value>The monitor device does not respond ({0}). Choose another device at the top under “Monitor” or try again.</value></data>
+  <data name="Notice.MonitorStopped" xml:space="preserve"><value>Playback on “{0}” was interrupted{1}. Was the device unplugged? As soon as it is back, monitoring starts by itself.</value></data>
+  <data name="Notice.StillLoading" xml:space="preserve"><value>“{0}” is still loading. Click again in a moment.</value></data>
+  <data name="Notice.NowhereMonitorBroken" xml:space="preserve"><value>The sound has nowhere to go right now: the monitor device is not working, and nothing is sent to the cable. Choose a connected device at the top under “Monitor”.</value></data>
+  <data name="Notice.NowhereMonitorOff" xml:space="preserve"><value>The sound has nowhere to go right now: monitoring is off, and nothing is sent to the cable. Switch on “Monitor” at the top.</value></data>
+  <data name="Notice.Rejected" xml:space="preserve"><value>Not added: {0}. Supported are MP3, WAV, OGG and FLAC.</value></data>
+  <data name="Notice.CopyFailed" xml:space="preserve"><value>Could not be copied into the sound folder: {0}</value></data>
+  <data name="Notice.PictureNotSound" xml:space="preserve"><value>Pictures don’t become pads, they become the background of a pad: right-click the pad → “Choose picture…”, or drag the picture straight onto the pad.</value></data>
+  <data name="Notice.PadRemoved" xml:space="preserve"><value>Pad “{0}” removed. The file stays in the sound folder.</value></data>
+  <data name="Notice.SnapshotFile" xml:space="preserve"><value>{0} Save the current state again if it is right.</value></data>
+  <data name="Notice.CrashChanged" xml:space="preserve"><value>The soundboard did not close normally last time. A Windows default device has changed since then.</value></data>
+  <data name="Notice.CrashSame" xml:space="preserve"><value>The soundboard did not close normally last time. The Windows default devices are as saved; there is nothing to do.</value></data>
+  <data name="Notice.SnapshotSaveFailed" xml:space="preserve"><value>The audio state could not be saved ({0}). Is the data folder read-only?</value></data>
+  <data name="Notice.CableDefault" xml:space="preserve"><value>The virtual cable is now a Windows default device – not because of the soundboard.</value></data>
+  <data name="Notice.DefaultChanged.One" xml:space="preserve"><value>A Windows default device differs from the saved state – not because of the soundboard.</value></data>
+  <data name="Notice.DefaultChanged.Other" xml:space="preserve"><value>{0} Windows default devices differ from the saved state – not because of the soundboard.</value></data>
+  <data name="Notice.RestoreNoSnapshot" xml:space="preserve"><value>There is no saved state to go back to yet. Save the audio state first.</value></data>
+  <data name="Notice.RestorePartly" xml:space="preserve"><value>Not everything could be set back automatically. By hand: {0}</value></data>
+  <data name="Notice.MicNone" xml:space="preserve"><value>No microphone is chosen, and Windows reports none. Connect a microphone and choose it in the settings under “Microphone &amp; cable”.</value></data>
+  <data name="Notice.MicMissing" xml:space="preserve"><value>The microphone “{0}” is not connected or is disabled in Windows. Connect it or choose another one in the settings under “Microphone &amp; cable”.</value></data>
+  <data name="Notice.MicError" xml:space="preserve"><value>{0} Choose another one in the settings under “Microphone &amp; cable”, or try again.</value></data>
+  <data name="Notice.OutputStartFailed" xml:space="preserve"><value>The output could not be started ({0}).</value></data>
+  <data name="Notice.TestAborted" xml:space="preserve"><value>{0} The test recording was stopped; start it again.</value></data>
+  <data name="Notice.MicStopped" xml:space="preserve"><value>“{0}” stopped delivering sound{1}. Was it unplugged? As soon as it is back, your voice comes back by itself.</value></data>
+  <data name="Notice.OutputInterrupted" xml:space="preserve"><value>The output was interrupted{0}.</value></data>
+  <data name="Notice.CableInterrupted" xml:space="preserve"><value>Sending to the cable was interrupted{0}. As soon as the cable is back, it starts again by itself.</value></data>
+  <data name="Notice.TestRunning" xml:space="preserve"><value>The test recording is already running – {0} s left.</value></data>
+  <data name="Notice.CableOpenError" xml:space="preserve"><value>{0} Restart Windows if VB-CABLE was only just installed.</value></data>
+  <data name="Notice.CableInputFailed" xml:space="preserve"><value>“CABLE Input” could not be opened. Is it disabled in the Windows sound settings?</value></data>
+  <data name="Notice.ToneCableOff" xml:space="preserve"><value>The test tone goes into the cable, but “Send microphone and sounds to the cable” is off. Switch it on and click again.</value></data>
+  <data name="Notice.ToneNoCable" xml:space="preserve"><value>The test tone goes into the cable, but there is none. Install VB-CABLE first (step 1 of the setup).</value></data>
+  <data name="Notice.ToneNotRunning" xml:space="preserve"><value>Sending to the cable is not running right now – usually the cable is not working or was only just installed. “Try again” restarts it.</value></data>
+  <data name="Notice.StopKeyTaken" xml:space="preserve"><value>The key {0} for “Stop” is taken by another program. The “Stop” button still works, the key does not.</value></data>
+  <data name="Notice.SaveFailed" xml:space="preserve"><value>The settings could not be saved ({0}). Is the data folder read-only?</value></data>
+  <data name="Notice.ImageFolderFailed" xml:space="preserve"><value>The picture folder could not be opened ({0}).</value></data>
+  <data name="Notice.ImageNoWebp" xml:space="preserve"><value>“{0}” is a WebP picture, and Windows cannot read WebP on this computer. Save the picture as PNG or JPG, or install the free “WebP Image Extensions” from the Microsoft Store.</value></data>
+  <data name="Notice.ImageReplaced" xml:space="preserve"><value>Picture of “{0}” replaced.</value></data>
+  <data name="Notice.ImageRemoved" xml:space="preserve"><value>Picture of “{0}” removed.</value></data>
+  <data name="Notice.ImageCopyFailed" xml:space="preserve"><value>“{0}” could not be copied into the picture folder ({1}).</value></data>
+  <data name="Notice.ImageTakeFailed" xml:space="preserve"><value>“{0}” could not be used as a picture ({1}).</value></data>
+  <data name="Notice.ImagePadGone" xml:space="preserve"><value>The pad no longer exists, so its picture cannot be brought back.</value></data>
+  <data name="Notice.ImageOnlyOne" xml:space="preserve"><value>A pad shows one picture – “{0}” was taken. Drag the other pictures onto other pads one by one.</value></data>
+  <data name="Notice.ImageNoPads" xml:space="preserve"><value>Pictures go on pads. Drag sounds here first; then drag a picture straight onto a pad.</value></data>
+  <data name="Notice.ImageOnPad" xml:space="preserve"><value>Drag pictures onto a pad, sounds onto the free area. The picture then becomes the background of that pad.</value></data>
+  <data name="Pad.AssignKey" xml:space="preserve"><value>Assign key…</value></data>
+  <data name="Pad.RemoveKey" xml:space="preserve"><value>Remove key</value></data>
+  <data name="Pad.Volume" xml:space="preserve"><value>Volume</value></data>
+  <data name="Pad.VolumeTip" xml:space="preserve"><value>Volume of this pad. Also Ctrl + mouse wheel over the pad.</value></data>
+  <data name="Pad.Rename" xml:space="preserve"><value>Rename</value></data>
+  <data name="Pad.ChoosePicture" xml:space="preserve"><value>Choose picture…</value></data>
+  <data name="Pad.ChoosePictureTip" xml:space="preserve"><value>A picture as the background of this pad (PNG, JPG, GIF, BMP or WebP). It is copied into the picture folder; dragging works too.</value></data>
+  <data name="Pad.RemovePicture" xml:space="preserve"><value>Remove picture</value></data>
+  <data name="Pad.OpenPictureFolder" xml:space="preserve"><value>Open picture folder</value></data>
+  <data name="Pad.OpenPictureFolderTip" xml:space="preserve"><value>Opens the folder with the pad pictures in Explorer. If the pad has a picture, it is selected there.</value></data>
+  <data name="Pad.ShowInFolder" xml:space="preserve"><value>Show in sound folder</value></data>
+  <data name="Pad.Remove" xml:space="preserve"><value>Remove pad</value></data>
+  <data name="Pad.Ghost" xml:space="preserve"><value>Key…</value></data>
+  <data name="Pad.GhostTip" xml:space="preserve"><value>Assign a key to this pad</value></data>
+  <data name="Pad.DropPicture" xml:space="preserve"><value>Picture for this pad</value></data>
+  <data name="Pad.KeyTip" xml:space="preserve"><value>{0} – click to assign another key</value></data>
+  <data name="Pad.KeyBrokenTip" xml:space="preserve"><value>This key does not work right now – click to see why</value></data>
+  <data name="Pad.Loading" xml:space="preserve"><value>loading…</value></data>
+  <data name="Pad.CannotPlay" xml:space="preserve"><value>cannot be played</value></data>
+  <data name="Pad.LoadFailed" xml:space="preserve"><value>The file could not be loaded ({0}).</value></data>
+  <data name="Pad.LoadIssue" xml:space="preserve"><value>Cannot be played: {0} Remove the pad and drag the file in again.</value></data>
+  <data name="Pad.Tip" xml:space="preserve"><value>Click: play, click again: stop. Ctrl + mouse wheel: volume. Right-click: assign key, choose picture, rename, remove</value></data>
+  <data name="Pad.TipKeyBroken" xml:space="preserve"><value>The key {0} does not work right now – click the key at the top left to see why. Click the pad: play.</value></data>
+  <data name="Pad.TipKey" xml:space="preserve"><value>Click or {0}: play, again: stop. Ctrl + mouse wheel: volume. Right-click: change key, choose picture, rename, remove</value></data>
+  <data name="Key.CaptureHint" xml:space="preserve"><value>Press a key for “{0}”
+Esc: cancel
+Delete: remove key</value></data>
+  <data name="Key.CaptureHintSuggest" xml:space="preserve"><value>Press a key for “{0}”
+Enter: take {1}
+Esc: cancel
+Delete: remove key</value></data>
+  <data name="Key.IsStopKey" xml:space="preserve"><value>{0} is already the “Stop” key. Choose another key for this pad.</value></data>
+  <data name="Key.AnotherPad" xml:space="preserve"><value>another pad</value></data>
+  <data name="Key.Duplicate" xml:space="preserve"><value>{0} already belongs to “{1}”, so this pad does not react to the key.</value></data>
+  <data name="Key.MoveHere" xml:space="preserve"><value>Move {0} here</value></data>
+  <data name="Key.StateDuplicate" xml:space="preserve"><value>duplicate – already belongs to “{0}”</value></data>
+  <data name="Key.TakenByOther" xml:space="preserve"><value>{0} is taken by another program. Choose another key or close the other program.</value></data>
+  <data name="Key.StateTaken" xml:space="preserve"><value>taken by another program</value></data>
+  <data name="Key.Refused" xml:space="preserve"><value>Windows did not accept {0}. Choose another key.</value></data>
+  <data name="Key.StateRefused" xml:space="preserve"><value>refused by Windows</value></data>
+  <data name="Key.StateNone" xml:space="preserve"><value>no key</value></data>
+  <data name="Key.StatePaused" xml:space="preserve"><value>paused</value></data>
+  <data name="Key.StateWorks" xml:space="preserve"><value>works</value></data>
+  <data name="Key.None" xml:space="preserve"><value>none</value></data>
+  <data name="Settings.Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings.CloseTip" xml:space="preserve"><value>Back to the pads (Esc)</value></data>
+  <data name="Tab.Setup" xml:space="preserve"><value>Setup</value></data>
+  <data name="Tab.Cable" xml:space="preserve"><value>Microphone &amp; cable</value></data>
+  <data name="Tab.Keys" xml:space="preserve"><value>Keys</value></data>
+  <data name="Tab.State" xml:space="preserve"><value>Audio state</value></data>
+  <data name="Tab.Appearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Setup.Step1" xml:space="preserve"><value>1  Cable</value></data>
+  <data name="Setup.Step2" xml:space="preserve"><value>2  Discord</value></data>
+  <data name="Setup.Step3" xml:space="preserve"><value>3  Noise suppression</value></data>
+  <data name="Setup.Intro" xml:space="preserve"><value>The soundboard mixes your microphone and the sounds and sends both into a virtual audio cable. Discord takes the cable as its microphone. The Windows default devices stay as they are.</value></data>
+  <data name="Setup.NeedCable" xml:space="preserve"><value>You need VB-CABLE by VB-Audio from</value></data>
+  <data name="Setup.NeedCableTail" xml:space="preserve"><value> – donationware: free to use, donations to VB-Audio are welcome. The soundboard does not include it.</value></data>
+  <data name="Setup.C1" xml:space="preserve"><value>1. First click “Save audio state now”, so the soundboard can later show whether the setup changed anything.</value></data>
+  <data name="Setup.C2" xml:space="preserve"><value>2. Download the ZIP package for Windows from vb-cable.com and unpack it.</value></data>
+  <data name="Setup.C3" xml:space="preserve"><value>3. Right-click VBCABLE_Setup_x64.exe → “Run as administrator”, then “Install Driver”.</value></data>
+  <data name="Setup.C4" xml:space="preserve"><value>4. Restart Windows and open the soundboard again. It finds the cable and compares with the saved state.</value></data>
+  <data name="Setup.OpenSite" xml:space="preserve"><value>Open vb-cable.com</value></data>
+  <data name="Setup.SearchCable" xml:space="preserve"><value>Look for the cable</value></data>
+  <data name="Setup.SendToCable" xml:space="preserve"><value>Send microphone and sounds to the cable</value></data>
+  <data name="Setup.Level" xml:space="preserve"><value>What your cable is sending right now</value></data>
+  <data name="Setup.TestTone" xml:space="preserve"><value>Send test tone</value></data>
+  <data name="Setup.TestToneTip1" xml:space="preserve"><value>Sends a tone into the cable for one second. You won’t hear it on your headphones.</value></data>
+  <data name="Setup.TestToneTip2" xml:space="preserve"><value>Sends a tone into the cable for one second. Discord shows it in the mic test.</value></data>
+  <data name="Setup.LevelHint1" xml:space="preserve"><value>Speak: the bar moves. To check without Discord: Windows Control Panel → Sound → “Recording” tab – the meter of “CABLE Output” moves.</value></data>
+  <data name="Setup.LevelHint2" xml:space="preserve"><value>Speak: the bar moves, and Discord’s meter moves in the mic test.</value></data>
+  <data name="Setup.Next2" xml:space="preserve"><value>Continue to step 2</value></data>
+  <data name="Setup.Next3" xml:space="preserve"><value>Continue to step 3</value></data>
+  <data name="Setup.DiscordIntro" xml:space="preserve"><value>Discord remembers its microphone itself. You switch it to the cable there once; Windows stays unchanged.</value></data>
+  <data name="Setup.D1" xml:space="preserve"><value>1. In Discord, click the gear at the bottom left (User Settings) → “Voice &amp; Video”.</value></data>
+  <data name="Setup.D2" xml:space="preserve"><value>2. Input device: choose “CABLE Output (VB-Audio Virtual Cable)”.</value></data>
+  <data name="Setup.D3" xml:space="preserve"><value>3. Don’t change the output device – your headphones or speakers stay there.</value></data>
+  <data name="Setup.D4" xml:space="preserve"><value>4. Check with Discord’s mic test: speak and play a sound.</value></data>
+  <data name="Setup.PrevMic" xml:space="preserve"><value>Which microphone did Discord use before?</value></data>
+  <data name="Setup.PrevMicTip" xml:space="preserve"><value>If it says “Default”, enter “Default”.</value></data>
+  <data name="Setup.PrevMicHint" xml:space="preserve"><value>Write it down before you switch. If you remove the cable later, you choose this device again in Discord – the soundboard shows you the name then.</value></data>
+  <data name="Setup.NoiseIntro" xml:space="preserve"><value>Discord’s noise suppression takes soundboard sounds for noise and dampens them. In Discord under “Voice &amp; Video”, set:</value></data>
+  <data name="Setup.N1" xml:space="preserve"><value>1. Noise suppression: “None” (or “Standard”).</value></data>
+  <data name="Setup.N2" xml:space="preserve"><value>2. Echo cancellation: off.</value></data>
+  <data name="Setup.N3" xml:space="preserve"><value>3. Automatic gain control: off.</value></data>
+  <data name="Setup.PttTitle" xml:space="preserve"><value>Push to talk</value></data>
+  <data name="Setup.Ptt" xml:space="preserve"><value>Discord treats the cable like a microphone: with push to talk, the others hear sounds only while you hold the key. “Voice Activity” is more comfortable – or add a second push-to-talk key in Discord under “Keybinds” and hold it while a sound plays.</value></data>
+  <data name="Setup.NoiseCheckHint" xml:space="preserve"><value>The soundboard can neither check nor change these Discord settings. Tick the box once you have set them.</value></data>
+  <data name="Setup.NoiseDone" xml:space="preserve"><value>Set in Discord</value></data>
+  <data name="Setup.Finish" xml:space="preserve"><value>Finish setup</value></data>
+  <data name="Cable.Found" xml:space="preserve"><value>Cable found: “{0}” (the soundboard sends here) and “{1}” (choose this in Discord as the microphone).</value></data>
+  <data name="Cable.Disabled" xml:space="preserve"><value>Windows knows the cable, but it is disabled or not present. Enable “CABLE Input” and “CABLE Output” in Control Panel under Sound, or reinstall VB-CABLE and restart Windows.</value></data>
+  <data name="Cable.None" xml:space="preserve"><value>No virtual cable is installed.</value></data>
+  <data name="Cable.NoSnapshot" xml:space="preserve"><value>No saved state yet – click “Save audio state now” before you install VB-CABLE.</value></data>
+  <data name="Cable.DefaultsChanged" xml:space="preserve"><value>Since the save on {0}, a Windows default device has changed: {1}. “Restore default device” sets it back.</value></data>
+  <data name="Cable.OnlyCableNew" xml:space="preserve"><value>Compared with the save on {0}: only the cable is new – that’s how it should be. The default devices are unchanged.</value></data>
+  <data name="Cable.Unchanged" xml:space="preserve"><value>Compared with the save on {0}: the Windows default devices are unchanged.</value></data>
+  <data name="Restore.Tip" xml:space="preserve"><value>Sets the Windows default devices back to the saved ones. Nothing else is changed.</value></data>
+  <data name="Cable.SendTip" xml:space="preserve"><value>In Discord, you choose “CABLE Output” as the microphone.</value></data>
+  <data name="Cable.Mic" xml:space="preserve"><value>Microphone</value></data>
+  <data name="Cable.MicTip" xml:space="preserve"><value>Your real microphone. It is mixed with the sounds. The Windows settings stay unchanged.</value></data>
+  <data name="Cable.MicVolume" xml:space="preserve"><value>Mic volume</value></data>
+  <data name="Cable.MicVolumeTip" xml:space="preserve"><value>Volume of your voice in the mix. 100% = unchanged. The Windows volume of the microphone stays as it is.</value></data>
+  <data name="Cable.Level" xml:space="preserve"><value>Level in the cable</value></data>
+  <data name="Cable.TestToneTip" xml:space="preserve"><value>Sends a tone into the cable for one second (not to your headphones).</value></data>
+  <data name="Cable.Buffer" xml:space="preserve"><value>Buffer</value></data>
+  <data name="Cable.BufferHint" xml:space="preserve"><value>Small = less delay. Choose a larger one if your voice crackles or drops out.</value></data>
+  <data name="Cable.BlockVoice" xml:space="preserve"><value>Mute voice while a sound plays</value></data>
+  <data name="Cable.BlockVoiceTip" xml:space="preserve"><value>Your microphone is muted while a sound plays.</value></data>
+  <data name="Cable.TestTitle" xml:space="preserve"><value>Test without cable</value></data>
+  <data name="Cable.TestText" xml:space="preserve"><value>Records 10 seconds of microphone and sounds into a WAV file. So you hear how the mix sounds without cable and without Discord.</value></data>
+  <data name="Cable.Record" xml:space="preserve"><value>Record 10 s test</value></data>
+  <data name="Cable.ShowFile" xml:space="preserve"><value>Show in folder</value></data>
+  <data name="Test.Done" xml:space="preserve"><value>Done: {0} – open the folder to listen.</value></data>
+  <data name="Test.Running" xml:space="preserve"><value>Recording – speak and play sounds. {0} s left.</value></data>
+  <data name="Keys.Pause" xml:space="preserve"><value>Pause keys</value></data>
+  <data name="Keys.PauseTip" xml:space="preserve"><value>Releases all keys, for example while you chat in a game.</value></data>
+  <data name="Keys.PauseHint" xml:space="preserve"><value>The pad keys work everywhere, even in games – the game then doesn’t get them. Paused, the soundboard releases them all.</value></data>
+  <data name="Keys.PadKeys" xml:space="preserve"><value>Pad keys</value></data>
+  <data name="Keys.StopLine" xml:space="preserve"><value>“Stop”: {0}. Num keys give “Num 1” and so on only with Num Lock on.</value></data>
+  <data name="Keys.Change" xml:space="preserve"><value>Change key…</value></data>
+  <data name="Keys.NoPads" xml:space="preserve"><value>No pads yet. Drag sounds into the window, then you can give each one a key here.</value></data>
+  <data name="Keys.Playing" xml:space="preserve"><value>Playback</value></data>
+  <data name="Keys.Overlay" xml:space="preserve"><value>Overlap sounds</value></data>
+  <data name="Keys.OverlayHint" xml:space="preserve"><value>Off: a new sound stops the one playing. On: several sounds play at the same time.</value></data>
+  <data name="State.NotSaved" xml:space="preserve"><value>Audio state: not saved yet</value></data>
+  <data name="State.NotSavedInfo" xml:space="preserve"><value>Save the state while everything is the way you want it. After that you see every change here.</value></data>
+  <data name="State.Same" xml:space="preserve"><value>Audio state: as saved on {0}</value></data>
+  <data name="State.Diff.One" xml:space="preserve"><value>Audio state: 1 difference since the save on {1}</value></data>
+  <data name="State.Diff.Other" xml:space="preserve"><value>Audio state: {0} differences since the save on {1}</value></data>
+  <data name="State.Unchanged.One" xml:space="preserve"><value>1 more device is unchanged.</value></data>
+  <data name="State.Unchanged.Other" xml:space="preserve"><value>{0} more devices are unchanged.</value></data>
+  <data name="State.AdviceCable" xml:space="preserve"><value>The virtual cable is now a Windows default device – the soundboard did not do this (usually it was the driver setup). {0}. “Restore default device” sets it back. If you wanted it this way, click “Save audio state now”.</value></data>
+  <data name="State.Advice" xml:space="preserve"><value>A Windows default device has changed since the save – the soundboard did not do this. {0}. “Restore default device” sets it back. If you wanted it this way, click “Save audio state now”.</value></data>
+  <data name="State.SavedNow" xml:space="preserve"><value>Saved on {0}. The previous save is in the data folder as “audio-snapshot.vorher.json”.</value></data>
+  <data name="State.ComparedSame" xml:space="preserve"><value>Compared: everything as saved.</value></data>
+  <data name="State.ComparedDiff" xml:space="preserve"><value>Compared: the differences are in the list.</value></data>
+  <data name="State.SaveTip" xml:space="preserve"><value>Remembers how Windows audio is set up right now. Later changes are compared with it.</value></data>
+  <data name="State.CompareAgain" xml:space="preserve"><value>Compare again</value></data>
+  <data name="State.Devices" xml:space="preserve"><value>Audio devices in Windows</value></data>
+  <data name="State.Reread" xml:space="preserve"><value>Read again</value></data>
+  <data name="State.NotPresentTip" xml:space="preserve"><value>Windows remembers devices used earlier. They are hidden to keep the list short.</value></data>
+  <data name="Devices.Header" xml:space="preserve"><value>Active: {0} playback, {1} recording. Shown only – nothing is changed here.</value></data>
+  <data name="Devices.ShowNotPresent" xml:space="preserve"><value>Also show devices that are no longer there ({0})</value></data>
+  <data name="Device.NotConnected" xml:space="preserve"><value>{0} (not connected)</value></data>
+  <data name="Device.WindowsDefault" xml:space="preserve"><value>{0} (Windows default)</value></data>
+  <data name="Restore.NothingToDo" xml:space="preserve"><value>The default devices are already as saved – there was nothing to do.</value></data>
+  <data name="Restore.None" xml:space="preserve"><value>Nothing was set back.</value></data>
+  <data name="Restore.Done.One" xml:space="preserve"><value>1 default device set back. Check it in the Windows sound settings to be sure.</value></data>
+  <data name="Restore.Done.Other" xml:space="preserve"><value>{0} default devices set back. Check them in the Windows sound settings to be sure.</value></data>
+  <data name="Restore.Short.One" xml:space="preserve"><value>1 default device set back.</value></data>
+  <data name="Restore.Short.Other" xml:space="preserve"><value>{0} default devices set back.</value></data>
+  <data name="Restore.ByHandShort" xml:space="preserve"><value>Not everything worked automatically. By hand:</value></data>
+  <data name="Grid.What" xml:space="preserve"><value>What</value></data>
+  <data name="Grid.Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Grid.Now" xml:space="preserve"><value>Now</value></data>
+  <data name="Grid.Result" xml:space="preserve"><value>Result</value></data>
+  <data name="Grid.Flow" xml:space="preserve"><value>Direction</value></data>
+  <data name="Grid.Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Grid.Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Grid.Default" xml:space="preserve"><value>Windows default for</value></data>
+  <data name="Grid.Volume" xml:space="preserve"><value>Volume</value></data>
+  <data name="Grid.Format" xml:space="preserve"><value>Mix format</value></data>
+  <data name="Design.Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Design.Mode" xml:space="preserve"><value>Light and dark</value></data>
+  <data name="Design.System" xml:space="preserve"><value>Like Windows</value></data>
+  <data name="Design.Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Design.Dark" xml:space="preserve"><value>Dark</value></data>
+  <data name="Design.Accent" xml:space="preserve"><value>Accent colour</value></data>
+  <data name="Design.AccentText" xml:space="preserve"><value>Colours the main buttons, switches, sliders and the selection. Each colour is tuned separately for light and dark.</value></data>
+  <data name="Design.PickerArea" xml:space="preserve"><value>Saturation and brightness</value></data>
+  <data name="Design.PickerHue" xml:space="preserve"><value>Hue</value></data>
+  <data name="Design.PickerTip" xml:space="preserve"><value>Drag, or use the arrow keys (Shift: bigger steps)</value></data>
+  <data name="Design.Preview" xml:space="preserve"><value>Preview</value></data>
+  <data name="Design.PreviewButton" xml:space="preserve"><value>Button</value></data>
+  <data name="Design.PreviewText" xml:space="preserve"><value>Text in the accent colour</value></data>
+  <data name="Design.Hex" xml:space="preserve"><value>Hex</value></data>
+  <data name="Design.HexTip" xml:space="preserve"><value>Colour value as hex, for example #2E6E4C</value></data>
+  <data name="Design.HexInvalid" xml:space="preserve"><value>“{0}” is not a colour value. It looks like this: #2E6E4C.</value></data>
+  <data name="Design.AdjustedLight" xml:space="preserve"><value>Too pale for readable text, so it is used as {0} in light mode (contrast at least 4.5:1).</value></data>
+  <data name="Design.AdjustedDark" xml:space="preserve"><value>Too dark for readable text, so it is used as {0} in dark mode (contrast at least 4.5:1).</value></data>
+  <data name="Design.AdjustedBoth" xml:space="preserve"><value>Used as {0} in light and {1} in dark mode, so text stays readable (contrast at least 4.5:1).</value></data>
+  <data name="Design.PadColours" xml:space="preserve"><value>Pad colours</value></data>
+  <data name="Design.Colourful" xml:space="preserve"><value>Colourful – each pad its own colour</value></data>
+  <data name="Design.AllAccent" xml:space="preserve"><value>All in the accent colour</value></data>
+  <data name="Design.Motion" xml:space="preserve"><value>Motion</value></data>
+  <data name="Design.Glow" xml:space="preserve"><value>Pads light up softly</value></data>
+  <data name="Design.GlowHint" xml:space="preserve"><value>Off: pads light up at once, without a transition. The progress shows in both cases.</value></data>
+  <data name="Design.WindowsOff" xml:space="preserve"><value>Animation effects are switched off in Windows – so there are no transitions here either.</value></data>
+  <data name="Discord.WayBackDefault" xml:space="preserve"><value>In Discord, go to User Settings → Voice &amp; Video and choose your microphone again as the input device (or “Default”).</value></data>
+  <data name="Discord.WayBack" xml:space="preserve"><value>In Discord, go to User Settings → Voice &amp; Video and choose “{0}” again as the input device.</value></data>
+  <data name="Exit.Silence" xml:space="preserve"><value>Discord then hears silence from the cable: your microphone is silent in Discord until you start the soundboard again.</value></data>
+  <data name="Exit.NoSnapshot" xml:space="preserve"><value>Audio state: no saved state.</value></data>
+  <data name="Exit.Same" xml:space="preserve"><value>Audio state: the Windows default devices are as saved.</value></data>
+  <data name="Exit.Changed" xml:space="preserve"><value>Audio state: a Windows default device differs from the saved state:</value></data>
+  <data name="Exit.NotUs" xml:space="preserve"><value>The soundboard did not change this. To set it back: in the window under Settings → Audio state, or later with Soundboard.exe --restore.</value></data>
+  <data name="Exit.Question" xml:space="preserve"><value>Quit the soundboard now?</value></data>
+  <data name="App.QuitTitle" xml:space="preserve"><value>Quit soundboard</value></data>
+  <data name="App.UninstallTitle" xml:space="preserve"><value>Remove everything</value></data>
+  <data name="App.UninstallAsk" xml:space="preserve"><value>The removal guide opens, and the soundboard closes for it.</value></data>
+  <data name="App.UninstallAskCable" xml:space="preserve"><value>The removal guide opens, and the soundboard closes for it. Discord then hears silence from the cable.</value></data>
+  <data name="App.Continue" xml:space="preserve"><value>Continue?</value></data>
+  <data name="App.AudioServiceDown" xml:space="preserve"><value>The Windows audio service does not respond ({0}). Restart Windows, or check in Services that “Windows Audio” is running, and then open the soundboard again.</value></data>
+  <data name="App.Unexpected" xml:space="preserve"><value>Unexpected error: {0}. The program keeps running; if something stops working, please restart it.</value></data>
+  <data name="Tray.Open" xml:space="preserve"><value>Open window</value></data>
+  <data name="Tray.Stop" xml:space="preserve"><value>Stop all sounds</value></data>
+  <data name="Tray.Uninstall" xml:space="preserve"><value>Remove everything…</value></data>
+  <data name="Tray.Quit" xml:space="preserve"><value>Quit…</value></data>
+  <data name="Tray.StillRunningTitle" xml:space="preserve"><value>Soundboard keeps running</value></data>
+  <data name="Tray.StillRunning" xml:space="preserve"><value>Microphone and sounds keep going to the cable. Open and quit via the note icon in the notification area.</value></data>
+  <data name="Watch.Restart" xml:space="preserve"><value>Restart soundboard</value></data>
+  <data name="Watch.StartFailed" xml:space="preserve"><value>The soundboard could not be started ({0}). Please start it by hand.</value></data>
+  <data name="Watch.NoSnapshot" xml:space="preserve"><value>There is no saved state to go back to.</value></data>
+  <data name="Uninstall.Title" xml:space="preserve"><value>Remove soundboard</value></data>
+  <data name="Uninstall.Intro" xml:space="preserve"><value>This guide walks you through the removal: check the audio state, delete the soundboard’s own data and remove the virtual cable. Nothing happens silently – each step starts only when you click.</value></data>
+  <data name="Uninstall.Running" xml:space="preserve"><value>The soundboard is still running. Quit it first: right-click the note icon in the notification area → “Quit…”. This guide notices it by itself.</value></data>
+  <data name="Uninstall.H1" xml:space="preserve"><value>1. Check the audio state</value></data>
+  <data name="Uninstall.H2" xml:space="preserve"><value>2. Delete the soundboard’s own data</value></data>
+  <data name="Uninstall.H3" xml:space="preserve"><value>3. Remove the virtual cable (VB-CABLE)</value></data>
+  <data name="Uninstall.H4" xml:space="preserve"><value>4. Finally: Discord and comparison</value></data>
+  <data name="Uninstall.KeepSounds" xml:space="preserve"><value>Keep sounds (sound and picture folders stay)</value></data>
+  <data name="Uninstall.RemoveData" xml:space="preserve"><value>Delete own data…</value></data>
+  <data name="Uninstall.CableIntro" xml:space="preserve"><value>The soundboard does not remove the driver itself – VB-Audio’s own setup does that. This is the clean way:</value></data>
+  <data name="Uninstall.U1" xml:space="preserve"><value>1. Right-click VBCABLE_Setup_x64.exe (from the ZIP from vb-cable.com) → “Run as administrator”.</value></data>
+  <data name="Uninstall.U2" xml:space="preserve"><value>2. Click “Remove Driver”.</value></data>
+  <data name="Uninstall.U3" xml:space="preserve"><value>3. Restart Windows.</value></data>
+  <data name="Uninstall.U4" xml:space="preserve"><value>4. Open Device Manager → View → “Show hidden devices”. Under “Sound, video and game controllers” and “Audio inputs and outputs”, right-click any VB-Audio entries left → “Uninstall device”, and tick “Delete the driver” if offered.</value></data>
+  <data name="Uninstall.U5" xml:space="preserve"><value>5. Restart Windows once more.</value></data>
+  <data name="Uninstall.Advanced" xml:space="preserve"><value>For advanced users: to see whether a VB-Audio driver is still in the driver store, run “pnputil /enum-drivers” in a command prompt as administrator; remove it with “pnputil /delete-driver oemNN.inf” (NN from the list). Only needed if the setup leaves something behind.</value></data>
+  <data name="Uninstall.DeviceManager" xml:space="preserve"><value>Open Device Manager</value></data>
+  <data name="Uninstall.CompareHint" xml:space="preserve"><value>After the restart, compare once more. Green means: as before the soundboard.</value></data>
+  <data name="Uninstall.Discord" xml:space="preserve"><value>If Discord still points to the removed cable, it takes “Default” by itself – that is your Windows default microphone, which the soundboard never changed. If you had chosen a particular microphone before: {0}</value></data>
+  <data name="Uninstall.DiscordNoted" xml:space="preserve"><value>If Discord still points to the removed cable, it takes “Default” by itself – that is your Windows default microphone, which the soundboard never changed. You noted that “{0}” was chosen before: {1}</value></data>
+  <data name="Uninstall.NoSnapshot" xml:space="preserve"><value>There is no saved audio state, so comparing and setting back is not possible; the soundboard did not change anything anyway.</value></data>
+  <data name="Uninstall.Same" xml:space="preserve"><value>The Windows default devices are as in the save of {0}. There is nothing to do here.</value></data>
+  <data name="Uninstall.AllSame" xml:space="preserve"><value>Everything as saved.</value></data>
+  <data name="Uninstall.Diff.One" xml:space="preserve"><value>1 difference. New or missing is normal while the cable is still there or a device was unplugged.</value></data>
+  <data name="Uninstall.Diff.Other" xml:space="preserve"><value>{0} differences. New or missing is normal while the cable is still there or a device was unplugged.</value></data>
+  <data name="Uninstall.NoData" xml:space="preserve"><value>There is no soundboard data (any more).</value></data>
+  <data name="Uninstall.WillDelete" xml:space="preserve"><value>Will be deleted from the data folder {0}:</value></data>
+  <data name="Uninstall.AutostartEntry" xml:space="preserve"><value>“Start with Windows” entry</value></data>
+  <data name="Uninstall.FoldersStay" xml:space="preserve"><value>The sound and picture folders stay.</value></data>
+  <data name="Uninstall.StillRunning" xml:space="preserve"><value>The soundboard is still running and keeps its files open. Quit it first via the note icon in the notification area → “Quit…”, then click again.</value></data>
+  <data name="Uninstall.AskKeep" xml:space="preserve"><value>Delete the soundboard’s settings, saves and test recordings? The sound and picture folders stay. This cannot be undone.</value></data>
+  <data name="Uninstall.AskAll" xml:space="preserve"><value>Delete the soundboard’s settings, saves, test recordings AND all sounds and pad pictures? This cannot be undone.</value></data>
+  <data name="Uninstall.AskTitle" xml:space="preserve"><value>Delete own data</value></data>
+  <data name="Uninstall.Deleted.One" xml:space="preserve"><value>1 item deleted.</value></data>
+  <data name="Uninstall.Deleted.Other" xml:space="preserve"><value>{0} items deleted.</value></data>
+  <data name="Uninstall.AutostartRemoved" xml:space="preserve"><value>The “Start with Windows” entry is removed.</value></data>
+  <data name="Uninstall.AutostartFailed" xml:space="preserve"><value>The “Start with Windows” entry could not be removed ({0}).</value></data>
+  <data name="Uninstall.NotDeleted" xml:space="preserve"><value>Not deleted: {0} ({1}) – please delete it by hand.</value></data>
+  <data name="Cli.NoSnapshot" xml:space="preserve"><value>There is no saved audio state. Nothing was changed.</value></data>
+  <data name="Cli.AlreadySame" xml:space="preserve"><value>The default devices are as saved. Nothing was changed.</value></data>
+  <data name="Cli.Restoring" xml:space="preserve"><value>Setting the default devices back:</value></data>
+  <data name="Cli.HelpOpen" xml:space="preserve"><value>open the window</value></data>
+  <data name="Cli.HelpCheck" xml:space="preserve"><value>print the audio state as text (read only, changes nothing)</value></data>
+  <data name="Cli.HelpRestore" xml:space="preserve"><value>set the Windows default devices back to the saved ones</value></data>
+  <data name="Cli.HelpUninstall" xml:space="preserve"><value>removal guide (delete data, remove the cable, compare)</value></data>
+  <data name="Cli.HelpTray" xml:space="preserve"><value>start without a window (only the icon in the notification area)</value></data>
+  <data name="Cli.HelpWait" xml:space="preserve"><value>To wait for the output in PowerShell:</value></data>
+</root>

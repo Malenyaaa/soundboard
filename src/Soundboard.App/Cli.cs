@@ -5,6 +5,7 @@ using Microsoft.Win32.SafeHandles;
 using Soundboard.Core.Audio;
 using Soundboard.Core.Config;
 using Soundboard.Core.SystemState;
+using Soundboard.Core.Text;
 
 namespace Soundboard.App;
 
@@ -14,6 +15,10 @@ namespace Soundboard.App;
 /// </summary>
 internal static class Cli
 {
+    /// <summary>The console speaks the language stored in the profile (English without one). Only reads.</summary>
+    public static void UseProfileLanguage() =>
+        L.SetLanguage(ProfileStore.Peek(AppPaths.Default.ProfileFile)?.Language ?? L.English);
+
     public static int RunCheck()
     {
         using var console = ConsoleOutput.Open();
@@ -26,7 +31,7 @@ internal static class Cli
         }
         catch (Exception ex) when (ex is COMException or InvalidOperationException or UnauthorizedAccessException)
         {
-            console.Writer.WriteLine($"Der Audio-Zustand ließ sich nicht lesen: {ex.Message}");
+            console.Writer.WriteLine(L.F("Check.ReadFailed", ex.Message));
             return 1;
         }
     }
@@ -52,7 +57,7 @@ internal static class Cli
         }
         if (snap is null)
         {
-            w.WriteLine("Es gibt keine Sicherung des Audio-Zustands. Es wurde nichts verändert.");
+            w.WriteLine(L.Get("Cli.NoSnapshot"));
             return 0;
         }
 
@@ -64,18 +69,18 @@ internal static class Cli
             w.Write(SnapshotService.Format(cmp));
             if (!cmp.DefaultsChanged)
             {
-                w.WriteLine("Die Standardgeräte sind wie gesichert. Es wurde nichts verändert.");
+                w.WriteLine(L.Get("Cli.AlreadySame"));
                 return 0;
             }
             w.WriteLine();
-            w.WriteLine("Standardgeräte zurückstellen:");
+            w.WriteLine(L.Get("Cli.Restoring"));
             var result = SnapshotService.Restore(snap, before, new PolicyConfigWriter());
             w.Write(SnapshotService.Format(result));
             return result.AllGood ? 0 : 1;
         }
         catch (Exception ex) when (ex is COMException or InvalidOperationException or UnauthorizedAccessException)
         {
-            w.WriteLine($"Der Audio-Zustand ließ sich nicht lesen: {ex.Message}");
+            w.WriteLine(L.F("Check.ReadFailed", ex.Message));
             return 1;
         }
     }
@@ -85,13 +90,13 @@ internal static class Cli
         using var console = ConsoleOutput.Open();
         console.Writer.WriteLine("Soundboard");
         console.Writer.WriteLine();
-        console.Writer.WriteLine("  Soundboard.exe              Fenster öffnen");
-        console.Writer.WriteLine("  Soundboard.exe --check      Audio-Zustand als Text ausgeben (nur lesen, ändert nichts)");
-        console.Writer.WriteLine("  Soundboard.exe --restore    Windows-Standardgeräte auf die gesicherten zurückstellen");
-        console.Writer.WriteLine("  Soundboard.exe --uninstall  Anleitung zum Entfernen (Daten löschen, Kabel entfernen, vergleichen)");
-        console.Writer.WriteLine("  Soundboard.exe --tray       ohne Fenster starten (nur Symbol im Infobereich)");
+        console.Writer.WriteLine("  Soundboard.exe              " + L.Get("Cli.HelpOpen"));
+        console.Writer.WriteLine("  Soundboard.exe --check      " + L.Get("Cli.HelpCheck"));
+        console.Writer.WriteLine("  Soundboard.exe --restore    " + L.Get("Cli.HelpRestore"));
+        console.Writer.WriteLine("  Soundboard.exe --uninstall  " + L.Get("Cli.HelpUninstall"));
+        console.Writer.WriteLine("  Soundboard.exe --tray       " + L.Get("Cli.HelpTray"));
         console.Writer.WriteLine();
-        console.Writer.WriteLine("In PowerShell auf die Ausgabe warten:  .\\Soundboard.exe --check | Out-String");
+        console.Writer.WriteLine(L.Get("Cli.HelpWait") + "  .\\Soundboard.exe --check | Out-String");
         return 0;
     }
 

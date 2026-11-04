@@ -17,10 +17,10 @@ public sealed record ComparisonRow(string What, string Saved, string Now, Compar
 {
     public string KindText => Kind switch
     {
-        ComparisonKind.Same => "gleich",
-        ComparisonKind.Changed => "anders",
-        ComparisonKind.Added => "neu",
-        _ => "fehlt",
+        ComparisonKind.Same => Text.L.Get("Kind.Same"),
+        ComparisonKind.Changed => Text.L.Get("Kind.Changed"),
+        ComparisonKind.Added => Text.L.Get("Kind.Added"),
+        _ => Text.L.Get("Kind.Missing"),
     };
 }
 
@@ -42,9 +42,9 @@ public sealed class SnapshotComparison
     /// <summary>A virtual cable became a Windows default device since the snapshot.</summary>
     public bool CableBecameDefault { get; init; }
 
-    /// <summary>Defaults that differ, as German text lines ("Wiedergabe (Multimedia): war „A“, jetzt „B“").</summary>
+    /// <summary>Defaults that differ, as text lines ("Playback (multimedia): was “A”, now “B”").</summary>
     public IEnumerable<string> DefaultChangeLines =>
-        Rows.Where(r => r.IsDefault && r.Kind != ComparisonKind.Same).Select(r => $"{r.What}: war „{r.Saved}“, jetzt „{r.Now}“");
+        Rows.Where(r => r.IsDefault && r.Kind != ComparisonKind.Same).Select(r => Text.L.F("Snapshot.ChangeLine", r.What, r.Saved, r.Now));
 }
 
 /// <summary>What happened to one default role during a restore.</summary>
@@ -75,22 +75,22 @@ public sealed class RestoreResult
 
     public bool AllGood => Steps.All(s => s.Outcome is RestoreOutcome.AlreadySame or RestoreOutcome.Restored or RestoreOutcome.SkippedNoSavedDefault);
 
-    /// <summary>German instructions for everything that could not be put back automatically.</summary>
+    /// <summary>Instructions for everything that could not be put back automatically.</summary>
     public string ManualSteps()
     {
         var sb = new StringBuilder();
         foreach (var s in Steps.Where(s => s.Outcome is RestoreOutcome.Failed or RestoreOutcome.SkippedNotAvailable or RestoreOutcome.SkippedCable))
         {
-            string where = s.Flow == DeviceFlow.Render ? "Ausgabe" : "Eingabe";
-            string tab = s.Flow == DeviceFlow.Render ? "Wiedergabe" : "Aufnahme";
+            string where = Text.L.Get(s.Flow == DeviceFlow.Render ? "Restore.WhereRender" : "Restore.WhereCapture");
+            string tab = AudioStateText.Flow(s.Flow);
             string how = s.Role == DeviceRoleKind.Communications
-                ? $"Systemsteuerung → Sound → Registerkarte „{tab}“ → Rechtsklick auf „{s.TargetName}“ → „Als Standardkommunikationsgerät festlegen“"
-                : $"Windows-Einstellungen → System → Sound → {where}: „{s.TargetName}“ wählen";
+                ? Text.L.F("Restore.HowComm", tab, s.TargetName)
+                : Text.L.F("Restore.HowDefault", where, s.TargetName);
             string why = s.Outcome switch
             {
-                RestoreOutcome.SkippedNotAvailable => " (das Gerät ist gerade nicht angeschlossen oder deaktiviert)",
-                RestoreOutcome.SkippedCable => " (das Soundboard macht ein virtuelles Kabel nie zum Standard)",
-                _ => s.Error is null ? "" : $" (Windows meldet: {s.Error})",
+                RestoreOutcome.SkippedNotAvailable => Text.L.Get("Restore.WhyNotAvailable"),
+                RestoreOutcome.SkippedCable => Text.L.Get("Restore.WhyCable"),
+                _ => s.Error is null ? "" : Text.L.F("Restore.WhyError", s.Error),
             };
             sb.AppendLine($"{SnapshotService.RoleText(s.Flow, s.Role)}: {how}{why}");
         }
@@ -108,8 +108,6 @@ public interface IDefaultEndpointWriter
 /// <summary>Takes, compares and restores audio snapshots.</summary>
 public static class SnapshotService
 {
-    private static readonly CultureInfo De = CultureInfo.GetCultureInfo("de-DE");
-
     public static string RoleText(DeviceFlow flow, DeviceRoleKind role) =>
         $"{AudioStateText.Flow(flow)} ({AudioStateText.Role(role)})";
 
@@ -126,9 +124,9 @@ public static class SnapshotService
                 var cur = now.GetDefault(flow, role);
                 bool same = string.Equals(saved?.Id, cur?.Id, StringComparison.OrdinalIgnoreCase);
                 rows.Add(new ComparisonRow(
-                    "Standard " + RoleText(flow, role),
-                    saved?.Name ?? "keins",
-                    cur?.Name ?? "keins",
+                    Text.L.F("Compare.Default", RoleText(flow, role)),
+                    saved?.Name ?? Text.L.Get("Compare.None"),
+                    cur?.Name ?? Text.L.Get("Compare.None"),
                     same ? ComparisonKind.Same : ComparisonKind.Changed,
                     true));
                 if (!same && CableDetector.IsCableName(cur?.Name) && !CableDetector.IsCableName(saved?.Name)) cableDefault = true;
@@ -143,24 +141,24 @@ public static class SnapshotService
             if (c is null || (c.Status == DeviceStatus.NotPresent && s.Status != DeviceStatus.NotPresent))
             {
                 if (s.Status == DeviceStatus.NotPresent) { unchanged++; continue; }
-                rows.Add(new ComparisonRow(label, AudioStateText.Status(s.Status), "nicht mehr da", ComparisonKind.Missing, false));
+                rows.Add(new ComparisonRow(label, AudioStateText.Status(s.Status), Text.L.Get("Compare.Gone"), ComparisonKind.Missing, false));
                 continue;
             }
 
             bool any = false;
             if (c.Status != s.Status)
             {
-                rows.Add(new ComparisonRow(label + " – Zustand", AudioStateText.Status(s.Status), AudioStateText.Status(c.Status), ComparisonKind.Changed, false));
+                rows.Add(new ComparisonRow(Text.L.F("Compare.State", label), AudioStateText.Status(s.Status), AudioStateText.Status(c.Status), ComparisonKind.Changed, false));
                 any = true;
             }
             if (s.Volume is { } sv && c.VolumeScalar is { } cv && Math.Abs(sv - cv) > 0.01f)
             {
-                rows.Add(new ComparisonRow(label + " – Lautstärke", Percent(sv), Percent(cv), ComparisonKind.Changed, false));
+                rows.Add(new ComparisonRow(Text.L.F("Compare.Volume", label), Percent(sv), Percent(cv), ComparisonKind.Changed, false));
                 any = true;
             }
             if (s.Muted is { } sm && c.Muted is { } cm && sm != cm)
             {
-                rows.Add(new ComparisonRow(label + " – Stumm", sm ? "ja" : "nein", cm ? "ja" : "nein", ComparisonKind.Changed, false));
+                rows.Add(new ComparisonRow(Text.L.F("Compare.Muted", label), YesNo(sm), YesNo(cm), ComparisonKind.Changed, false));
                 any = true;
             }
             if (!any) unchanged++;
@@ -231,11 +229,11 @@ public static class SnapshotService
     public static string Format(SnapshotComparison cmp)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"Gesichert am {cmp.Snapshot.TakenAt.ToString("dd.MM.yyyy HH:mm", De)} – jetzt:");
+        sb.AppendLine(Text.L.F("Report.SavedAt", Text.L.DateTime(cmp.Snapshot.TakenAt)));
         foreach (var r in cmp.Rows)
             sb.AppendLine($"  [{r.KindText,-6}] {r.What}: {(r.Kind == ComparisonKind.Same ? r.Now : $"{r.Saved} → {r.Now}")}");
-        if (cmp.UnchangedDevices > 0) sb.AppendLine($"  {cmp.UnchangedDevices} weitere Geräte unverändert.");
-        sb.AppendLine(cmp.IsIdentical ? "Ergebnis: alles wie gesichert." : $"Ergebnis: {cmp.DifferenceCount} Abweichung(en).");
+        if (cmp.UnchangedDevices > 0) sb.AppendLine(Text.L.Count("Report.Unchanged", cmp.UnchangedDevices));
+        sb.AppendLine(cmp.IsIdentical ? Text.L.Get("Report.ResultSame") : Text.L.Count("Report.ResultDiff", cmp.DifferenceCount));
         return sb.ToString();
     }
 
@@ -246,12 +244,12 @@ public static class SnapshotService
         {
             string text = s.Outcome switch
             {
-                RestoreOutcome.AlreadySame => "war schon richtig",
-                RestoreOutcome.Restored => $"zurückgestellt auf „{s.TargetName}“",
-                RestoreOutcome.SkippedNoSavedDefault => "keine Sicherung, nichts geändert",
-                RestoreOutcome.SkippedNotAvailable => $"„{s.TargetName}“ ist nicht da, nichts geändert",
-                RestoreOutcome.SkippedCable => "gesichert war ein virtuelles Kabel, nichts geändert",
-                _ => $"fehlgeschlagen ({s.Error})",
+                RestoreOutcome.AlreadySame => Text.L.Get("Restore.AlreadySame"),
+                RestoreOutcome.Restored => Text.L.F("Restore.Restored", s.TargetName),
+                RestoreOutcome.SkippedNoSavedDefault => Text.L.Get("Restore.NoSaved"),
+                RestoreOutcome.SkippedNotAvailable => Text.L.F("Restore.NotAvailable", s.TargetName),
+                RestoreOutcome.SkippedCable => Text.L.Get("Restore.Cable"),
+                _ => Text.L.F("Restore.Failed", s.Error),
             };
             sb.AppendLine($"  {RoleText(s.Flow, s.Role)}: {text}");
         }
@@ -259,11 +257,13 @@ public static class SnapshotService
         if (manual.Length > 0)
         {
             sb.AppendLine();
-            sb.AppendLine("Von Hand zurückstellen:");
+            sb.AppendLine(Text.L.Get("Report.ByHand"));
             foreach (var line in manual.Split('\n')) sb.AppendLine("  " + line.TrimEnd('\r'));
         }
         return sb.ToString();
     }
 
-    private static string Percent(float v) => Math.Round(v * 100).ToString("0", De) + " %";
+    private static string Percent(float v) => Text.L.Percent(v);
+
+    private static string YesNo(bool v) => Text.L.Get(v ? "Compare.Yes" : "Compare.No");
 }

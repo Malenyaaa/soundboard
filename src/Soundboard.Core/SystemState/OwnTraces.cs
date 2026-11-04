@@ -20,17 +20,17 @@ public static class OwnTraces
             if (File.Exists(path)) list.Add((description, path));
         }
 
-        AddFile("Einstellungen", paths.ProfileFile);
-        AddFile("Einstellungen (Zwischenstand)", paths.ProfileFile + ".tmp");
+        AddFile(Text.L.Get("Traces.Settings"), paths.ProfileFile);
+        AddFile(Text.L.Get("Traces.SettingsTemp"), paths.ProfileFile + ".tmp");
         if (Directory.Exists(paths.DataDir))
         {
-            foreach (var f in Directory.EnumerateFiles(paths.DataDir, "config.defekt-*.json")) list.Add(("Einstellungen (alte, unlesbare Fassung)", f));
-            foreach (var f in Directory.EnumerateFiles(paths.DataDir, "audio-snapshot*.json")) list.Add(("Sicherung des Audio-Zustands", f));
+            foreach (var f in Directory.EnumerateFiles(paths.DataDir, "config.defekt-*.json")) list.Add((Text.L.Get("Traces.SettingsBroken"), f));
+            foreach (var f in Directory.EnumerateFiles(paths.DataDir, "audio-snapshot*.json")) list.Add((Text.L.Get("Traces.Snapshot"), f));
         }
-        AddFile("Merker „läuft gerade“", paths.DirtyFlagFile);
-        if (Directory.Exists(paths.RecordingsDir)) list.Add(("Test-Aufnahmen", paths.RecordingsDir));
-        if (!keepSounds && Directory.Exists(paths.SoundsDir)) list.Add(("Sound-Ordner mit allen Sounds", paths.SoundsDir));
-        if (!keepSounds && Directory.Exists(paths.ImagesDir)) list.Add(("Bilder-Ordner mit allen Pad-Bildern", paths.ImagesDir));
+        AddFile(Text.L.Get("Traces.Running"), paths.DirtyFlagFile);
+        if (Directory.Exists(paths.RecordingsDir)) list.Add((Text.L.Get("Traces.Recordings"), paths.RecordingsDir));
+        if (!keepSounds && Directory.Exists(paths.SoundsDir)) list.Add((Text.L.Get("Traces.Sounds"), paths.SoundsDir));
+        if (!keepSounds && Directory.Exists(paths.ImagesDir)) list.Add((Text.L.Get("Traces.Images"), paths.ImagesDir));
         return list;
     }
 
@@ -57,12 +57,12 @@ public static class OwnTraces
             if (Directory.Exists(paths.DataDir) && !Directory.EnumerateFileSystemEntries(paths.DataDir).Any())
             {
                 Directory.Delete(paths.DataDir);
-                result.Add(new TraceItem("Datenordner (war leer)", paths.DataDir, true, null));
+                result.Add(new TraceItem(Text.L.Get("Traces.DataDirEmpty"), paths.DataDir, true, null));
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            result.Add(new TraceItem("Datenordner", paths.DataDir, false, ex.Message));
+            result.Add(new TraceItem(Text.L.Get("Traces.DataDir"), paths.DataDir, false, ex.Message));
         }
         return result;
     }

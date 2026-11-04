@@ -162,11 +162,11 @@ public sealed class DeviceCatalog : IDisposable
         try
         {
             var name = dev.FriendlyName;
-            return string.IsNullOrWhiteSpace(name) ? "(ohne Namen)" : name;
+            return string.IsNullOrWhiteSpace(name) ? Text.L.Get("Device.NoName") : name;
         }
         catch (Exception ex) when (ex is COMException or InvalidOperationException or KeyNotFoundException)
         {
-            return "(Name nicht lesbar)";
+            return Text.L.Get("Device.NameUnreadable");
         }
     }
 

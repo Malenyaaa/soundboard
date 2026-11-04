@@ -45,7 +45,7 @@ internal static class Watcher
             }
             app.Dispatcher.BeginInvoke(() => Evaluate(app, pid));
         })
-        { IsBackground = true, Name = "Wächter" };
+        { IsBackground = true, Name = "Watcher" };
         thread.Start();
     }
 

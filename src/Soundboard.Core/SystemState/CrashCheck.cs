@@ -5,24 +5,24 @@ public sealed record CrashReport(bool CableWasActive, SnapshotComparison? Compar
 {
     public bool DefaultsChanged => Comparison?.DefaultsChanged == true;
 
-    public string Headline => "Das Soundboard wurde unerwartet beendet.";
+    public string Headline => Text.L.Get("Crash.Headline");
 
-    /// <summary>German explanation lines for the small watcher window.</summary>
+    /// <summary>Explanation lines for the small watcher window.</summary>
     public IReadOnlyList<string> Lines(string discordWayBack)
     {
         var lines = new List<string>();
         if (CableWasActive)
         {
-            lines.Add("Discord hört dein Kabel, aber niemand füttert es – dein Mikrofon ist in Discord gerade stumm.");
-            lines.Add("Starte das Soundboard neu, oder: " + discordWayBack);
+            lines.Add(Text.L.Get("Crash.CableIdle"));
+            lines.Add(Text.L.F("Crash.Restart", discordWayBack));
         }
         if (Comparison is null)
-            lines.Add("Eine Sicherung des Audio-Zustands gibt es nicht; verglichen wurde nichts.");
+            lines.Add(Text.L.Get("Crash.NoSnapshot"));
         else if (!Comparison.DefaultsChanged)
-            lines.Add("Die Windows-Standardgeräte sind wie gesichert.");
+            lines.Add(Text.L.Get("Crash.DefaultsSame"));
         else
         {
-            lines.Add("Ein Windows-Standardgerät weicht von der Sicherung ab (das Soundboard hat es nicht verstellt):");
+            lines.Add(Text.L.Get("Crash.DefaultsChanged"));
             lines.AddRange(Comparison.DefaultChangeLines.Select(l => "  " + l));
         }
         return lines;

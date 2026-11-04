@@ -36,7 +36,7 @@ public sealed class PadImageTests
 
         Assert.IsNull(loaded.Problem);
         Assert.AreEqual(Profile.CurrentVersion, loaded.Profile.Version);
-        Assert.AreEqual(3, Profile.CurrentVersion);
+        Assert.AreEqual(4, Profile.CurrentVersion);
         Assert.IsNull(loaded.Profile.Tiles[0].Image);
     }
 
@@ -50,7 +50,7 @@ public sealed class PadImageTests
         var loaded = ProfileStore.Load(path);
 
         Assert.IsNull(loaded.Problem);
-        Assert.AreEqual(3, loaded.Profile.Version);
+        Assert.AreEqual(Profile.CurrentVersion, loaded.Profile.Version);
         Assert.IsNull(loaded.Profile.Tiles[0].Image);
     }
 

@@ -25,7 +25,7 @@ public sealed class AudioStateTextTests
         StringAssert.Contains(text, "Wiedergabe / Konsole");
         StringAssert.Contains(text, "Lautsprecher  [id-a]");
         StringAssert.Contains(text, "(keins)");
-        StringAssert.Contains(text, "46 %, stumm");
+        StringAssert.Contains(text, "46\u202F%, stumm");
         StringAssert.Contains(text, "48.000 Hz, 2 Kanäle, 32 bit Float");
         StringAssert.Contains(text, "Mikrofon  (nicht angeschlossen)");
         StringAssert.Contains(text, "ID: id-b");

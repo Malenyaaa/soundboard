@@ -24,9 +24,9 @@ public static class BufferSizes
 
     public static string Display(BufferSize b) => b switch
     {
-        BufferSize.Small => "klein (20 ms)",
-        BufferSize.Large => "groß (80 ms)",
-        _ => "mittel (40 ms)",
+        BufferSize.Small => Text.L.Get("Buffer.Small"),
+        BufferSize.Large => Text.L.Get("Buffer.Large"),
+        _ => Text.L.Get("Buffer.Medium"),
     };
 }
 
@@ -181,7 +181,7 @@ internal sealed class SampleConverter
         _floats = new float[samples];
         _bytes = new byte[samples * Math.Max(1, _bits / 8)];
         if (_float ? _bits != 32 : _bits is not (16 or 24 or 32))
-            throw new NotSupportedException($"Mikrofon-Format mit {_bits} bit wird nicht unterstützt.");
+            throw new NotSupportedException(Text.L.F("Mic.FormatUnsupported", _bits));
     }
 
     public void Convert(IntPtr data, int frames, FloatRingBuffer target)

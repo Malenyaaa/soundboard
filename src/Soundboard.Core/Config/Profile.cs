@@ -96,7 +96,10 @@ public sealed class Profile
     /// <summary>Short transitions (pad lighting up). Windows' own "animation effects" setting is respected as well.</summary>
     public bool Animations { get; set; } = true;
 
-    public const int CurrentVersion = 3;
+    /// <summary>Language of the interface: "en" or "de". New profiles start in English; profiles from before version 4 keep German.</summary>
+    public string Language { get; set; } = Text.L.English;
+
+    public const int CurrentVersion = 4;
 
     /// <summary>
     /// Brings an older or hand-edited profile up to date: missing design values get their
@@ -105,9 +108,23 @@ public sealed class Profile
     public bool Migrate()
     {
         bool changed = false;
+        if (Version < 4)
+        {
+            // Version 4: English became the default. Whoever used the program before keeps German.
+            Language = Text.L.German;
+            // The Wada colours gave way to plain ones: old presets and pad colours move to the nearest new one.
+            if (Design.AccentPalette.Migrate(AccentId) is { } accent) AccentId = accent;
+            foreach (var t in Tiles)
+                if (t.Color is not null) t.Color = Design.PadPalette.Migrate(t.Color);
+        }
         if (Version < CurrentVersion)
         {
             Version = CurrentVersion;
+            changed = true;
+        }
+        if (Language != Text.L.Normalize(Language))
+        {
+            Language = Text.L.Normalize(Language);
             changed = true;
         }
         if (!AppearanceModes.All.Contains(Appearance))
@@ -117,7 +134,7 @@ public sealed class Profile
         }
         if (AccentId != Design.AccentPalette.CustomId && Design.AccentPalette.Find(AccentId) is null)
         {
-            AccentId = Design.AccentPalette.DefaultId;
+            AccentId = Design.AccentPalette.Migrate(AccentId) ?? Design.AccentPalette.DefaultId;
             changed = true;
         }
         if (AccentId == Design.AccentPalette.CustomId && !Design.Rgb.TryParse(CustomAccent, out _))
@@ -162,7 +179,7 @@ public static class PadColorModes
     public const string Accent = "Akzent";
 }
 
-/// <summary>Result of loading a profile; <see cref="Problem"/> is a German hint if something went wrong.</summary>
+/// <summary>Result of loading a profile; <see cref="Problem"/> is a hint for the user if something went wrong.</summary>
 public sealed record ProfileLoadResult(Profile Profile, string? Problem);
 
 /// <summary>Reads and writes the profile JSON. Writes atomically (temp file + move).</summary>
@@ -186,6 +203,7 @@ public static class ProfileStore
             profile.Appearance ??= AppearanceModes.System;
             profile.AccentId ??= Design.AccentPalette.DefaultId;
             profile.PadColors ??= PadColorModes.Colorful;
+            profile.Language ??= Text.L.English;
             profile.Migrate();
             return new ProfileLoadResult(profile, null);
         }
@@ -202,8 +220,8 @@ public static class ProfileStore
                 backup = null;
             }
             var hint = backup is null
-                ? "Die Einstellungen ließen sich nicht lesen und wurden zurückgesetzt."
-                : $"Die Einstellungen ließen sich nicht lesen und wurden zurückgesetzt. Die alte Datei liegt als „{Path.GetFileName(backup)}“ im Datenordner.";
+                ? Text.L.Get("Profile.Unreadable")
+                : Text.L.F("Profile.UnreadableBackup", Path.GetFileName(backup));
             return new ProfileLoadResult(new Profile(), hint);
         }
     }
@@ -221,6 +239,7 @@ public static class ProfileStore
             profile.Appearance ??= AppearanceModes.System;
             profile.AccentId ??= Design.AccentPalette.DefaultId;
             profile.PadColors ??= PadColorModes.Colorful;
+            profile.Language ??= Text.L.English;
             profile.Migrate();
             return profile;
         }
@@ -283,7 +302,7 @@ public sealed class AppPaths
     /// <summary>
     /// Checks a picture (exists, picture ending, readable header) and copies it into the picture
     /// folder like <see cref="ImportSound"/>. Returns the file name inside the picture folder.
-    /// Throws <see cref="Images.ImageImportException"/> with a German reason.
+    /// Throws <see cref="Images.ImageImportException"/> with the reason for the user.
     /// </summary>
     public string ImportImage(string sourcePath)
     {

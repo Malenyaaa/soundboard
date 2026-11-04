@@ -3,6 +3,7 @@ using System.Windows.Threading;
 using Soundboard.App.Themes;
 using Soundboard.App.Tray;
 using Soundboard.App.ViewModels;
+using Soundboard.Core.Text;
 
 namespace Soundboard.App;
 
@@ -31,13 +32,17 @@ public partial class App : Application
     internal static bool StartInTray { get; set; }
     internal static SingleInstance? Instance { get; set; }
 
-    /// <summary>True once the user confirmed "Beenden"; closing the window then really closes.</summary>
+    /// <summary>True once the user confirmed "Quit"; closing the window then really closes.</summary>
     public bool IsExiting => _exiting;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        ThemeManager.Start(this, Core.Config.ProfileStore.Peek(Core.Config.AppPaths.Default.ProfileFile));
+        var profile = Core.Config.ProfileStore.Peek(Core.Config.AppPaths.Default.ProfileFile);
+        // Every window speaks the language of the profile; without one (first start) English.
+        L.SetLanguage(profile?.Language ?? L.English);
+        Text.UiLanguage.ApplyCulture();
+        ThemeManager.Start(this, profile);
         switch (Mode)
         {
             case StartMode.Watch:
@@ -60,7 +65,7 @@ public partial class App : Application
         }
         catch (System.Runtime.InteropServices.COMException ex)
         {
-            MessageBox.Show($"Der Windows-Audiodienst antwortet nicht ({ex.Message}). Starte Windows neu oder prüfe in den Diensten, ob „Windows-Audio“ läuft, und öffne das Soundboard dann noch einmal.",
+            MessageBox.Show(L.F("App.AudioServiceDown", ex.Message),
                 "Soundboard", MessageBoxButton.OK, MessageBoxImage.Warning);
             Instance?.Dispose();
             Instance = null;
@@ -100,19 +105,19 @@ public partial class App : Application
         }
     }
 
-    /// <summary>"Alles entfernen" from the tray: open the removal guide and end this copy.</summary>
+    /// <summary>"Remove everything" from the tray: open the removal guide and end this copy.</summary>
     public void RequestUninstall()
     {
         if (_vm is null || _exiting) return;
         var exe = Environment.ProcessPath;
         if (exe is null) return;
-        var text = "Die Anleitung zum Entfernen öffnet sich, und das Soundboard wird dafür beendet."
-            + (_vm.CableRunning ? " Discord hört danach Stille vom Kabel." : "")
-            + Environment.NewLine + Environment.NewLine + "Fortfahren?";
+        var text = L.Get(_vm.CableRunning ? "App.UninstallAskCable" : "App.UninstallAsk")
+            + Environment.NewLine + Environment.NewLine + L.Get("App.Continue");
         var owner = _window is { IsVisible: true } ? _window : null;
+        var title = L.Get("App.UninstallTitle");
         var answer = owner is null
-            ? MessageBox.Show(text, "Alles entfernen", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
-            : MessageBox.Show(owner, text, "Alles entfernen", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+            ? MessageBox.Show(text, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
+            : MessageBox.Show(owner, text, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes) return;
         ExitNow();
         try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, "--uninstall") { UseShellExecute = false }); }
@@ -133,19 +138,19 @@ public partial class App : Application
     {
         if (_vm is null || _vm.TrayHintShown) return;
         _vm.TrayHintShown = true;
-        _tray?.ShowHint("Soundboard läuft weiter",
-            "Mikrofon und Sounds gehen weiter ans Kabel. Öffnen und Beenden über das Notensymbol im Infobereich.");
+        _tray?.ShowHint(L.Get("Tray.StillRunningTitle"), L.Get("Tray.StillRunning"));
     }
 
-    /// <summary>"Beenden" from the tray: explain what Discord gets and how the audio state looks.</summary>
+    /// <summary>"Quit" from the tray: explain what Discord gets and how the audio state looks.</summary>
     public void RequestExit()
     {
         if (_vm is null || _exiting) return;
         var owner = _window is { IsVisible: true } ? _window : null;
         var text = _vm.ExitQuestion();
+        var title = L.Get("App.QuitTitle");
         var answer = owner is null
-            ? MessageBox.Show(text, "Soundboard beenden", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
-            : MessageBox.Show(owner, text, "Soundboard beenden", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+            ? MessageBox.Show(text, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
+            : MessageBox.Show(owner, text, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
         if (answer == MessageBoxResult.Yes) ExitNow();
     }
 
@@ -167,7 +172,8 @@ public partial class App : Application
     {
         if (MainWindow?.DataContext is MainViewModel vm)
         {
-            vm.ShowNotice("unexpected", $"Unerwarteter Fehler: {e.Exception.Message}. Das Programm läuft weiter; wenn etwas nicht mehr geht, bitte neu starten.");
+            var message = e.Exception.Message;
+            vm.ShowNotice("unexpected", () => L.F("App.Unexpected", message));
             e.Handled = true;
         }
     }

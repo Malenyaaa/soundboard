@@ -13,9 +13,9 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.10.1 mit
-überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe) und Bildern als
-Pad-Hintergrund.
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.11.0 mit
+überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
+Bildern als Pad-Hintergrund, Vollbild (F11) und englischer Oberfläche, umschaltbar auf Deutsch.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -35,7 +35,10 @@ Standardmikrofon und seine Standardwiedergabe.
 ## Einrichtung
 
 Die Einrichtung öffnet sich beim ersten Start und ist jederzeit über den Knopf
-„Einstellungen“ (Zahnrad) → „Einrichtung“ erreichbar.
+„Einstellungen“ (Zahnrad) → „Einrichtung“ erreichbar. Fehlt das Kabel, steht in der Statuszeile
+unten links „Kabel fehlt“ mit Warnzeichen; ein Klick darauf öffnet die Einrichtung. (Die Namen
+der Knöpfe stehen hier auf Deutsch; in der englischen Oberfläche heißen sie entsprechend, z. B.
+„Settings“ → „Setup“.)
 
 ### 1. Virtuelles Kabel (VB-CABLE)
 
@@ -82,7 +85,7 @@ Discords Dateien.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ (●) Mithören [Kopfhörer  v]  ◁) ━━━●── 80 %  [Sounds hinzufügen …] [⚙] [■ Alles stoppen] │
+│ (●) Mithören [Kopfhörer  v]  ◁) ━━━●── 80 %  [Sounds hinzufügen …] [⛶] [⚙]      [■ Stop] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ ⚠ Ein Windows-Standardgerät weicht von der Sicherung ab …   [Ansehen] [Schließen] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
@@ -127,10 +130,23 @@ Discords Dateien.
   Klick darauf zeigt auf dem Pad, was los ist, mit dem Ausweg („Num 3 hierher holen“, „Andere
   Taste wählen“). Numpad-Tasten liefern nur bei eingeschaltetem NumLock „Num 1“ usw.
 - **Mithören:** Schalter und Gerät, auf dem du die Sounds selbst hörst (per ID gemerkt).
-- **Alles stoppen:** der einzige rote Knopf; stoppt alle laufenden Sounds.
+- **Stop:** der einzige rote Knopf; stoppt alle laufenden Sounds.
+- **Regler** (Lautstärke aller Sounds, Mikro-Lautstärke, Pad-Lautstärke im Rechtsklick-Menü):
+  Ein Klick auf eine Stelle der Leiste setzt den Wert dort, und ohne loszulassen lässt sich
+  gleich weiterziehen. Mit der Tastatur: Pfeiltasten (1 %), Bild auf/ab (10 %).
+- **Vollbild:** F11 oder der Knopf mit den vier Ecken neben dem Zahnrad. Dann zeigt das Fenster
+  randlos über den ganzen Bildschirm nur noch die Pads – groß und gleichmäßig verteilt, die
+  Schrift wächst mit – und oben eine schlanke Leiste mit Lautstärke, „Vollbild beenden“ und
+  Stop. Die Leiste blendet sich nach gut zwei Sekunden ohne Mausbewegung aus und kommt bei
+  Bewegung wieder (ohne Übergang, wenn Animationen aus sind). F11 oder Esc führt zurück zur
+  vorherigen Fenstergröße. Das Vollbild wird nicht gespeichert; der nächste Start zeigt das
+  normale Fenster. Hat ein Pad F11 als globale Taste, gewinnt das Pad überall (auch im Fenster);
+  Vollbild geht dann über den Knopf, dessen Tooltip das sagt.
 - **Statuszeile:** Kabel (mit Pegel), Mikrofon, Tasten – ein Klick öffnet die passende
   Einstellungsseite. Ein Warnzeichen erscheint, wenn das Kabel nicht sendet oder eine Taste
-  nicht wirkt. Die Windows-Standardgeräte stehen hier nicht; die zeigt Windows selbst.
+  nicht wirkt. Fehlt das Kabel ganz, steht dort fett „Kabel fehlt“, und der Klick öffnet die
+  Einrichtung; ein eigener Hinweis über den Pads erscheint dafür nicht. Die
+  Windows-Standardgeräte stehen hier nicht; die zeigt Windows selbst.
 - **Hinweise:** Es steht immer höchstens ein gelber Hinweis über den Pads. Gibt es mehrere,
   blättert „Nächster“ weiter.
 - **Fenster schließen** lässt das Programm im Infobereich (Notensymbol) weiterlaufen, damit
@@ -143,7 +159,7 @@ Discords Dateien.
 
 ### Einstellungen (Zahnrad)
 
-Die Einstellungen legen sich über die Pads; Kopfzeile und „Alles stoppen“ bleiben. Esc oder
+Die Einstellungen legen sich über die Pads; Kopfzeile und „Stop“ bleiben. Esc oder
 „Schließen“ führt zurück.
 
 | Reiter | Inhalt |
@@ -152,21 +168,48 @@ Die Einstellungen legen sich über die Pads; Kopfzeile und „Alles stoppen“ b
 | Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
 | Tasten | Tasten pausieren; alle Pads mit Taste und Zustand, Ausweg bei Konflikten; Sounds überlagern (aus: ein neuer Sound stoppt den laufenden) |
 | Audio-Zustand | Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken; „Standardgerät zurückstellen“, „Audio-Zustand jetzt sichern“, „Neu vergleichen“; darunter die Audiogeräte in Windows (nur angezeigt) |
-| Design | Darstellung (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); weiches Aufleuchten an/aus |
+| Darstellung | Sprache (English, Deutsch); hell oder dunkel (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); weiches Aufleuchten an/aus |
 
-**Akzentfarbe:** acht Farben nach Sanzo Wadas „A Dictionary of Color Combinations“ (Pfauenblau,
-Olympiablau, Blauviolett, Purpur, Orange, Olivgelb, Grün, Schiefer) oder eine eigene als
-Hex-Wert. Jede Farbe wird für hell und dunkel getrennt abgestimmt, bis Schrift darauf und die
-Farbe auf dem Grund mindestens 4,5 : 1 Kontrast haben. Muss eine eigene Farbe dafür
-abgedunkelt oder aufgehellt werden, sagt ein gelber Hinweis, zu welchem Wert. Die
+**Akzentfarbe:** sechs vertraute Farben (Blau, Petrol, Grün, Orange, Pink, Violett) oder eine
+eigene. „Eigene“ öffnet einen Farbwähler: links eine Fläche für Sättigung (nach rechts) und
+Helligkeit (nach oben), rechts eine Leiste für den Farbton. Beide lassen sich mit der Maus
+ziehen oder mit den Pfeiltasten bewegen (Umschalt: größere Schritte); die Farbe gilt sofort.
+Daneben stehen eine Vorschau und, klein, der Hex-Wert zum Abschreiben oder Eintippen. Jede
+Farbe wird für hell und dunkel getrennt abgestimmt, bis Schrift darauf und die Farbe auf dem
+Grund mindestens 4,5 : 1 Kontrast haben. Muss eine eigene Farbe dafür abgedunkelt oder
+aufgehellt werden, sagt eine leise Zeile unter dem Farbwähler, zu welchem Wert. Die
 Windows-Akzentfarbe wird nicht benutzt.
 
-**Animationen:** Nur das Aufleuchten eines Pads blendet kurz ein (160 ms). Ist es im Reiter
-„Design“ aus oder sind in Windows die Animationseffekte ausgeschaltet, leuchtet das Pad sofort
-auf. Was per Taste ausgelöst wird, bewegt sich sonst nicht.
+**Pad-Farben:** neue Pads bekommen der Reihe nach Blau, Orange, Grün, Pink, Petrol, Violett und
+Grau. Profile aus Version 0.10 werden beim ersten Start umgestellt: Die alten Farben nach Sanzo
+Wada wandern auf die nächste neue (Pfauenblau → Petrol, Olympiablau → Blau, Blauviolett →
+Violett, Purpur → Pink, Olivgelb und Grün → Grün, Schiefer → Blau bzw. bei Pads Grau); eine
+eigene Akzentfarbe und selbst gewählte Pad-Farben bleiben.
 
-Fehlt etwas (kein Kabel, kein Mikrofon, Taste belegt), erscheint ein gelber Hinweis mit dem
-nächsten Schritt – bei Pads direkt auf dem Pad. Knöpfe werden nie ausgegraut.
+**Animationen:** Nur das Aufleuchten eines Pads blendet kurz ein (160 ms). Ist es im Reiter
+„Darstellung“ aus oder sind in Windows die Animationseffekte ausgeschaltet, leuchtet das Pad sofort
+auf. Ebenso blendet die Leiste im Vollbild weich (260 ms) oder sofort aus. Was per Taste
+ausgelöst wird, bewegt sich sonst nicht.
+
+Fehlt etwas (kein Mikrofon, Taste belegt), erscheint ein gelber Hinweis mit dem nächsten
+Schritt – bei Pads direkt auf dem Pad. Ein fehlendes Kabel zeigt nur die Statuszeile (siehe
+oben). Knöpfe werden nie ausgegraut.
+
+## Sprache
+
+Die Oberfläche ist auf Englisch und lässt sich unter Einstellungen → „Appearance“ →
+„Language“ auf Deutsch umstellen (und unter „Darstellung“ → „Sprache“ zurück). Der Wechsel gilt
+sofort, ohne Neustart: Fenster, Pads, Statuszeile, Hinweise, Tooltips, Infobereich-Menü,
+Dateidialoge, Wächter- und Rückbau-Fenster. Zahlen und Datum folgen der Sprache (Englisch
+„80%“, „4 Nov 2026“; Deutsch „80 %“, „04.11.2026“). Gespeichert wird die Wahl in `config.json`.
+Neue Installationen starten auf Englisch; wer schon eine Version bis 0.10 benutzt hat, behält
+Deutsch. Die Kommandozeile (`--check`, `--restore`, `--help`) spricht die gespeicherte Sprache,
+ohne Einstellungen Englisch.
+
+Alle Texte stehen in `src/Soundboard.Core/Text/En.resx` und `De.resx` unter demselben
+Schlüssel. Ein Test findet Schlüssel, die in einer Sprache fehlen, und solche, die im Code
+benutzt, aber nirgends definiert sind. Die Ordnernamen im Datenordner (`Sounds`, `Bilder`,
+`Aufnahmen`) bleiben in beiden Sprachen gleich.
 
 ## Kommandozeile
 
@@ -211,7 +254,7 @@ Alles liegt unter `%LOCALAPPDATA%\Soundboard\`:
 
 | Datei/Ordner | Inhalt |
 |---|---|
-| `config.json` | Pads (mit Bild), Tasten, Geräte-IDs, Lautstärken, Puffer, Design (Darstellung, Akzentfarbe, Pad-Farben, Animationen) |
+| `config.json` | Pads (mit Bild), Tasten, Geräte-IDs, Lautstärken, Puffer, Sprache, Darstellung (hell/dunkel, Akzentfarbe, Pad-Farben, Animationen) |
 | `Sounds\` | die hereingezogenen Sounds (Kopien) |
 | `Bilder\` | die Pad-Bilder (Kopien); ein entferntes oder ersetztes Bild wird beim Beenden gelöscht, sofern es kein Pad mehr nutzt. Andere Dateien im Ordner bleiben unberührt |
 | `Aufnahmen\` | 10-Sekunden-Testaufnahmen |
@@ -235,7 +278,8 @@ Ergebnis: `publish\Soundboard.exe` (portable, eine Datei, keine .NET-Installatio
 
 `installer/soundboard.iss` ist ein Skript für [Inno Setup 6](https://jrsoftware.org/isinfo.php):
 Installation nur für den eigenen Benutzer nach `%LOCALAPPDATA%\Programs\Soundboard`, ohne
-Adminrechte, Startmenü-Eintrag, „Mit Windows starten“ als abwählbare Option. Beim
+Adminrechte, Startmenü-Eintrag, „Mit Windows starten“ als abwählbare Option. Der Installer
+spricht Englisch, auf einem deutschen Windows Deutsch. Beim
 Deinstallieren startet die Anleitung `--uninstall`; bei stiller Deinstallation nur
 `--restore`. Das Skript kompiliert mit Inno Setup 6.7 ohne Warnungen; Installieren und
 Deinstallieren sind **noch nicht ausprobiert**. Bauen nach dem Publish:

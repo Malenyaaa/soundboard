@@ -10,7 +10,7 @@ public enum ImageKind
     Webp,
 }
 
-/// <summary>A picture could not be taken over; <see cref="Exception.Message"/> is a German sentence with the reason.</summary>
+/// <summary>A picture could not be taken over; <see cref="Exception.Message"/> is a sentence in the language of the interface with the reason.</summary>
 public sealed class ImageImportException(string message) : Exception(message);
 
 /// <summary>
@@ -22,10 +22,10 @@ public static class ImageFiles
     public static IReadOnlyList<string> Extensions { get; } = [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"];
 
     /// <summary>The formats in words, for messages.</summary>
-    public const string FormatsText = "PNG, JPG, GIF, BMP oder WebP";
+    public static string FormatsText => Text.L.Get("Image.Formats");
 
     /// <summary>Filter for the Windows file dialog.</summary>
-    public const string DialogFilter = "Bilder (PNG, JPG, GIF, BMP, WebP)|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp|Alle Dateien|*.*";
+    public static string DialogFilter => Text.L.Get("Image.DialogFilter");
 
     /// <summary>Decoded pictures cover at most this box (twice the largest pad), so big photos stay small in memory.</summary>
     public const int DecodeBoxWidth = 720;
@@ -88,10 +88,10 @@ public static class ImageFiles
     {
         var name = Path.GetFileName(path);
         if (!File.Exists(path))
-            throw new ImageImportException($"Die Bilddatei „{name}“ gibt es nicht (mehr). Wurde sie verschoben oder gelöscht?");
+            throw new ImageImportException(Text.L.F("Image.Missing", name));
         if (!HasImageExtension(path))
-            throw new ImageImportException($"„{name}“ ist kein Bild, das ein Pad zeigen kann. Möglich sind {FormatsText}.");
+            throw new ImageImportException(Text.L.F("Image.NotPicture", name, FormatsText));
         return Sniff(path)
-            ?? throw new ImageImportException($"„{name}“ lässt sich nicht als Bild lesen – die Datei ist beschädigt oder hat eine falsche Endung. Möglich sind {FormatsText}.");
+            ?? throw new ImageImportException(Text.L.F("Image.Unreadable", name, FormatsText));
     }
 }

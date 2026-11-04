@@ -47,8 +47,7 @@ public interface IAudioSystem : IDisposable
 public sealed class WasapiAudioSystem : IAudioSystem
 {
     /// <summary>Shown when Windows denies the microphone (privacy settings).</summary>
-    public const string MicrophoneAccessHint =
-        "Windows verweigert den Zugriff aufs Mikrofon. Erlaube ihn unter Windows-Einstellungen → Datenschutz und Sicherheit → Mikrofon → „Desktop-Apps den Zugriff auf das Mikrofon erlauben“.";
+    public static string MicrophoneAccessHint => Text.L.Get("Mic.AccessDenied");
 
     private readonly DeviceCatalog _catalog = new();
 
@@ -77,7 +76,7 @@ public sealed class WasapiAudioSystem : IAudioSystem
         catch (System.Runtime.InteropServices.COMException ex)
         {
             dev.Dispose();
-            throw new SinkException($"Das Gerät antwortet nicht ({ex.Message}).", ex);
+            throw new SinkException(Text.L.F("Device.NoAnswer", ex.Message), ex);
         }
     }
 
@@ -97,7 +96,7 @@ public sealed class WasapiAudioSystem : IAudioSystem
         catch (System.Runtime.InteropServices.COMException ex)
         {
             dev.Dispose();
-            throw new SinkException($"Das Mikrofon antwortet nicht ({ex.Message}).", ex);
+            throw new SinkException(Text.L.F("Mic.NoAnswer", ex.Message), ex);
         }
     }
 

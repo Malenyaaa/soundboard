@@ -4,6 +4,7 @@ using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
 using H.NotifyIcon;
 using Soundboard.App.ViewModels;
+using Soundboard.Core.Text;
 
 namespace Soundboard.App.Tray;
 
@@ -17,6 +18,7 @@ public sealed class TrayIcon : IDisposable
     private readonly MainViewModel _vm;
     private readonly MenuItem _pauseItem;
     private readonly GeneratedIconSource _iconSource;
+    private readonly List<(MenuItem Item, string Key)> _texts = [];
 
     public TrayIcon(App app, MainViewModel vm)
     {
@@ -25,16 +27,16 @@ public sealed class TrayIcon : IDisposable
         background.Freeze();
 
         var menu = new ContextMenu();
-        menu.Items.Add(Item("Fenster öffnen", app.ShowMain));
-        menu.Items.Add(Item("Alles stoppen", () => vm.StopAllCommand.Execute(null)));
-        _pauseItem = Item("Tasten pausieren", () => vm.HotkeysPaused = !vm.HotkeysPaused);
+        menu.Items.Add(Item("Tray.Open", app.ShowMain));
+        menu.Items.Add(Item("Tray.Stop", () => vm.StopAllCommand.Execute(null)));
+        _pauseItem = Item("Keys.Pause", () => vm.HotkeysPaused = !vm.HotkeysPaused);
         _pauseItem.IsCheckable = true;
         menu.Items.Add(_pauseItem);
         menu.Items.Add(new Separator());
-        menu.Items.Add(Item("Einrichtung", () => { app.ShowMain(); vm.OpenSetupCommand.Execute(null); }));
-        menu.Items.Add(Item("Alles entfernen …", app.RequestUninstall));
+        menu.Items.Add(Item("Tab.Setup", () => { app.ShowMain(); vm.OpenSetupCommand.Execute(null); }));
+        menu.Items.Add(Item("Tray.Uninstall", app.RequestUninstall));
         menu.Items.Add(new Separator());
-        menu.Items.Add(Item("Beenden …", app.RequestExit));
+        menu.Items.Add(Item("Tray.Quit", app.RequestExit));
 
         _icon = new TaskbarIcon
         {
@@ -56,11 +58,13 @@ public sealed class TrayIcon : IDisposable
 
         vm.PropertyChanged += OnVmChanged;
         Themes.ThemeManager.Changed += OnThemeChanged;
+        L.Changed += OnLanguageChanged;
     }
 
-    private static MenuItem Item(string header, Action action)
+    private MenuItem Item(string key, Action action)
     {
-        var item = new MenuItem { Header = header };
+        var item = new MenuItem { Header = L.Get(key) };
+        _texts.Add((item, key));
         item.Click += (_, _) => action();
         return item;
     }
@@ -85,8 +89,15 @@ public sealed class TrayIcon : IDisposable
         _iconSource.Background = b;
     }
 
+    /// <summary>The menu follows the interface language.</summary>
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        foreach (var (item, key) in _texts) item.Header = L.Get(key);
+    }
+
     public void Dispose()
     {
+        L.Changed -= OnLanguageChanged;
         Themes.ThemeManager.Changed -= OnThemeChanged;
         _vm.PropertyChanged -= OnVmChanged;
         _icon.Dispose();

@@ -14,7 +14,7 @@
 ; - VB-CABLE is not bundled; the app links to vb-cable.com.
 
 #define AppName "Soundboard"
-#define AppVersion "0.10.1"
+#define AppVersion "0.11.0"
 #define AppExe "Soundboard.exe"
 
 [Setup]
@@ -40,12 +40,25 @@ AppMutex=Soundboard.SingleInstance
 CloseApplications=no
 UninstallDisplayIcon={app}\{#AppExe}
 UninstallDisplayName={#AppName}
+; Language: English, or German when Windows runs in German; no dialog asking for it.
+ShowLanguageDialog=auto
 
 [Languages]
+; English first (default); German when Windows runs in German. The app itself starts in
+; English and can be switched in its settings.
+Name: "en"; MessagesFile: "compiler:Default.isl"
 Name: "de"; MessagesFile: "compiler:Languages\German.isl"
 
+[CustomMessages]
+en.Autostart=Start with Windows (no window, only the icon in the notification area)
+de.Autostart=Mit Windows starten (ohne Fenster, nur Symbol im Infobereich)
+en.RemoveGuide=Remove {#AppName} (guide)
+de.RemoveGuide={#AppName} entfernen (Anleitung)
+en.StartNow=Start Soundboard now
+de.StartNow=Soundboard jetzt starten
+
 [Tasks]
-Name: "autostart"; Description: "Mit Windows starten (ohne Fenster, nur Symbol im Infobereich)"; Flags: unchecked
+Name: "autostart"; Description: "{cm:Autostart}"; Flags: unchecked
 
 [Files]
 Source: "..\publish\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -54,14 +67,14 @@ Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"
-Name: "{group}\{#AppName} entfernen (Anleitung)"; Filename: "{app}\{#AppExe}"; Parameters: "--uninstall"
+Name: "{group}\{cm:RemoveGuide}"; Filename: "{app}\{#AppExe}"; Parameters: "--uninstall"
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Soundboard"; \
     ValueData: """{app}\{#AppExe}"" --tray"; Flags: uninsdeletevalue; Tasks: autostart
 
 [Run]
-Filename: "{app}\{#AppExe}"; Description: "Soundboard jetzt starten"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExe}"; Description: "{cm:StartNow}"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
 ; Interactive uninstall: the guided removal (audio state, own data with question, cable steps).

@@ -12,6 +12,7 @@ using Soundboard.Core.Config;
 using Soundboard.Core.Hotkeys;
 using Soundboard.Core.SystemState;
 using Soundboard.App.Themes;
+using Soundboard.Core.Text;
 
 namespace Soundboard.App.ViewModels;
 
@@ -54,7 +55,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var loaded = ProfileStore.Load(_paths.ProfileFile);
         _profile = loaded.Profile;
-        if (loaded.Problem is not null) ShowNotice("profile", loaded.Problem);
+        // The interface speaks the language of the profile from the first text on.
+        L.SetLanguage(_profile.Language);
+        L.Changed += OnLanguageChanged;
+        if (loaded.Problem is not null)
+        {
+            var problem = loaded.Problem;
+            ShowNotice("profile", () => problem);
+        }
         _imagesTidyAllowed = loaded.Problem is null;
         RemoveReleasedImages();
 
@@ -139,6 +147,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool _monitorEnabled;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MasterVolumeText))]
     private double _masterVolumePercent;
 
     [ObservableProperty]
@@ -157,9 +166,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// Shows a yellow notice; a notice with the same key is replaced. Only one notice is visible
-    /// at a time (the newest); the others wait behind "Nächster Hinweis".
+    /// at a time (the newest); the others wait behind "Next". The texts are produced on demand,
+    /// so a notice follows a change of the interface language.
     /// </summary>
-    public void ShowNotice(string key, string text, string? actionText = null, Action? action = null)
+    public void ShowNotice(string key, Func<string> text, Func<string>? actionText = null, Action? action = null)
     {
         var existing = Notices.FirstOrDefault(n => n.Key == key);
         var notice = new NoticeViewModel(key, text, n => Notices.Remove(n), actionText, action);
@@ -173,7 +183,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private NoticeViewModel? _currentNotice;
 
-    /// <summary>"1 von 3" when more notices wait; empty otherwise.</summary>
+    /// <summary>"1 of 3" when more notices wait; empty otherwise.</summary>
     [ObservableProperty]
     private string _noticeCountText = "";
 
@@ -181,7 +191,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (CurrentNotice is null || !Notices.Contains(CurrentNotice)) CurrentNotice = Notices.LastOrDefault();
         NoticeCountText = Notices.Count > 1 && CurrentNotice is not null
-            ? $"{Notices.IndexOf(CurrentNotice) + 1} von {Notices.Count}"
+            ? L.F("Notice.Count", Notices.IndexOf(CurrentNotice) + 1, Notices.Count)
             : "";
     }
 
@@ -231,8 +241,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Devices.Add(DeviceRowViewModel.From(d));
         int render = _state.Devices.Count(d => d.Flow == DeviceFlow.Render && d.Status == DeviceStatus.Active);
         int capture = _state.Devices.Count(d => d.Flow == DeviceFlow.Capture && d.Status == DeviceStatus.Active);
-        DevicesHeader = $"Aktiv: {render} Wiedergabe, {capture} Aufnahme. Nur angezeigt – hier wird nichts verändert.";
+        DevicesHeader = L.F("Devices.Header", render, capture);
         NotPresentCount = _state.Devices.Count(d => d.Status == DeviceStatus.NotPresent);
+        NotPresentText = L.F("Devices.ShowNotPresent", NotPresentCount);
 
         var defaultRender = _state.GetDefault(DeviceFlow.Render, DeviceRoleKind.Multimedia);
         _syncingSelection = true;
@@ -246,7 +257,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (id is not null && OutputChoices.All(c => c.Id != id))
             {
                 var known = _state.FindById(id);
-                OutputChoices.Add(new OutputChoice(id, known?.Name ?? _profile.MonitorDeviceName ?? "Gewähltes Gerät", false, false));
+                OutputChoices.Add(new OutputChoice(id, known?.Name ?? _profile.MonitorDeviceName ?? L.Get("Main.ChosenDevice"), false, false));
             }
             SelectedOutput = OutputChoices.FirstOrDefault(c => c.Id == id);
         }
@@ -332,7 +343,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var id = _profile.MonitorDeviceId;
         if (id is null)
         {
-            ShowNotice("monitor", "Es ist kein Gerät zum Mithören gewählt, und Windows meldet kein Standard-Wiedergabegerät. Schließe Kopfhörer oder Lautsprecher an und wähle sie oben bei „Mithören“.");
+            ShowNotice("monitor", T("Notice.MonitorNone"));
             UpdateMonitorStatus();
             return;
         }
@@ -343,8 +354,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             sink = _audio.OpenOutput(id, 30);
             if (sink is null)
             {
-                var name = _profile.MonitorDeviceName ?? "Das gewählte Gerät";
-                ShowNotice("monitor", $"Das Mithörgerät „{name}“ ist nicht angeschlossen oder in Windows deaktiviert. Schließe es an – das Mithören startet dann von selbst – oder wähle oben bei „Mithören“ ein anderes Gerät.");
+                var name = _profile.MonitorDeviceName;
+                ShowNotice("monitor", () => L.F("Notice.MonitorMissing", name ?? L.Get("Main.TheChosenDevice")));
                 UpdateMonitorStatus();
                 return;
             }
@@ -360,13 +371,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             sink?.Dispose();
             _player.SetMonitorActive(false);
-            ShowNotice("monitor", ex.Message + " Wähle oben bei „Mithören“ ein anderes Gerät oder schließe das andere Programm.", "Erneut versuchen", EnsureMonitor);
+            ShowNotice("monitor", TF("Notice.MonitorSinkError", ex.Message), T("Action.Retry"), EnsureMonitor);
         }
         catch (COMException ex)
         {
             sink?.Dispose();
             _player.SetMonitorActive(false);
-            ShowNotice("monitor", $"Das Mithörgerät antwortet nicht ({ex.Message}). Wähle oben bei „Mithören“ ein anderes Gerät oder versuche es erneut.", "Erneut versuchen", EnsureMonitor);
+            ShowNotice("monitor", TF("Notice.MonitorNoAnswer", ex.Message), T("Action.Retry"), EnsureMonitor);
         }
         UpdateMonitorStatus();
     }
@@ -388,16 +399,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!ReferenceEquals(sender, _sink)) return;
         StopSink();
-        var name = _profile.MonitorDeviceName ?? "das Mithörgerät";
+        var name = _profile.MonitorDeviceName;
         var why = error is null ? "" : $" ({error.Message})";
-        ShowNotice("monitor", $"Die Wiedergabe auf „{name}“ wurde unterbrochen{why}. Wurde das Gerät abgezogen? Sobald es wieder da ist, startet das Mithören von selbst.", "Erneut versuchen", EnsureMonitor);
+        ShowNotice("monitor", () => L.F("Notice.MonitorStopped", name ?? L.Get("Main.TheMonitorDevice"), why), T("Action.Retry"), EnsureMonitor);
         UpdateMonitorStatus();
     }
 
     /// <summary>The monitor device has another mix format: decode all sounds again for it.</summary>
     private void SwitchFormat(TargetFormat format)
     {
-        StopMix("Die Sounds werden gerade neu geladen, weil das Mithörgerät ein anderes Format hat.");
+        StopMix(L.Get("Main.ReloadingSounds"));
         _player = CreatePlayer(format);
         _bank.Reset(format);
         foreach (var tile in Tiles)
@@ -410,10 +421,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void UpdateMonitorStatus()
     {
-        var name = SelectedOutput?.Name ?? _profile.MonitorDeviceName ?? "kein Gerät";
-        StatusMonitor = !MonitorEnabled ? "Mithören: aus"
-            : _sink is null ? $"Mithören: gestört ({name})"
-            : $"Mithören: an – {name} ({_player.Format.SampleRate:N0} Hz, {_player.Format.Channels} Kanäle)";
+        var name = SelectedOutput?.Name ?? _profile.MonitorDeviceName ?? L.Get("Main.NoDevice");
+        StatusMonitor = !MonitorEnabled ? L.Get("Status.MonitorOff")
+            : _sink is null ? L.F("Status.MonitorBroken", name)
+            : L.F("Status.MonitorOn", name, _player.Format.SampleRate, _player.Format.Channels);
     }
 
     // ---------------------------------------------------------------- tiles
@@ -445,15 +456,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (version != tile.LoadVersion) return;
             tile.Clip = null;
-            tile.ErrorText = $"Die Datei ließ sich nicht laden ({ex.Message}).";
+            tile.ErrorText = L.F("Pad.LoadFailed", ex.Message);
             tile.State = TileState.Error;
             SetLoadIssue(tile);
         }
         tile.RefreshStatus();
     }
 
-    private void SetLoadIssue(TileViewModel tile) =>
-        tile.SetIssue($"Lässt sich nicht abspielen: {tile.ErrorText} Entferne das Pad und zieh die Datei neu herein.", "Pad entfernen", () => RemoveTile(tile));
+    private void SetLoadIssue(TileViewModel tile)
+    {
+        var error = tile.ErrorText;
+        tile.SetIssue(() => L.F("Pad.LoadIssue", error), T("Action.RemovePad"), () => RemoveTile(tile));
+    }
 
     public void OnTileClicked(TileViewModel tile)
     {
@@ -461,7 +475,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         switch (tile.State)
         {
             case TileState.Loading:
-                ShowNotice("play", $"„{tile.Name}“ wird gerade noch geladen. Gleich noch einmal klicken.");
+                ShowNotice("play", TF("Notice.StillLoading", tile.Name));
                 return;
             case TileState.Error:
                 tile.IsIssueOpen = true;
@@ -478,10 +492,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (!_player.AnyActive)
         {
-            ShowNotice("play", MonitorEnabled
-                ? "Der Sound geht gerade nirgendwohin: Das Mithörgerät funktioniert nicht, und es wird nichts ans Kabel gesendet. Wähle oben bei „Mithören“ ein angeschlossenes Gerät."
-                : "Der Sound geht gerade nirgendwohin: Mithören ist aus, und es wird nichts ans Kabel gesendet. Schalte oben „Mithören“ ein.",
-                MonitorEnabled ? null : "Mithören einschalten", MonitorEnabled ? null : () => MonitorEnabled = true);
+            ShowNotice("play", T(MonitorEnabled ? "Notice.NowhereMonitorBroken" : "Notice.NowhereMonitorOff"),
+                MonitorEnabled ? null : T("Action.MonitorOn"), MonitorEnabled ? null : () => MonitorEnabled = true);
             return;
         }
         ClearNotice("play");
@@ -598,13 +610,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (added > 0) ScheduleSave();
         if (rejected.Count > 0)
-            ShowNotice("rejected", $"Nicht übernommen: {string.Join(", ", rejected)}. Möglich sind MP3, WAV, OGG und FLAC.");
+            ShowNotice("rejected", TF("Notice.Rejected", string.Join(", ", rejected)));
         else
             ClearNotice("rejected");
         if (failed.Count > 0)
-            ShowNotice("copy", $"Konnte nicht in den Sound-Ordner kopiert werden: {string.Join(", ", failed)}");
+            ShowNotice("copy", TF("Notice.CopyFailed", string.Join(", ", failed)));
         if (pictureChosen)
-            ShowNotice("image-many", "Bilder werden keine Pads, sondern der Hintergrund eines Pads: Rechtsklick auf das Pad → „Bild wählen …“ oder das Bild direkt auf das Pad ziehen.");
+            ShowNotice("image-many", T("Notice.PictureNotSound"));
     }
 
     [RelayCommand]
@@ -612,9 +624,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var dlg = new OpenFileDialog
         {
-            Title = "Sounds hinzufügen",
+            Title = L.Get("Dialog.AddSounds"),
             Multiselect = true,
-            Filter = "Sounds (MP3, WAV, OGG, FLAC)|*.mp3;*.wav;*.ogg;*.flac|Alle Dateien|*.*",
+            Filter = L.Get("Dialog.SoundFilter"),
         };
         if (dlg.ShowDialog() == true) AddFiles(dlg.FileNames);
     }
@@ -628,13 +640,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         int configIndex = _profile.Tiles.IndexOf(tile.Config);
         _profile.Tiles.Remove(tile.Config);
         _bank.Remove(tile.Config.Id);
-        _paths.ReleaseImage(tile.Config.Image); // deleted later unless "Rückgängig" brings the pad back
+        _paths.ReleaseImage(tile.Config.Image); // deleted later unless "Undo" brings the pad back
         _hotkeys.Remove(tile.Config.Id.ToString());
         ClearNotice("hotkey-" + tile.Config.Id);
         RefreshHotkeyViews();
         ScheduleSave();
 
-        ShowNotice("removed", $"Pad „{tile.Name}“ entfernt. Die Datei bleibt im Sound-Ordner.", "Rückgängig", () =>
+        ShowNotice("removed", TF("Notice.PadRemoved", tile.Name), T("Action.Undo"), () =>
         {
             _profile.Tiles.Insert(Math.Clamp(configIndex, 0, _profile.Tiles.Count), tile.Config);
             var restored = new TileViewModel(this, tile.Config);
@@ -663,7 +675,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // ---------------------------------------------------------------- audio state: saved vs. now
 
-    private static readonly System.Globalization.CultureInfo De = System.Globalization.CultureInfo.GetCultureInfo("de-DE");
 
     private AudioSnapshot? _snapshot;
     private bool _stateReady;
@@ -671,7 +682,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ObservableCollection<ComparisonRow> ComparisonRows { get; } = [];
 
     [ObservableProperty]
-    private string _snapshotHeader = "Audio-Zustand";
+    private string _snapshotHeader = "";
 
     [ObservableProperty]
     private string _snapshotInfo = "";
@@ -708,7 +719,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (SnapshotException ex)
         {
-            ShowNotice("snapshot-file", ex.Message + " Speichere den jetzigen Zustand neu, wenn er stimmt.", "Audio-Zustand jetzt sichern", SaveSnapshotNow);
+            ShowNotice("snapshot-file", TF("Notice.SnapshotFile", ex.Message), T("Action.SaveState"), SaveSnapshotNow);
         }
 
         if (_snapshot is null && !File.Exists(_paths.SnapshotFile))
@@ -722,12 +733,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (crashed)
         {
-            var tail = Comparison is { DefaultsChanged: true }
-                ? "Seitdem hat sich ein Windows-Standardgerät geändert."
-                : "Die Windows-Standardgeräte sind wie gesichert; es ist nichts zu tun.";
-            ShowNotice("crash", "Das Soundboard wurde beim letzten Mal nicht normal beendet. " + tail,
-                Comparison is { DefaultsChanged: true } ? "Standardgerät zurückstellen" : null,
-                Comparison is { DefaultsChanged: true } ? RestoreDefaults : null);
+            bool changed = Comparison is { DefaultsChanged: true };
+            ShowNotice("crash", T(changed ? "Notice.CrashChanged" : "Notice.CrashSame"),
+                changed ? T("Action.Restore") : null,
+                changed ? RestoreDefaults : null);
         }
     }
 
@@ -757,7 +766,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            ShowNotice("snapshot-file", $"Der Audio-Zustand ließ sich nicht sichern ({ex.Message}). Ist der Datenordner schreibgeschützt?", "Erneut versuchen", SaveSnapshotNow);
+            ShowNotice("snapshot-file", TF("Notice.SnapshotSaveFailed", ex.Message), T("Action.Retry"), SaveSnapshotNow);
             return false;
         }
     }
@@ -770,8 +779,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_snapshot is null)
         {
             Comparison = null;
-            SnapshotHeader = "Audio-Zustand: noch nicht gesichert";
-            SnapshotInfo = "Sichere den Zustand, solange alles so ist, wie du es willst. Danach siehst du hier jede Änderung.";
+            SnapshotHeader = L.Get("State.NotSaved");
+            SnapshotInfo = L.Get("State.NotSavedInfo");
             SnapshotAdvice = "";
             ClearNotice("snapshot");
             UpdateCableCompare();
@@ -781,31 +790,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var cmp = SnapshotService.Compare(_snapshot, _state);
         Comparison = cmp;
         foreach (var r in cmp.Rows) ComparisonRows.Add(r);
-        string when = _snapshot.TakenAt.ToString("dd.MM.yyyy, HH:mm", De);
+        string when = L.DateTime(_snapshot.TakenAt);
         SnapshotHeader = cmp.IsIdentical
-            ? $"Audio-Zustand: wie gesichert am {when}"
-            : cmp.DifferenceCount == 1
-                ? $"Audio-Zustand: 1 Abweichung seit der Sicherung am {when}"
-                : $"Audio-Zustand: {cmp.DifferenceCount} Abweichungen seit der Sicherung am {when}";
-        SnapshotInfo = cmp.UnchangedDevices == 1 ? "Ein weiteres Gerät ist unverändert." : $"{cmp.UnchangedDevices} weitere Geräte sind unverändert.";
+            ? L.F("State.Same", when)
+            : L.Count("State.Diff", cmp.DifferenceCount, when);
+        SnapshotInfo = L.Count("State.Unchanged", cmp.UnchangedDevices);
 
         if (cmp.DefaultsChanged)
         {
             var lines = string.Join("; ", cmp.DefaultChangeLines);
-            SnapshotAdvice = (cmp.CableBecameDefault
-                    ? "Das virtuelle Kabel ist jetzt ein Windows-Standardgerät – das hat das Soundboard nicht getan (meist war es das Treiber-Setup). "
-                    : "Ein Windows-Standardgerät hat sich seit der Sicherung geändert – das Soundboard hat das nicht getan. ")
-                + lines + ". „Standardgerät zurückstellen“ stellt es zurück. Wolltest du es selbst so, klicke „Audio-Zustand jetzt sichern“.";
+            SnapshotAdvice = L.F(cmp.CableBecameDefault ? "State.AdviceCable" : "State.Advice", lines);
             int n = cmp.DefaultChangeLines.Count();
             // Shown once per difference: a refresh (e.g. opening the settings) does not bring a closed notice back.
             if (lines != _snapshotNoticeShownFor)
             {
                 _snapshotNoticeShownFor = lines;
-                ShowNotice("snapshot", cmp.CableBecameDefault
-                    ? "Das virtuelle Kabel ist jetzt ein Windows-Standardgerät – nicht durch das Soundboard."
-                    : n == 1 ? "Ein Windows-Standardgerät weicht von der Sicherung ab – nicht durch das Soundboard."
-                    : $"{n} Windows-Standardgeräte weichen von der Sicherung ab – nicht durch das Soundboard.",
-                "Ansehen", () => OpenSettings(SettingsTabs.AudioState));
+                bool cable = cmp.CableBecameDefault;
+                ShowNotice("snapshot", () => cable ? L.Get("Notice.CableDefault") : L.Count("Notice.DefaultChanged", n),
+                    T("Action.View"), () => OpenSettings(SettingsTabs.AudioState));
             }
         }
         else
@@ -823,7 +825,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (_snapshot is null)
         {
-            ShowNotice("restore", "Es gibt noch keine Sicherung, auf die sich zurückstellen ließe. Sichere zuerst den Audio-Zustand.", "Audio-Zustand jetzt sichern", SaveSnapshotNow);
+            ShowNotice("restore", T("Notice.RestoreNoSnapshot"), T("Action.SaveState"), SaveSnapshotNow);
             return;
         }
 
@@ -831,22 +833,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var cmp = SnapshotService.Compare(_snapshot, before);
         if (!cmp.DefaultsChanged)
         {
-            RestoreResultText = "Die Standardgeräte sind schon wie gesichert – es war nichts zu tun.";
+            RestoreResultText = L.Get("Restore.NothingToDo");
             RefreshDevices();
             return;
         }
 
         var result = SnapshotService.Restore(_snapshot, before, _services.Policy);
         RefreshDevices();
-        RestoreResultText = result.RestoredCount switch
-        {
-            0 => "Es wurde nichts zurückgestellt.",
-            1 => "1 Standardgerät zurückgestellt. Prüfe es zur Sicherheit in den Windows-Soundeinstellungen.",
-            _ => $"{result.RestoredCount} Standardgeräte zurückgestellt. Prüfe sie zur Sicherheit in den Windows-Soundeinstellungen.",
-        };
+        RestoreResultText = result.RestoredCount == 0 ? L.Get("Restore.None") : L.Count("Restore.Done", result.RestoredCount);
         if (result.AllGood) ClearNotice("restore");
         else
-            ShowNotice("restore", "Nicht alles ließ sich automatisch zurückstellen. So geht es von Hand: " + result.ManualSteps().Replace(Environment.NewLine, "; ").Replace("\n", "; "));
+            ShowNotice("restore", () => L.F("Notice.RestorePartly", result.ManualSteps().Replace(Environment.NewLine, "; ").Replace("\n", "; ")));
     }
 
     /// <summary>Saves the current Windows audio state as the new reference.</summary>
@@ -856,7 +853,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshDevices();
         if (TrySaveSnapshot(_state))
         {
-            RestoreResultText = $"Gesichert am {DateTime.Now.ToString("dd.MM.yyyy, HH:mm", De)}. Die vorige Sicherung liegt als „audio-snapshot.vorher.json“ im Datenordner.";
+            RestoreResultText = L.F("State.SavedNow", L.DateTime(DateTime.Now));
             CompareNow();
         }
     }
@@ -865,7 +862,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void CompareAgain()
     {
         RefreshDevices();
-        RestoreResultText = Comparison is null ? "" : Comparison.IsIdentical ? "Verglichen: alles wie gesichert." : "Verglichen: die Abweichungen stehen in der Liste.";
+        RestoreResultText = Comparison is null ? "" : L.Get(Comparison.IsIdentical ? "State.ComparedSame" : "State.ComparedDiff");
     }
 
     // ---------------------------------------------------------------- microphone and mix
@@ -888,7 +885,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ObservableCollection<OutputChoice> MicChoices { get; } = [];
 
     public IReadOnlyList<BufferChoice> BufferChoices { get; } =
-        [.. Enum.GetValues<BufferSize>().Select(b => new BufferChoice(b, BufferSizes.Display(b)))];
+        [.. Enum.GetValues<BufferSize>().Select(b => new BufferChoice(b))];
 
     [ObservableProperty]
     private OutputChoice? _selectedMic;
@@ -900,6 +897,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool _blockVoice;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MicVolumeText))]
     private double _micVolumePercent;
 
     /// <summary>Level of what the mix sends right now, 0..1.</summary>
@@ -946,7 +944,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 MicChoices.Add(new OutputChoice(d.Id, d.Name, true, d.Id == defaultMic?.Id));
             var id = _profile.MicDeviceId;
             if (id is not null && MicChoices.All(c => c.Id != id))
-                MicChoices.Add(new OutputChoice(id, _state.FindById(id)?.Name ?? _profile.MicDeviceName ?? "Gewähltes Mikrofon", false, false));
+                MicChoices.Add(new OutputChoice(id, _state.FindById(id)?.Name ?? _profile.MicDeviceName ?? L.Get("Main.ChosenMic"), false, false));
             SelectedMic = MicChoices.FirstOrDefault(c => c.Id == id);
         }
         finally
@@ -995,7 +993,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var id = _profile.MicDeviceId;
         if (id is null)
         {
-            ShowNotice(noticeKey, "Es ist kein Mikrofon gewählt, und Windows meldet keins. Schließe ein Mikrofon an und wähle es in den Einstellungen unter „Mikrofon & Kabel“.", "Mikrofon wählen", () => OpenSettings(SettingsTabs.MicAndCable));
+            ShowNotice(noticeKey, T("Notice.MicNone"), T("Action.ChooseMic"), () => OpenSettings(SettingsTabs.MicAndCable));
             return null;
         }
         try
@@ -1003,14 +1001,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var mic = _audio.OpenCapture(id, BufferSizes.Milliseconds(_profile.Buffer));
             if (mic is null)
             {
-                var name = _profile.MicDeviceName ?? "Das gewählte Mikrofon";
-                ShowNotice(noticeKey, $"Das Mikrofon „{name}“ ist nicht angeschlossen oder in Windows deaktiviert. Schließe es an oder wähle in den Einstellungen unter „Mikrofon & Kabel“ ein anderes.", "Mikrofon wählen", () => OpenSettings(SettingsTabs.MicAndCable));
+                var name = _profile.MicDeviceName;
+                ShowNotice(noticeKey, () => L.F("Notice.MicMissing", name ?? L.Get("Main.TheChosenMic")), T("Action.ChooseMic"), () => OpenSettings(SettingsTabs.MicAndCable));
             }
             return mic;
         }
         catch (SinkException ex)
         {
-            ShowNotice(noticeKey, ex.Message + " Wähle in den Einstellungen unter „Mikrofon & Kabel“ ein anderes oder versuche es erneut.", "Mikrofon wählen", () => OpenSettings(SettingsTabs.MicAndCable));
+            ShowNotice(noticeKey, TF("Notice.MicError", ex.Message), T("Action.ChooseMic"), () => OpenSettings(SettingsTabs.MicAndCable));
             return null;
         }
     }
@@ -1042,7 +1040,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 mic?.Dispose();
             }
             _player.SetMixActive(false); // after the output has stopped
-            ShowNotice(noticeKey, ex is SinkException ? ex.Message : $"Die Ausgabe ließ sich nicht starten ({ex.Message}).", "Erneut versuchen", purpose == MixPurpose.FileTest ? RecordTest : RestartMix);
+            var message = ex.Message;
+            ShowNotice(noticeKey, ex is SinkException ? () => message : TF("Notice.OutputStartFailed", message), T("Action.Retry"), purpose == MixPurpose.FileTest ? RecordTest : RestartMix);
             return false;
         }
     }
@@ -1066,7 +1065,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (purpose == MixPurpose.FileTest && reason is not null)
         {
             TestStatus = "";
-            ShowNotice("test", reason + " Die Test-Aufnahme wurde abgebrochen; starte sie neu.", "Neu aufnehmen", RecordTest);
+            ShowNotice("test", TF("Notice.TestAborted", reason), T("Action.RecordAgain"), RecordTest);
         }
     }
 
@@ -1078,7 +1077,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var file = _lastTestFile;
             StopMix();
-            TestStatus = $"Fertig: {Path.GetFileName(file)} – zum Anhören im Ordner öffnen.";
+            TestStatus = L.F("Test.Done", Path.GetFileName(file));
             HasTestFile = true;
             ClearNotice("test");
             RestartMix();
@@ -1088,20 +1087,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var why = e.Error is null ? "" : $" ({e.Error.Message})";
         if (e.Microphone)
         {
-            var name = _profile.MicDeviceName ?? "Das Mikrofon";
-            var text = e.Error is UnauthorizedAccessException
+            var name = _profile.MicDeviceName;
+            bool denied = e.Error is UnauthorizedAccessException;
+            Func<string> text = () => denied
                 ? WasapiAudioSystem.MicrophoneAccessHint
-                : $"„{name}“ hat aufgehört zu liefern{why}. Wurde es abgezogen? Sobald es wieder da ist, kommt die Stimme von selbst zurück.";
-            StopMix(purpose == MixPurpose.FileTest ? text : null);
+                : L.F("Notice.MicStopped", name ?? L.Get("Main.TheMic"), why);
+            StopMix(purpose == MixPurpose.FileTest ? text() : null);
             // The cable goes on with the sounds; the microphone joins again when it is back.
             EnsureCable(withMic: false);
-            ShowNotice("mic", text, "Erneut versuchen", RestartMix);
+            ShowNotice("mic", text, T("Action.Retry"), RestartMix);
         }
         else
         {
-            StopMix($"Die Ausgabe wurde unterbrochen{why}.");
+            StopMix(L.F("Notice.OutputInterrupted", why));
             if (purpose == MixPurpose.Cable)
-                ShowNotice("cable", $"Die Übertragung ans Kabel wurde unterbrochen{why}. Sobald das Kabel wieder da ist, startet sie von selbst.", "Erneut versuchen", RestartMix);
+                ShowNotice("cable", TF("Notice.CableInterrupted", why), T("Action.Retry"), RestartMix);
             else
                 RestartMix(); // test recording failed: the cable takes the mix back
         }
@@ -1117,7 +1117,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_mixPurpose == MixPurpose.FileTest && _fileSink is not null)
         {
             int left = (int)Math.Ceiling(TestLength.TotalSeconds * (1 - _fileSink.Progress));
-            ShowNotice("test", $"Die Test-Aufnahme läuft schon – noch {left} s.");
+            ShowNotice("test", TF("Notice.TestRunning", left));
             return;
         }
 
@@ -1133,7 +1133,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             _fileSink = sink;
             HasTestFile = false;
-            TestStatus = "Aufnahme läuft – sprich und spiel Sounds ab. Noch 10 s.";
+            TestStatus = L.F("Test.Running", (int)TestLength.TotalSeconds);
         }
         else
         {
@@ -1169,14 +1169,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_mixPurpose == MixPurpose.FileTest && _fileSink is not null)
         {
             int left = (int)Math.Ceiling(TestLength.TotalSeconds * (1 - _fileSink.Progress));
-            TestStatus = $"Aufnahme läuft – sprich und spiel Sounds ab. Noch {left} s.";
+            TestStatus = L.F("Test.Running", left);
         }
 
         string text = mix is null || !mix.HasVoice
-            ? "Mikrofon: aus"
-            : mix.Underruns == 0 ? "Mikrofon: an"
-            : mix.Underruns == 1 ? "Mikrofon: 1 Aussetzer"
-            : $"Mikrofon: {mix.Underruns} Aussetzer";
+            ? L.Get("Status.MicOff")
+            : mix.Underruns == 0 ? L.Get("Status.MicOn")
+            : L.Count("Status.MicDropouts", mix.Underruns);
         if (text != StatusMix) StatusMix = text;
     }
 
@@ -1222,10 +1221,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Cable = CableDetector.Detect(_state);
         CableFound = Cable.IsReady;
         CableStatusText = Cable.IsReady
-            ? $"Kabel gefunden: „{Cable.Input!.Name}“ (hier schickt das Soundboard hin) und „{Cable.Output!.Name}“ (das wählst du in Discord als Mikrofon)."
-            : Cable.IsKnown
-                ? "Das Kabel ist in Windows bekannt, aber deaktiviert oder nicht vorhanden. Aktiviere „CABLE Input“ und „CABLE Output“ in der Systemsteuerung unter Sound, oder installiere VB-CABLE neu und starte Windows neu."
-                : "Es ist kein virtuelles Kabel installiert.";
+            ? L.F("Cable.Found", Cable.Input!.Name, Cable.Output!.Name)
+            : L.Get(Cable.IsKnown ? "Cable.Disabled" : "Cable.None");
         UpdateCableCompare();
     }
 
@@ -1234,22 +1231,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var cmp = Comparison;
         if (cmp is null)
         {
-            CableCompareText = "Noch keine Sicherung – klicke „Audio-Zustand jetzt sichern“, bevor du VB-CABLE installierst.";
+            CableCompareText = L.Get("Cable.NoSnapshot");
             CableCompareProblem = true;
             return;
         }
-        string when = cmp.Snapshot.TakenAt.ToString("dd.MM.yyyy, HH:mm", De);
+        string when = L.DateTime(cmp.Snapshot.TakenAt);
         bool cableNew = cmp.Rows.Any(r => r.Kind == ComparisonKind.Added && CableDetector.IsCableName(r.What));
         if (cmp.DefaultsChanged)
         {
-            CableCompareText = $"Seit der Sicherung vom {when} hat sich ein Windows-Standardgerät geändert: {string.Join("; ", cmp.DefaultChangeLines)}. „Standardgerät zurückstellen“ stellt es zurück.";
+            CableCompareText = L.F("Cable.DefaultsChanged", when, string.Join("; ", cmp.DefaultChangeLines));
             CableCompareProblem = true;
         }
         else
         {
-            CableCompareText = cableNew
-                ? $"Verglichen mit der Sicherung vom {when}: Neu ist nur das Kabel – so soll es sein. Die Standardgeräte sind unverändert."
-                : $"Verglichen mit der Sicherung vom {when}: Die Windows-Standardgeräte sind unverändert.";
+            CableCompareText = L.F(cableNew ? "Cable.OnlyCableNew" : "Cable.Unchanged", when);
             CableCompareProblem = false;
         }
     }
@@ -1273,10 +1268,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         if (!Cable.IsReady)
         {
-            ShowNotice("cable", Cable.IsKnown
-                    ? "Das virtuelle Kabel ist deaktiviert oder nicht vorhanden – Discord bekommt nichts. Die Einrichtung zeigt, was zu tun ist."
-                    : "Es ist kein virtuelles Kabel installiert – deshalb kommt in Discord noch nichts an. Die Einrichtung zeigt den Weg.",
-                "Einrichtung öffnen", OpenSetup);
+            // No banner: the status line says "No cable" with a warning sign, and a click on it
+            // opens the setup, which explains the way.
+            ClearNotice("cable");
             UpdateCableStatus();
             return;
         }
@@ -1288,13 +1282,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (SinkException ex)
         {
-            ShowNotice("cable", ex.Message + " Starte Windows neu, falls VB-CABLE gerade erst installiert wurde.", "Erneut versuchen", EnsureCable);
+            ShowNotice("cable", TF("Notice.CableOpenError", ex.Message), T("Action.Retry"), EnsureCable);
             UpdateCableStatus();
             return;
         }
         if (output is null)
         {
-            ShowNotice("cable", "„CABLE Input“ ließ sich nicht öffnen. Ist es in den Windows-Soundeinstellungen deaktiviert?", "Erneut versuchen", EnsureCable);
+            ShowNotice("cable", T("Notice.CableInputFailed"), T("Action.Retry"), EnsureCable);
             UpdateCableStatus();
             return;
         }
@@ -1312,11 +1306,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void UpdateCableStatus()
     {
-        StatusCable = !CableEnabled ? "Kabel: aus"
-            : !Cable.IsReady ? "Kabel fehlt"
-            : CableRunning ? "Kabel: sendet"
-            : _mixPurpose == MixPurpose.FileTest ? "Kabel: Pause für den Test"
-            : "Kabel: gestört";
+        StatusCable = L.Get(!CableEnabled ? "Status.CableOff"
+            : !Cable.IsReady ? "Status.CableMissing"
+            : CableRunning ? "Status.CableSending"
+            : _mixPurpose == MixPurpose.FileTest ? "Status.CablePaused"
+            : "Status.CableBroken");
+        StatusCableTip = L.Get(CableEnabled && !Cable.IsReady ? "Status.CableMissingTip" : "Status.CableTip");
+        StatusCableTab = CableEnabled && !Cable.IsReady ? SettingsTabs.Setup : SettingsTabs.MicAndCable;
         OnPropertyChanged(nameof(CableRunning));
         CableWarn = CableEnabled && !CableRunning && _mixPurpose != MixPurpose.FileTest;
         if (!CableRunning) WriteDirtyFlag(cableActive: false);
@@ -1328,12 +1324,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!CableRunning)
         {
-            ShowNotice("tone", !CableEnabled
-                ? "Der Testton geht ins Kabel, aber „Ans Kabel senden“ ist aus. Schalte es ein und klicke noch einmal."
-                : !Cable.IsReady
-                    ? "Der Testton geht ins Kabel, aber es ist keins da. Installiere zuerst VB-CABLE (Schritt 1 der Einrichtung)."
-                    : "Die Übertragung ans Kabel läuft gerade nicht – meist ist das Kabel gestört oder gerade erst installiert. „Erneut versuchen“ startet sie neu.",
-                !CableEnabled ? "Ans Kabel senden einschalten" : !Cable.IsReady ? "Einrichtung öffnen" : "Erneut versuchen",
+            ShowNotice("tone", T(!CableEnabled ? "Notice.ToneCableOff" : !Cable.IsReady ? "Notice.ToneNoCable" : "Notice.ToneNotRunning"),
+                T(!CableEnabled ? "Action.CableOn" : !Cable.IsReady ? "Action.OpenSetup" : "Action.Retry"),
                 !CableEnabled ? () => CableEnabled = true : !Cable.IsReady ? OpenSetup : RestartMix);
             return;
         }
@@ -1352,7 +1344,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // ---------------------------------------------------------------- settings panel
 
-    /// <summary>The settings cover the pads while open; the header with "Alles stoppen" stays.</summary>
+    /// <summary>The settings cover the pads while open; the header with "Stop" stays.</summary>
     [ObservableProperty]
     private bool _settingsOpen;
 
@@ -1452,8 +1444,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>Text for "the app is gone, what now in Discord" (exit dialog, watcher, uninstall).</summary>
     public static string DiscordWayBack(string? previousMic) =>
         string.IsNullOrWhiteSpace(previousMic)
-            ? "In Discord unter Einstellungen → Sprache & Video beim Eingabegerät wieder dein Mikrofon wählen (oder „Default“)."
-            : $"In Discord unter Einstellungen → Sprache & Video beim Eingabegerät wieder „{previousMic}“ wählen.";
+            ? L.Get("Discord.WayBackDefault")
+            : L.F("Discord.WayBack", previousMic);
 
     public string? PreviousDiscordMic => _profile.DiscordPreviousMic;
 
@@ -1475,21 +1467,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var sb = new System.Text.StringBuilder();
         if (CableRunning)
         {
-            sb.AppendLine("Discord hört danach Stille vom Kabel: Dein Mikrofon ist in Discord stumm, bis du das Soundboard wieder startest.");
+            sb.AppendLine(L.Get("Exit.Silence"));
             sb.AppendLine(DiscordWayBack(_profile.DiscordPreviousMic));
             sb.AppendLine();
         }
         var cmp = Comparison;
-        if (cmp is null) sb.AppendLine("Audio-Zustand: keine Sicherung vorhanden.");
-        else if (!cmp.DefaultsChanged) sb.AppendLine("Audio-Zustand: Die Windows-Standardgeräte sind wie gesichert.");
+        if (cmp is null) sb.AppendLine(L.Get("Exit.NoSnapshot"));
+        else if (!cmp.DefaultsChanged) sb.AppendLine(L.Get("Exit.Same"));
         else
         {
-            sb.AppendLine("Audio-Zustand: Ein Windows-Standardgerät weicht von der Sicherung ab:");
+            sb.AppendLine(L.Get("Exit.Changed"));
             foreach (var line in cmp.DefaultChangeLines) sb.AppendLine("  " + line);
-            sb.AppendLine("Das Soundboard hat das nicht verstellt. Zurückstellen: im Fenster unter Einstellungen → Audio-Zustand oder später Soundboard.exe --restore.");
+            sb.AppendLine(L.Get("Exit.NotUs"));
         }
         sb.AppendLine();
-        sb.Append("Soundboard jetzt beenden?");
+        sb.Append(L.Get("Exit.Question"));
         return sb.ToString();
     }
 
@@ -1515,8 +1507,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public TileViewModel? CapturingTile { get; private set; }
 
     public string StopAllToolTip => HotkeyGesture.Parse(_profile.StopAllHotkey) is { } g
-        ? $"Stoppt alle laufenden Sounds sofort. Taste: {g.Display} – wirkt überall, auch wenn ein Spiel im Vordergrund ist."
-        : "Stoppt alle laufenden Sounds sofort.";
+        ? L.F("Main.StopTipKey", g.Display)
+        : L.Get("Main.StopTip");
 
     partial void OnHotkeysPausedChanged(bool value)
     {
@@ -1543,7 +1535,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (tile is not null) OnTileClicked(tile);
     }
 
-    /// <summary>Next free numpad key (Num 1 … Num 9, Num 0, then Strg+Alt+Num …).</summary>
+    /// <summary>Next free numpad key (Num 1 … Num 9, Num 0, then Ctrl+Alt+Num …).</summary>
     public HotkeyGesture? SuggestHotkey(TileViewModel forTile) =>
         HotkeyGesture.NumpadSuggestions().Cast<HotkeyGesture?>()
             .FirstOrDefault(g => _hotkeys.FindOwner(g!.Value, forTile.Config.Id.ToString()) is null);
@@ -1554,8 +1546,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CapturingTile = tile;
         var suggestion = SuggestHotkey(tile);
         tile.CaptureHint = suggestion is null
-            ? $"Taste für „{tile.Name}“ drücken\nEsc: abbrechen\nEntf: Taste löschen"
-            : $"Taste für „{tile.Name}“ drücken\nEnter: {suggestion.Value.Display} nehmen\nEsc: abbrechen\nEntf: Taste löschen";
+            ? L.F("Key.CaptureHint", tile.Name)
+            : L.F("Key.CaptureHintSuggest", tile.Name, suggestion.Value.Display);
         // Registered keys never reach the window; release them while waiting for a key.
         _hotkeys.Paused = true;
         tile.IsCapturingKey = true;
@@ -1606,8 +1598,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (gesture is { } g && g == HotkeyGesture.Parse(_profile.StopAllHotkey))
         {
-            tile.SetKeyIssue($"{g.Display} ist schon „Alles stoppen“. Wähle für dieses Pad eine andere Taste.",
-                "Andere Taste wählen", () => BeginKeyCapture(tile));
+            tile.SetKeyIssue(() => L.F("Key.IsStopKey", g.Display), T("Action.OtherKey"), () => BeginKeyCapture(tile));
             tile.IsIssueOpen = true;
             return;
         }
@@ -1644,7 +1635,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 if (b.State is HotkeyState.TakenByOtherProgram or HotkeyState.Failed)
                 {
                     problems++;
-                    ShowNotice(key, $"Die Taste {b.Gesture?.Display} für „Alles stoppen“ ist von einem anderen Programm belegt. Der Knopf „Alles stoppen“ wirkt weiter, die Taste nicht.");
+                    var gesture = b.Gesture;
+                    ShowNotice(key, () => L.F("Notice.StopKeyTaken", gesture?.Display));
                 }
                 else ClearNotice(key);
                 continue;
@@ -1654,55 +1646,57 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (tile is null) continue;
             tile.HotkeyText = b.Gesture?.Display;
             tile.HotkeyProblem = b.State is HotkeyState.Duplicate or HotkeyState.TakenByOtherProgram or HotkeyState.Failed;
-            string? issue = null, action = null;
+            Func<string>? issue = null, action = null;
             Action? fix = null;
+            var g = b.Gesture;
             switch (b.State)
             {
                 case HotkeyState.Duplicate:
                     problems++;
                     var first = Tiles.FirstOrDefault(t => t.Config.Id.ToString() == b.DuplicateOf);
-                    var firstName = first?.Name ?? "ein anderes Pad";
-                    issue = $"{b.Gesture?.Display} gehört schon zu „{firstName}“. Dieses Pad reagiert deshalb nicht auf die Taste.";
-                    action = $"{b.Gesture?.Display} hierher holen";
+                    var firstName = first?.Name;
+                    issue = () => L.F("Key.Duplicate", g?.Display, firstName ?? L.Get("Key.AnotherPad"));
+                    action = () => L.F("Key.MoveHere", g?.Display);
                     var from = b.DuplicateOf!;
                     fix = () => MoveHotkeyTo(tile, from);
-                    tile.HotkeyStateText = $"doppelt – gehört schon zu „{firstName}“";
+                    tile.HotkeyStateText = L.F("Key.StateDuplicate", firstName ?? L.Get("Key.AnotherPad"));
                     break;
                 case HotkeyState.TakenByOtherProgram:
                     problems++;
-                    issue = $"{b.Gesture?.Display} ist von einem anderen Programm belegt. Wähle eine andere Taste oder beende das andere Programm.";
-                    action = "Andere Taste wählen";
+                    issue = () => L.F("Key.TakenByOther", g?.Display);
+                    action = T("Action.OtherKey");
                     fix = () => BeginKeyCapture(tile);
-                    tile.HotkeyStateText = "von einem anderen Programm belegt";
+                    tile.HotkeyStateText = L.Get("Key.StateTaken");
                     break;
                 case HotkeyState.Failed:
                     problems++;
-                    issue = $"Windows hat {b.Gesture?.Display} nicht angenommen. Wähle eine andere Taste.";
-                    action = "Andere Taste wählen";
+                    issue = () => L.F("Key.Refused", g?.Display);
+                    action = T("Action.OtherKey");
                     fix = () => BeginKeyCapture(tile);
-                    tile.HotkeyStateText = "von Windows abgelehnt";
+                    tile.HotkeyStateText = L.Get("Key.StateRefused");
                     break;
                 default:
-                    tile.HotkeyStateText = b.Gesture is null ? "keine Taste"
-                        : HotkeysPaused ? "pausiert"
-                        : "funktioniert";
+                    tile.HotkeyStateText = L.Get(b.Gesture is null ? "Key.StateNone"
+                        : HotkeysPaused ? "Key.StatePaused"
+                        : "Key.StateWorks");
                     break;
             }
             tile.SetKeyIssue(issue, action, fix);
         }
         foreach (var t in Tiles.Where(t => t.HotkeyText is null && !_hotkeys.Bindings.Any(b => b.Owner == t.Config.Id.ToString())))
-            t.HotkeyStateText = "keine Taste";
+            t.HotkeyStateText = L.Get("Key.StateNone");
 
-        StopAllKeyText = HotkeyGesture.Parse(_profile.StopAllHotkey)?.Display ?? "keine";
+        StopAllKeyText = HotkeyGesture.Parse(_profile.StopAllHotkey)?.Display ?? L.Get("Key.None");
+        StopKeyLine = L.F("Keys.StopLine", StopAllKeyText);
         HotkeyProblems = problems;
-        StatusHotkeys = HotkeysPaused ? "Tasten: pausiert"
-            : problems > 0 ? $"Tasten: {active} aktiv, {problems} gestört"
-            : active == 0 ? "Tasten: keine belegt"
-            : active == 1 ? "Tasten: 1 aktiv"
-            : $"Tasten: {active} aktiv";
+        StatusHotkeys = HotkeysPaused ? L.Get("Status.KeysPaused")
+            : problems > 0 ? L.F("Status.KeysProblems", active, problems)
+            : active == 0 ? L.Get("Status.KeysNone")
+            : L.Count("Status.Keys", active);
+        UpdateFullScreenToolTip();
     }
 
-    /// <summary>Key for "Alles stoppen", as shown in the settings.</summary>
+    /// <summary>Key for "Stop", as shown in the settings.</summary>
     [ObservableProperty]
     private string _stopAllKeyText = "";
 
@@ -1733,7 +1727,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            ShowNotice("save", $"Die Einstellungen ließen sich nicht speichern ({ex.Message}). Ist der Datenordner schreibgeschützt?", "Erneut versuchen", SaveNow);
+            ShowNotice("save", TF("Notice.SaveFailed", ex.Message), T("Action.Retry"), SaveNow);
             _lastSaveOk = false;
             return false;
         }
@@ -1743,6 +1737,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        L.Changed -= OnLanguageChanged;
         _progressTimer.Stop();
         _deviceTimer.Stop();
         // Pictures of removed pads (or replaced pictures) go once the profile without them is on disk.

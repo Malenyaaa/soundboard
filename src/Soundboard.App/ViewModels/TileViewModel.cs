@@ -6,6 +6,7 @@ using Soundboard.Core.Audio;
 using Soundboard.Core.Config;
 using Soundboard.Core.Design;
 using Soundboard.App.Themes;
+using Soundboard.Core.Text;
 
 namespace Soundboard.App.ViewModels;
 
@@ -111,7 +112,7 @@ public sealed partial class TileViewModel : ObservableObject
     [ObservableProperty]
     private string _captureHint = "";
 
-    /// <summary>State of the key in words, for the list in the settings ("funktioniert", "doppelt …").</summary>
+    /// <summary>State of the key in words, for the list in the settings ("works", "duplicate …").</summary>
     [ObservableProperty]
     private string _hotkeyStateText = "";
 
@@ -135,25 +136,25 @@ public sealed partial class TileViewModel : ObservableObject
 
     // The pad keeps two problems apart: the file (cannot play) goes first, then the key.
     // A missing or unreadable picture is no problem: the pad simply shows its colour.
-    private (string? Text, string? ActionText, Action? Action) _loadIssue;
-    private (string? Text, string? ActionText, Action? Action) _keyIssue;
+    // The texts are produced on demand, so they follow a change of the interface language.
+    private (Func<string>? Text, Func<string>? ActionText, Action? Action) _loadIssue;
+    private (Func<string>? Text, Func<string>? ActionText, Action? Action) _keyIssue;
 
     /// <summary>Way out for a key problem (settings list, context menu); null without one.</summary>
     [ObservableProperty]
     private string? _keyIssueActionText;
 
     /// <summary>Problem of the sound file (cannot be played). Null clears it.</summary>
-    public void SetIssue(string? text, string? actionText = null, Action? action = null)
+    public void SetIssue(Func<string>? text, Func<string>? actionText = null, Action? action = null)
     {
         _loadIssue = (text, actionText, action);
         ShowIssue();
     }
 
     /// <summary>Problem of the key (taken, refused). Null clears it.</summary>
-    public void SetKeyIssue(string? text, string? actionText = null, Action? action = null)
+    public void SetKeyIssue(Func<string>? text, Func<string>? actionText = null, Action? action = null)
     {
         _keyIssue = (text, actionText, action);
-        KeyIssueActionText = text is null ? null : actionText;
         ShowIssue();
     }
 
@@ -161,10 +162,22 @@ public sealed partial class TileViewModel : ObservableObject
     {
         var shown = _loadIssue.Text is not null ? _loadIssue : _keyIssue;
         _issueAction = shown.Action;
-        IssueActionText = shown.ActionText;
-        IssueText = shown.Text;
+        KeyIssueActionText = _keyIssue.Text is null ? null : _keyIssue.ActionText?.Invoke();
+        IssueActionText = shown.ActionText?.Invoke();
+        IssueText = shown.Text?.Invoke();
         OnPropertyChanged(nameof(HasIssueAction));
         if (shown.Text is null) IsIssueOpen = false;
+    }
+
+    /// <summary>The language changed: every text of the pad again.</summary>
+    public void RefreshTexts()
+    {
+        bool open = IsIssueOpen;
+        ShowIssue();
+        IsIssueOpen = open && IssueText is not null;
+        OnPropertyChanged(nameof(VolumeText));
+        OnPropertyChanged(nameof(HotkeyToolTip));
+        RefreshStatus();
     }
 
     [RelayCommand]
@@ -238,7 +251,7 @@ public sealed partial class TileViewModel : ObservableObject
     public bool HasImage => Image is not null;
 
     /// <summary>
-    /// A picture is set in the profile (shown or not): "Bild entfernen" in the menu. A missing or
+    /// A picture is set in the profile (shown or not): "Remove picture" in the menu. A missing or
     /// unreadable file keeps the entry, so the picture comes back with the file.
     /// </summary>
     public bool HasImageConfigured => Config.Image is not null;
@@ -252,18 +265,21 @@ public sealed partial class TileViewModel : ObservableObject
 
     public void RefreshImageConfigured() => OnPropertyChanged(nameof(HasImageConfigured));
 
-    /// <summary>Length as printed on the pad ("3,5 s", "1:05 min"); empty while loading or broken.</summary>
+    /// <summary>Length as printed on the pad ("3.5 s", "1:05 min"); empty while loading or broken.</summary>
     public string DurationText => State == TileState.Ready && Clip is not null ? FormatDuration(Clip.Duration) : "";
 
     /// <summary>Second line on the pad when it cannot play.</summary>
     public string StatusText => State switch
     {
-        TileState.Loading => "wird geladen …",
-        TileState.Error => "nicht abspielbar",
+        TileState.Loading => L.Get("Pad.Loading"),
+        TileState.Error => L.Get("Pad.CannotPlay"),
         _ => "",
     };
 
-    public string VolumeText => $"{VolumePercent:0} %";
+    public string VolumeText => L.Percent(VolumePercent / 100.0);
+
+    /// <summary>Tooltip of the printed key.</summary>
+    public string HotkeyToolTip => HotkeyProblem ? L.Get("Pad.KeyBrokenTip") : L.F("Pad.KeyTip", HotkeyText);
 
     /// <summary>Only printed on the pad when it is not 100 %.</summary>
     public bool ShowVolume => VolumePercent < 99.5;
@@ -273,10 +289,10 @@ public sealed partial class TileViewModel : ObservableObject
     public string ToolTipText => State == TileState.Error && ErrorText is not null
         ? ErrorText
         : HotkeyText is null
-            ? "Klick: abspielen, nochmal klicken: stoppen. Strg + Mausrad: Lautstärke. Rechtsklick: Taste belegen, Bild wählen, umbenennen, entfernen"
+            ? L.Get("Pad.Tip")
             : HotkeyProblem
-                ? $"Die Taste {HotkeyText} funktioniert gerade nicht – Klick auf die Taste oben links zeigt, warum. Klick aufs Pad: abspielen."
-                : $"Klick oder {HotkeyText}: abspielen, nochmal: stoppen. Strg + Mausrad: Lautstärke. Rechtsklick: Taste ändern, Bild wählen, umbenennen, entfernen";
+                ? L.F("Pad.TipKeyBroken", HotkeyText)
+                : L.F("Pad.TipKey", HotkeyText);
 
     public void RefreshStatus()
     {
@@ -294,15 +310,24 @@ public sealed partial class TileViewModel : ObservableObject
         if (trimmed.Length == 0 || trimmed == Config.Name) return;
         Config.Name = trimmed;
         _owner.ScheduleSave();
+        _owner.UpdateFullScreenToolTip();
     }
 
     partial void OnVolumePercentChanged(double value) => _owner.OnTileVolumeChanged(this);
 
     partial void OnStateChanged(TileState value) => OnPropertyChanged(nameof(ToolTipText));
 
-    partial void OnHotkeyTextChanged(string? value) => OnPropertyChanged(nameof(ToolTipText));
+    partial void OnHotkeyTextChanged(string? value)
+    {
+        OnPropertyChanged(nameof(ToolTipText));
+        OnPropertyChanged(nameof(HotkeyToolTip));
+    }
 
-    partial void OnHotkeyProblemChanged(bool value) => OnPropertyChanged(nameof(ToolTipText));
+    partial void OnHotkeyProblemChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ToolTipText));
+        OnPropertyChanged(nameof(HotkeyToolTip));
+    }
 
     [RelayCommand]
     private void Click()
@@ -341,6 +366,6 @@ public sealed partial class TileViewModel : ObservableObject
 
     public static string FormatDuration(TimeSpan d) =>
         d.TotalMinutes >= 1
-            ? $"{(int)d.TotalMinutes}:{d.Seconds:00} min"
-            : d.TotalSeconds.ToString("0.0", CultureInfo.GetCultureInfo("de-DE")) + " s";
+            ? L.F("Format.Minutes", (int)d.TotalMinutes, d.Seconds)
+            : L.F("Format.Seconds", d.TotalSeconds);
 }

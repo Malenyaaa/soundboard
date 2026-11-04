@@ -2,13 +2,13 @@ using System.IO;
 using Microsoft.Win32;
 using Soundboard.App.Images;
 using Soundboard.Core.Images;
+using Soundboard.Core.Text;
 
 namespace Soundboard.App.ViewModels;
 
 /// <summary>Pictures as pad backgrounds: choose, drop, load, remove, tidy up.</summary>
 public sealed partial class MainViewModel
 {
-    private const string WebpWayOut = "Speichere das Bild als PNG oder JPG, oder installiere die kostenlosen „WebP-Bilderweiterungen“ aus dem Microsoft Store.";
 
     public string ImagesDir => _paths.ImagesDir;
 
@@ -43,7 +43,7 @@ public sealed partial class MainViewModel
     }
 
     /// <summary>
-    /// "Bilder-Ordner öffnen" in the pad menu: the picture folder in Explorer (created if missing),
+    /// "Open picture folder" in the pad menu: the picture folder in Explorer (created if missing),
     /// with this pad's picture selected when it has one that is there.
     /// </summary>
     public void ShowTileImageInFolder(TileViewModel tile)
@@ -61,16 +61,16 @@ public sealed partial class MainViewModel
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
         {
-            ShowNotice("image", $"Der Bilder-Ordner ließ sich nicht öffnen ({ex.Message}).", "Erneut versuchen", () => ShowTileImageInFolder(tile));
+            ShowNotice("image", TF("Notice.ImageFolderFailed", ex.Message), T("Action.Retry"), () => ShowTileImageInFolder(tile));
         }
     }
 
-    /// <summary>"Bild wählen …" in the pad menu.</summary>
+    /// <summary>"Choose picture…" in the pad menu.</summary>
     public void ChooseImageDialog(TileViewModel tile)
     {
         var dlg = new OpenFileDialog
         {
-            Title = $"Bild für „{tile.Name}“ wählen",
+            Title = L.F("Dialog.ChoosePicture", tile.Name),
             Multiselect = false,
             Filter = ImageFiles.DialogFilter,
         };
@@ -95,12 +95,13 @@ public sealed partial class MainViewModel
             if (_disposed || version != tile.ImageLoadVersion || !Tiles.Contains(tile)) return;
             if (result.Problem != ImageProblem.None)
             {
-                ShowNotice("image", result.Problem switch
+                var problem = result.Problem;
+                ShowNotice("image", () => problem switch
                 {
-                    ImageProblem.NoWebpCodec => $"„{fileName}“ ist ein WebP-Bild, und Windows kann WebP auf diesem Rechner nicht lesen. {WebpWayOut}",
-                    ImageProblem.Missing => $"Die Bilddatei „{fileName}“ gibt es nicht (mehr). Wurde sie verschoben oder gelöscht?",
-                    _ => $"„{fileName}“ lässt sich nicht als Bild lesen – die Datei ist beschädigt oder hat eine falsche Endung. Möglich sind {ImageFiles.FormatsText}.",
-                }, "Anderes Bild wählen", retry);
+                    ImageProblem.NoWebpCodec => L.F("Notice.ImageNoWebp", fileName),
+                    ImageProblem.Missing => L.F("Image.Missing", fileName),
+                    _ => L.F("Image.Unreadable", fileName, ImageFiles.FormatsText),
+                }, T("Action.OtherPicture"), retry);
                 return;
             }
 
@@ -114,7 +115,7 @@ public sealed partial class MainViewModel
             if (old is not null && !string.Equals(old, stored, StringComparison.OrdinalIgnoreCase))
             {
                 _paths.ReleaseImage(old);
-                ShowNotice("image", $"Bild von „{tile.Name}“ ersetzt.", "Rückgängig", () => RestoreImage(config, old));
+                ShowNotice("image", TF("Notice.ImageReplaced", tile.Name), T("Action.Undo"), () => RestoreImage(config, old));
             }
             else
             {
@@ -123,19 +124,20 @@ public sealed partial class MainViewModel
         }
         catch (ImageImportException ex)
         {
-            ShowNotice("image", ex.Message, "Anderes Bild wählen", retry);
+            var message = ex.Message;
+            ShowNotice("image", () => message, T("Action.OtherPicture"), retry);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            ShowNotice("image", $"„{fileName}“ konnte nicht in den Bilder-Ordner kopiert werden ({ex.Message}).", "Erneut versuchen", () => _ = AssignImageAsync(tile, source));
+            ShowNotice("image", TF("Notice.ImageCopyFailed", fileName, ex.Message), T("Action.Retry"), () => _ = AssignImageAsync(tile, source));
         }
         catch (Exception ex)
         {
-            ShowNotice("image", $"„{fileName}“ ließ sich nicht als Bild übernehmen ({ex.Message}).", "Anderes Bild wählen", retry);
+            ShowNotice("image", TF("Notice.ImageTakeFailed", fileName, ex.Message), T("Action.OtherPicture"), retry);
         }
     }
 
-    /// <summary>"Bild entfernen": the pad shows its colour again; "Rückgängig" brings the picture back.</summary>
+    /// <summary>"Remove picture": the pad shows its colour again; "Undo" brings the picture back.</summary>
     public void RemoveImage(TileViewModel tile)
     {
         var old = tile.Config.Image;
@@ -147,16 +149,16 @@ public sealed partial class MainViewModel
         tile.RefreshImageConfigured();
         _paths.ReleaseImage(old);
         ScheduleSave();
-        ShowNotice("image", $"Bild von „{tile.Name}“ entfernt.", "Rückgängig", () => RestoreImage(config, old));
+        ShowNotice("image", TF("Notice.ImageRemoved", tile.Name), T("Action.Undo"), () => RestoreImage(config, old));
     }
 
-    /// <summary>"Rückgängig" for a removed or replaced picture. Finds the pad by its settings, so it also works after the pad itself was removed and brought back.</summary>
+    /// <summary>"Undo" for a removed or replaced picture. Finds the pad by its settings, so it also works after the pad itself was removed and brought back.</summary>
     private void RestoreImage(Soundboard.Core.Config.TileConfig config, string old)
     {
         var tile = Tiles.FirstOrDefault(t => ReferenceEquals(t.Config, config));
         if (tile is null)
         {
-            ShowNotice("image", "Das Pad gibt es nicht mehr, deshalb lässt sich sein Bild nicht zurückholen.");
+            ShowNotice("image", T("Notice.ImagePadGone"));
             return;
         }
         config.Image = old;
@@ -179,13 +181,11 @@ public sealed partial class MainViewModel
             {
                 _ = AssignImageAsync(onTile, pictures[0]);
                 if (pictures.Count > 1)
-                    ShowNotice("image-many", $"Ein Pad zeigt ein Bild – genommen wurde „{Path.GetFileName(pictures[0])}“. Die anderen Bilder zieh einzeln auf andere Pads.");
+                    ShowNotice("image-many", TF("Notice.ImageOnlyOne", Path.GetFileName(pictures[0])));
             }
             else
             {
-                ShowNotice("image-many", Tiles.Count == 0
-                    ? "Bilder kommen auf Pads. Zieh zuerst Sounds hierher; danach ziehst du ein Bild direkt auf ein Pad."
-                    : "Bilder auf ein Pad ziehen, Sounds auf die freie Fläche. Das Bild wird dann der Hintergrund dieses Pads.");
+                ShowNotice("image-many", T(Tiles.Count == 0 ? "Notice.ImageNoPads" : "Notice.ImageOnPad"));
             }
         }
         if (rest.Count > 0) AddFiles(rest);

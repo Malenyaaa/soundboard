@@ -94,7 +94,7 @@ public sealed class SnapshotTests
     {
         var snap = AudioSnapshot.From(State(extra: [Dev("usb", "USB-Kopfhörer", DeviceFlow.Render)]), "1.0");
         var cmp = SnapshotService.Compare(snap, State(spkVol: 0.8f));
-        Assert.IsTrue(cmp.Rows.Any(r => r.What.Contains("Lautstärke") && r.Saved == "50 %" && r.Now == "80 %"));
+        Assert.IsTrue(cmp.Rows.Any(r => r.What.Contains("Lautstärke") && r.Saved == "50\u202F%" && r.Now == "80\u202F%"));
         Assert.IsTrue(cmp.Rows.Any(r => r.Kind == ComparisonKind.Missing && r.What.Contains("USB-Kopfhörer")));
     }
 

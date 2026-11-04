@@ -1,14 +1,16 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using Soundboard.Core.Audio;
+using Soundboard.Core.Text;
 
 namespace Soundboard.App.ViewModels;
 
 /// <summary>One row of the read-only device list.</summary>
 public sealed record DeviceRowViewModel(
-    string Richtung,
+    string Flow,
     string Name,
     string Status,
-    string Standard,
-    string Lautstaerke,
+    string Default,
+    string Volume,
     string Format,
     string Id)
 {
@@ -26,10 +28,17 @@ public sealed record DeviceRowViewModel(
 public sealed record OutputChoice(string Id, string Name, bool IsAvailable, bool IsDefault)
 {
     public string Display =>
-        !IsAvailable ? $"{Name} (nicht angeschlossen)"
-        : IsDefault ? $"{Name} (Windows-Standard)"
+        !IsAvailable ? L.F("Device.NotConnected", Name)
+        : IsDefault ? L.F("Device.WindowsDefault", Name)
         : Name;
 }
 
-/// <summary>An entry of the buffer size selection.</summary>
-public sealed record BufferChoice(BufferSize Size, string Display);
+/// <summary>An entry of the buffer size selection; its text follows the interface language.</summary>
+public sealed class BufferChoice(BufferSize size) : ObservableObject
+{
+    public BufferSize Size { get; } = size;
+
+    public string Display => BufferSizes.Display(Size);
+
+    public void RefreshText() => OnPropertyChanged(nameof(Display));
+}

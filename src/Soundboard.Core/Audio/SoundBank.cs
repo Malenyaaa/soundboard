@@ -10,7 +10,7 @@ namespace Soundboard.Core.Audio;
 public readonly record struct TargetFormat(int SampleRate, int Channels)
 {
     public static readonly TargetFormat Fallback = new(48000, 2);
-    public override string ToString() => $"{SampleRate} Hz, {Channels} Kanäle";
+    public override string ToString() => Text.L.F("Format.HzChannels", SampleRate, Channels);
 }
 
 /// <summary>A fully decoded sound: interleaved float samples in the target format.</summary>
@@ -33,7 +33,7 @@ public sealed class SoundClip
     public TimeSpan Duration => TimeSpan.FromSeconds((double)FrameCount / Format.SampleRate);
 }
 
-/// <summary>A sound file could not be used. Message is a German, user-facing hint.</summary>
+/// <summary>A sound file could not be used. Message is a user-facing hint in the language of the interface.</summary>
 public sealed class SoundLoadException(string message, Exception? inner = null) : Exception(message, inner);
 
 /// <summary>Decodes sound files to <see cref="SoundClip"/>s in a given target format.</summary>
@@ -52,9 +52,9 @@ public static class SoundDecoder
     public static SoundClip Decode(string path, TargetFormat target)
     {
         if (!File.Exists(path))
-            throw new SoundLoadException($"Die Datei fehlt: {path}");
+            throw new SoundLoadException(Text.L.F("Sound.Missing", path));
         if (!IsSupported(path))
-            throw new SoundLoadException($"Das Format „{Path.GetExtension(path)}“ wird nicht unterstützt. Möglich sind MP3, WAV, OGG und FLAC.");
+            throw new SoundLoadException(Text.L.F("Sound.FormatUnsupported", Path.GetExtension(path)));
 
         IDisposable? owner = null;
         try
@@ -71,7 +71,7 @@ public static class SoundDecoder
                                        or InvalidOperationException or EndOfStreamException)
         {
             throw new SoundLoadException(
-                $"„{Path.GetFileName(path)}“ ließ sich nicht lesen. Die Datei ist vielleicht beschädigt oder kein echtes {Path.GetExtension(path).TrimStart('.').ToUpperInvariant()}. ({ex.Message})", ex);
+                Text.L.F("Sound.Unreadable", Path.GetFileName(path), Path.GetExtension(path).TrimStart('.').ToUpperInvariant(), ex.Message), ex);
         }
         finally
         {
@@ -125,7 +125,7 @@ public static class SoundDecoder
     {
         int srcChannels = source.WaveFormat.Channels;
         if (srcChannels < 1)
-            throw new SoundLoadException($"„{displayName}“ hat keine Tonspur.");
+            throw new SoundLoadException(Text.L.F("Sound.NoAudio", displayName));
 
         ISampleProvider stream = source;
         if (source.WaveFormat.SampleRate != target.SampleRate)
@@ -140,7 +140,7 @@ public static class SoundDecoder
             int read = stream.Read(chunk, 0, chunk.Length);
             if (read <= 0) break;
             if (filled + read > maxSamples)
-                throw new SoundLoadException($"„{displayName}“ ist länger als {MaxDuration.TotalMinutes:0} Minuten. Bitte eine kürzere Datei nehmen.");
+                throw new SoundLoadException(Text.L.F("Sound.TooLong", displayName, MaxDuration.TotalMinutes));
             if (filled + read > all.Length)
                 Array.Resize(ref all, (int)Math.Min(maxSamples, Math.Max((long)all.Length * 2, filled + read)));
             Array.Copy(chunk, 0, all, filled, read);
@@ -149,7 +149,7 @@ public static class SoundDecoder
 
         int frames = filled / srcChannels;
         if (frames == 0)
-            throw new SoundLoadException($"„{displayName}“ enthält keinen Ton (Länge 0).");
+            throw new SoundLoadException(Text.L.F("Sound.Empty", displayName));
 
         var mapped = MapChannels(all, frames, srcChannels, target.Channels);
         return new SoundClip(mapped, target);

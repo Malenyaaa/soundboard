@@ -62,11 +62,11 @@ public static class SnapshotStore
         try
         {
             return Deserialize(File.ReadAllText(path))
-                ?? throw new SnapshotException("Die Sicherung des Audio-Zustands ist leer.");
+                ?? throw new SnapshotException(Text.L.Get("Snapshot.Empty"));
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException or NotSupportedException)
         {
-            throw new SnapshotException($"Die Sicherung des Audio-Zustands ließ sich nicht lesen ({ex.Message}).", ex);
+            throw new SnapshotException(Text.L.F("Snapshot.Unreadable", ex.Message), ex);
         }
     }
 

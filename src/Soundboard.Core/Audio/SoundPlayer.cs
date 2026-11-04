@@ -59,7 +59,7 @@ public sealed class SoundPlayer : ISampleProvider
     public void Play(SoundClip clip, float volume)
     {
         if (clip.Format != Format)
-            throw new ArgumentException($"Clip-Format {clip.Format} passt nicht zum Player-Format {Format}.", nameof(clip));
+            throw new ArgumentException($"Clip format {clip.Format} does not match the player format {Format}.", nameof(clip));
         _commands.Enqueue(new Command(CommandKind.Play, clip, clip.Handle, Math.Clamp(volume, 0f, 2f)));
     }
 

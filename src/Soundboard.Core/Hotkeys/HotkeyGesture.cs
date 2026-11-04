@@ -15,7 +15,7 @@ public enum HotkeyModifiers
 
 /// <summary>
 /// A global key combination: modifiers + one Windows virtual-key code.
-/// Stored as text like "Ctrl+Alt+NumPad1" (stable English tokens); shown in German.
+/// Stored as text like "Ctrl+Alt+NumPad1" (stable English tokens); shown in the language of the interface.
 /// </summary>
 public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int VirtualKey)
 {
@@ -27,17 +27,17 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
 
     private static readonly Dictionary<int, (string Token, string Display)> Names = BuildNames();
 
-    /// <summary>German text for the user, e.g. "Strg+Alt+Num 1".</summary>
+    /// <summary>Text for the user, e.g. "Ctrl+Alt+Num 1" (English) or "Strg+Alt+Num 1" (German).</summary>
     public string Display
     {
         get
         {
             var parts = new List<string>();
-            if (Modifiers.HasFlag(HotkeyModifiers.Ctrl)) parts.Add("Strg");
-            if (Modifiers.HasFlag(HotkeyModifiers.Alt)) parts.Add("Alt");
-            if (Modifiers.HasFlag(HotkeyModifiers.Shift)) parts.Add("Umschalt");
-            if (Modifiers.HasFlag(HotkeyModifiers.Win)) parts.Add("Win");
-            parts.Add(Names.TryGetValue(VirtualKey, out var n) ? n.Display : $"Taste {VirtualKey:X2}");
+            if (Modifiers.HasFlag(HotkeyModifiers.Ctrl)) parts.Add(Text.L.Get("Key.Ctrl"));
+            if (Modifiers.HasFlag(HotkeyModifiers.Alt)) parts.Add(Text.L.Get("Key.Alt"));
+            if (Modifiers.HasFlag(HotkeyModifiers.Shift)) parts.Add(Text.L.Get("Key.Shift"));
+            if (Modifiers.HasFlag(HotkeyModifiers.Win)) parts.Add(Text.L.Get("Key.Win"));
+            parts.Add(Names.TryGetValue(VirtualKey, out var n) ? Shown(n.Display) : Text.L.F("Key.Unknown", VirtualKey.ToString("X2", CultureInfo.InvariantCulture)));
             return string.Join("+", parts);
         }
     }
@@ -53,6 +53,9 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
         parts.Add(Names.TryGetValue(VirtualKey, out var n) ? n.Token : "VK" + VirtualKey.ToString("X2", CultureInfo.InvariantCulture));
         return string.Join("+", parts);
     }
+
+    /// <summary>Key names that differ between the languages are stored as "@" plus their text key, e.g. "@Key.Delete".</summary>
+    private static string Shown(string display) => display.StartsWith('@') ? Text.L.Get(display[1..]) : display;
 
     public override string ToString() => ToToken();
 
@@ -117,22 +120,22 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
         d[0x6A] = ("Multiply", "Num *");
         d[0x6B] = ("Add", "Num +");
         d[0x6D] = ("Subtract", "Num −");
-        d[0x6E] = ("Decimal", "Num ,");
+        d[0x6E] = ("Decimal", "@Key.Decimal");
         d[0x6F] = ("Divide", "Num /");
         d[VkPause] = ("Pause", "Pause");
-        d[0x91] = ("Scroll", "Rollen");
-        d[0x2D] = ("Insert", "Einfg");
-        d[0x2E] = ("Delete", "Entf");
-        d[0x24] = ("Home", "Pos1");
-        d[0x23] = ("End", "Ende");
-        d[0x21] = ("PageUp", "Bild auf");
-        d[0x22] = ("PageDown", "Bild ab");
-        d[0x20] = ("Space", "Leertaste");
-        d[0x25] = ("Left", "Pfeil links");
-        d[0x26] = ("Up", "Pfeil hoch");
-        d[0x27] = ("Right", "Pfeil rechts");
-        d[0x28] = ("Down", "Pfeil runter");
-        d[0x2C] = ("PrintScreen", "Druck");
+        d[0x91] = ("Scroll", "@Key.Scroll");
+        d[0x2D] = ("Insert", "@Key.Insert");
+        d[0x2E] = ("Delete", "@Key.Delete");
+        d[0x24] = ("Home", "@Key.Home");
+        d[0x23] = ("End", "@Key.End");
+        d[0x21] = ("PageUp", "@Key.PageUp");
+        d[0x22] = ("PageDown", "@Key.PageDown");
+        d[0x20] = ("Space", "@Key.Space");
+        d[0x25] = ("Left", "@Key.Left");
+        d[0x26] = ("Up", "@Key.Up");
+        d[0x27] = ("Right", "@Key.Right");
+        d[0x28] = ("Down", "@Key.Down");
+        d[0x2C] = ("PrintScreen", "@Key.PrintScreen");
         return d;
     }
 }

@@ -3,7 +3,7 @@ namespace Soundboard.Core.Design;
 /// <summary>
 /// The fixed colours of the window: a quiet, slightly cool grey housing (neutrals tinted after
 /// Sanzo Wada No. 221, Neutral Gray / Black). Light and dark are composed separately; dark is
-/// derived (same tint, dark ground), not inverted. The only red is "Alles stoppen".
+/// derived (same tint, dark ground), not inverted. The only red is "Stop".
 /// </summary>
 public static class ThemeTokens
 {
@@ -82,8 +82,11 @@ public sealed record AccentColors(
     double FillOnGround,
     bool Adjusted);
 
-/// <summary>One of the preset accent colours (from Sanzo Wada's colour dictionary).</summary>
-public sealed record AccentPreset(string Id, string Name, string WadaName, string BaseHex);
+/// <summary>One of the preset accent colours: plain, familiar hues. The name comes from the text files ("Accent.&lt;id&gt;").</summary>
+public sealed record AccentPreset(string Id, string BaseHex)
+{
+    public string Name => Text.L.Get("Accent." + Id);
+}
 
 /// <summary>
 /// Accent colours: presets plus a free colour. Every accent is derived per mode until the
@@ -91,20 +94,40 @@ public sealed record AccentPreset(string Id, string Name, string WadaName, strin
 /// </summary>
 public static class AccentPalette
 {
-    public const string DefaultId = "pfauenblau";
+    public const string DefaultId = "teal";
+
+    /// <summary>Stored value for the free colour (kept from the first versions, so old profiles stay valid).</summary>
     public const string CustomId = "eigene";
 
     public static IReadOnlyList<AccentPreset> Presets { get; } =
     [
-        new("pfauenblau", "Pfauenblau", "Peacock Blue", "#00939B"),
-        new("olympiablau", "Olympiablau", "Olympic Blue", "#5A82B3"),
-        new("blauviolett", "Blauviolett", "Blue Violet", "#6450A1"),
-        new("purpur", "Purpur", "Eupatorium Purple", "#BF5892"),
-        new("orange", "Orange", "Orange", "#F99D1B"),
-        new("olivgelb", "Olivgelb", "Olive Yellow", "#A6A159"),
-        new("gruen", "Grün", "Green", "#489B6E"),
-        new("schiefer", "Schiefer", "Deep Violet / Plumbeous", "#70727C"),
+        new("blue", "#2F6BD0"),
+        new("teal", "#00838A"),
+        new("green", "#2E8B4A"),
+        new("orange", "#E07020"),
+        new("pink", "#C8336F"),
+        new("violet", "#7046C8"),
     ];
+
+    /// <summary>
+    /// Presets of versions up to 0.10 (colours after Sanzo Wada) and the new preset closest to each:
+    /// same hue family, the slate grey goes to blue.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> OldPresets { get; } = new Dictionary<string, string>
+    {
+        ["pfauenblau"] = "teal",
+        ["olympiablau"] = "blue",
+        ["blauviolett"] = "violet",
+        ["purpur"] = "pink",
+        ["orange"] = "orange",
+        ["olivgelb"] = "green",
+        ["gruen"] = "green",
+        ["schiefer"] = "blue",
+    };
+
+    /// <summary>The id an old or unknown preset id stands for today; null if it is neither a preset nor an old one.</summary>
+    public static string? Migrate(string? id) =>
+        id is null ? null : Find(id) is not null ? id : OldPresets.TryGetValue(id, out var now) ? now : null;
 
     public static Rgb OnLight { get; } = Rgb.Parse("#FFFFFF");
     public static Rgb OnDark { get; } = Rgb.Parse("#111314");
@@ -157,22 +180,38 @@ public static class AccentPalette
 public sealed record PadColors(Rgb Face, Rgb Line, Rgb Text, Rgb CapBg, Rgb CapLine, Rgb Lit, Rgb LitLine, Rgb LitPlayed, Rgb LitText);
 
 /// <summary>
-/// Pad colours: eight hues from Sanzo Wada's dictionary. Idle the pad shows its colour dimmed,
+/// Pad colours: seven calm, familiar hues (blue, orange, green, pink, teal, violet, grey). Idle the pad shows its colour dimmed,
 /// playing it lights up in full (like an LED pad) with dark ink on it in both modes.
 /// </summary>
 public static class PadPalette
 {
     public static IReadOnlyList<(string Name, string Hex)> Hues { get; } =
     [
-        ("Peacock Blue", "#00939B"),
-        ("Orange", "#F99D1B"),
-        ("Blue Violet", "#6450A1"),
-        ("Green", "#489B6E"),
-        ("Eupatorium Purple", "#BF5892"),
-        ("Olympic Blue", "#5A82B3"),
-        ("Olive Yellow", "#A6A159"),
-        ("Plumbeous", "#70727C"),
+        ("Blue", "#3A78D4"),
+        ("Orange", "#E8822A"),
+        ("Green", "#3D9A50"),
+        ("Pink", "#D2457F"),
+        ("Teal", "#16968F"),
+        ("Violet", "#7D55D0"),
+        ("Grey", "#7A8288"),
     ];
+
+    /// <summary>Pad colours of versions up to 0.10 (after Sanzo Wada) and the new hue that replaces each.</summary>
+    public static IReadOnlyDictionary<string, string> OldHues { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["#00939B"] = "#16968F", // Peacock Blue → teal
+        ["#F99D1B"] = "#E8822A", // Orange
+        ["#6450A1"] = "#7D55D0", // Blue Violet → violet
+        ["#489B6E"] = "#3D9A50", // Green
+        ["#BF5892"] = "#D2457F", // Eupatorium Purple → pink
+        ["#5A82B3"] = "#3A78D4", // Olympic Blue → blue
+        ["#A6A159"] = "#3D9A50", // Olive Yellow → green
+        ["#70727C"] = "#7A8288", // Plumbeous → grey
+    };
+
+    /// <summary>The colour an old Wada pad colour becomes; any other colour stays as it is.</summary>
+    public static string Migrate(string hex) =>
+        Rgb.TryParse(hex, out var c) && OldHues.TryGetValue(c.ToHex(), out var now) ? now : hex;
 
     /// <summary>Colour stored for the n-th new pad.</summary>
     public static string ForIndex(int n) => Hues[((n % Hues.Count) + Hues.Count) % Hues.Count].Hex;

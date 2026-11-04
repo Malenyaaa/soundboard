@@ -20,12 +20,15 @@ public readonly record struct Rgb(byte R, byte G, byte B)
     }
 
     public static Rgb Parse(string text) =>
-        TryParse(text, out var c) ? c : throw new FormatException($"Keine Farbe: {text}");
+        TryParse(text, out var c) ? c : throw new FormatException($"Not a colour: {text}");
 
     public string ToHex() => $"#{R:X2}{G:X2}{B:X2}";
 
     public override string ToString() => ToHex();
 }
+
+/// <summary>Colour in HSV (as in a colour picker): hue 0..360 degrees, saturation and value 0..1.</summary>
+public readonly record struct Hsv(double H, double S, double V);
 
 /// <summary>Colour in OKLCH: lightness 0..1, chroma, hue in degrees.</summary>
 public readonly record struct Oklch(double L, double C, double H);
@@ -103,6 +106,44 @@ public static class ColorMath
     {
         var o = ToOklch(c);
         return FromOklch(new Oklch(Math.Clamp(lightness, 0, 1), chroma ?? o.C, o.H));
+    }
+
+    /// <summary>HSV to sRGB. Hue wraps around (360 = 0, −30 = 330); saturation and value are clamped to 0..1.</summary>
+    public static Rgb FromHsv(Hsv c)
+    {
+        double h = ((c.H % 360) + 360) % 360;
+        double s = Math.Clamp(c.S, 0, 1), v = Math.Clamp(c.V, 0, 1);
+        double chroma = v * s;
+        double x = chroma * (1 - Math.Abs(h / 60 % 2 - 1));
+        double m = v - chroma;
+        (double r, double g, double b) = (int)(h / 60) switch
+        {
+            0 => (chroma, x, 0.0),
+            1 => (x, chroma, 0.0),
+            2 => (0.0, chroma, x),
+            3 => (0.0, x, chroma),
+            4 => (x, 0.0, chroma),
+            _ => (chroma, 0.0, x),
+        };
+        static byte B(double u) => (byte)Math.Round(Math.Clamp(u, 0, 1) * 255);
+        return new Rgb(B(r + m), B(g + m), B(b + m));
+    }
+
+    /// <summary>sRGB to HSV. Greys (no saturation) get hue 0; black gets saturation 0.</summary>
+    public static Hsv ToHsv(Rgb c)
+    {
+        double r = c.R / 255.0, g = c.G / 255.0, b = c.B / 255.0;
+        double max = Math.Max(r, Math.Max(g, b)), min = Math.Min(r, Math.Min(g, b));
+        double d = max - min;
+        double h = 0;
+        if (d > 0)
+        {
+            if (max == r) h = 60 * (((g - b) / d) % 6);
+            else if (max == g) h = 60 * ((b - r) / d + 2);
+            else h = 60 * ((r - g) / d + 4);
+        }
+        if (h < 0) h += 360;
+        return new Hsv(h, max <= 0 ? 0 : d / max, max);
     }
 
     /// <summary>Mixes <paramref name="a"/> towards <paramref name="b"/> (t = 0 → a, 1 → b) in sRGB.</summary>

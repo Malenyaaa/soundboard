@@ -44,7 +44,7 @@ public sealed class WasapiSink : IAudioOutput
     public void Start(ISampleProvider source)
     {
         if (source.WaveFormat.SampleRate != MixFormat.SampleRate || source.WaveFormat.Channels != MixFormat.Channels)
-            throw new ArgumentException("Quelle muss im Mix-Format des Geräts liefern.", nameof(source));
+            throw new ArgumentException("The source must deliver the mix format of the device.", nameof(source));
 
         StopInternal(raise: false);
         try
@@ -59,7 +59,7 @@ public sealed class WasapiSink : IAudioOutput
         catch (Exception ex) when (ex is COMException or InvalidOperationException or ArgumentException or NotSupportedException)
         {
             StopInternal(raise: false);
-            throw new SinkException($"Das Ausgabegerät ließ sich nicht öffnen ({ex.Message}). Ist es gerade von einem anderen Programm exklusiv belegt?", ex);
+            throw new SinkException(Text.L.F("Output.OpenFailed", ex.Message), ex);
         }
     }
 
@@ -128,5 +128,5 @@ public sealed class WasapiSink : IAudioOutput
     }
 }
 
-/// <summary>An output could not be started. Message is a German, user-facing hint.</summary>
+/// <summary>An output could not be started. Message is a user-facing hint in the language of the interface.</summary>
 public sealed class SinkException(string message, Exception? inner = null) : Exception(message, inner);
