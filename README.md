@@ -13,10 +13,10 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.12.0 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.12.1 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, Vollbild (F11), englischer Oberfläche, umschaltbar auf Deutsch, und
-eigenem App-Symbol (Taste mit Wellenform; im Infobereich in der gewählten Akzentfarbe).
+eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Petrol).
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -287,8 +287,9 @@ dotnet run --project tools/IconGen
 ```
 
 Ein Test vergleicht die eingecheckte Datei mit der Zeichnung und schlägt fehl, wenn sie veraltet
-ist. Das Symbol im Infobereich zeichnet die App zur Laufzeit selbst, in der gewählten
-Akzentfarbe und in der Größe, die Windows für die Skalierung der Taskleiste vorsieht.
+ist. Das Symbol im Infobereich zeichnet die App zur Laufzeit selbst, immer in Petrol wie das
+App-Symbol (unabhängig von der Akzentfarbe) und in der Größe, die Windows für die Skalierung der
+Taskleiste vorsieht.
 
 ## Installer (gebaut, Installation noch ungetestet)
 

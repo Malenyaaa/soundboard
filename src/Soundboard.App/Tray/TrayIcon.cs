@@ -60,9 +60,10 @@ public sealed class TrayIcon : IDisposable
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged += OnDisplayChanged;
     }
 
-    /// <summary>Accent (as the light mode fills it, like the app icon) and the tray size for the taskbar's DPI.</summary>
+    /// <summary>Always the default accent (as the light mode fills it, like the app icon), so the
+    /// symbol stays recognisable whatever accent is chosen; plus the tray size for the taskbar's DPI.</summary>
     private static (Rgb Accent, int Size) Wanted() =>
-        (AccentPalette.Resolve(Themes.ThemeManager.AccentId, Themes.ThemeManager.CustomAccent, false).Fill, TrayIconImage.CurrentSize());
+        (AccentPalette.Resolve(AccentPalette.DefaultId, null, false).Fill, TrayIconImage.CurrentSize());
 
     /// <summary>Draws the symbol again when accent or size changed. Setting Icon disposes the previous one (and its HICON).</summary>
     private void Redraw()
@@ -94,7 +95,7 @@ public sealed class TrayIcon : IDisposable
     public void ShowHint(string title, string text) =>
         _icon.ShowNotification(title, text, sound: false);
 
-    /// <summary>The symbol follows the accent colour chosen in the settings.</summary>
+    /// <summary>Theme changes no longer change the colour; Redraw only acts if the size changed.</summary>
     private void OnThemeChanged(object? sender, EventArgs e) => Redraw();
 
     // Raised on other threads (SystemEvents) or inside the message window's handler: redraw later on the UI thread.
