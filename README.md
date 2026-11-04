@@ -154,9 +154,11 @@ zweite (bei 560 px Deutsch auch dritte) Zeile; Mithören und Stop bleiben oben.
   Fenster zum ersten neuen Pad, die neuen Pads tragen kurz einen Ring. Ohne Sounds zeigt das
   Fenster eine Ablagefläche mit demselben Knopf.
 - **Globale Tasten:** Klick auf die Tastenkappe (oder Rechtsklick → „Taste belegen …“), dann die
-  Taste drücken; Enter nimmt den angezeigten Vorschlag. Vorgeschlagen werden Strg+Alt+1 … 0,
-  danach Strg+Alt+Umschalt+1 … 0 – Num 1 … Num 0 nur, wenn in dieser Sitzung schon eine
+  Taste drücken; Enter nimmt den angezeigten Vorschlag. Vorgeschlagen werden
+  Strg+Alt+Umschalt+1 … 0 – Num 1 … Num 0 vorher nur, wenn in dieser Sitzung schon eine
   Numpad-Taste gedrückt wurde (ein Laptop ohne Numpad bekommt sonst Tasten, die es nicht gibt).
+  Nie Strg+Alt+Ziffer allein: Auf deutscher Tastatur ist das AltGr+Ziffer, und { [ ] } ² ³ ließen
+  sich sonst nirgends mehr tippen, solange das Soundboard läuft.
   Die Tasten wirken überall,
   auch im Spiel – das Spiel sieht sie dann nicht. Ist eine Taste doppelt
   vergeben oder von einem anderen Programm belegt, trägt ihre Kappe ein Warnzeichen; ein

@@ -15,11 +15,16 @@ public sealed class HotkeySuggestionTests
         L.SetLanguage(L.English);
         var list = HotkeyGesture.Suggestions(numpadSeen: false).ToList();
         Assert.IsFalse(list.Any(g => HotkeyGesture.IsNumpadKey(g.VirtualKey)));
-        Assert.AreEqual(20, list.Count);
-        Assert.AreEqual("Ctrl+Alt+1", list[0].Display);
-        Assert.AreEqual("Ctrl+Alt+0", list[9].Display);
-        Assert.AreEqual("Ctrl+Alt+Shift+1", list[10].Display);
-        Assert.AreEqual("Ctrl+Alt+Shift+0", list[19].Display);
+        Assert.AreEqual(10, list.Count);
+        Assert.AreEqual("Ctrl+Alt+Shift+1", list[0].Display);
+        Assert.AreEqual("Ctrl+Alt+Shift+0", list[9].Display);
+    }
+
+    [TestMethod]
+    public void Plain_ctrl_alt_digits_are_never_offered_because_they_are_altgr()
+    {
+        var list = HotkeyGesture.Suggestions(numpadSeen: true).ToList();
+        Assert.IsFalse(list.Any(g => g.Modifiers == (HotkeyModifiers.Ctrl | HotkeyModifiers.Alt)));
     }
 
     [TestMethod]
@@ -27,10 +32,10 @@ public sealed class HotkeySuggestionTests
     {
         L.SetLanguage(L.German);
         var list = HotkeyGesture.Suggestions(numpadSeen: true).ToList();
-        Assert.AreEqual(30, list.Count);
+        Assert.AreEqual(20, list.Count);
         Assert.AreEqual("Num 1", list[0].Display);
         Assert.AreEqual("Num 0", list[9].Display);
-        Assert.AreEqual("Strg+Alt+1", list[10].Display);
+        Assert.AreEqual("Strg+Alt+Umschalt+1", list[10].Display);
     }
 
     [TestMethod]
