@@ -13,7 +13,7 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.10.0 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.10.1 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe) und Bildern als
 Pad-Hintergrund.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
@@ -100,7 +100,7 @@ Discords Dateien.
   wie weit der Sound ist. Oben links steht die Taste als Tastenkappe, oben rechts die Länge.
   Eine Lautstärke unter 100 % steht unten rechts.
 - **Rechtsklick auf ein Pad:** Taste belegen oder entfernen, Lautstärke (Regler), umbenennen,
-  Bild wählen oder entfernen, im Sound-Ordner zeigen, Pad entfernen (mit „Rückgängig“).
+  Bild wählen oder entfernen, Bilder-Ordner öffnen, im Sound-Ordner zeigen, Pad entfernen (mit „Rückgängig“).
   **Strg + Mausrad** über einem Pad ändert seine Lautstärke in 5-%-Schritten.
 - **Bild als Hintergrund:** Rechtsklick → „Bild wählen …“ oder eine Bilddatei direkt **auf ein
   Pad** ziehen (PNG, JPG, GIF – davon das erste Bild –, BMP, WebP, sofern Windows WebP lesen
@@ -110,9 +110,13 @@ Discords Dateien.
   hell, der Rand leuchtet in der Pad-Farbe, und ein Balken unten zeigt, wie weit der Sound
   ist. Das Bild wird in den Bilder-Ordner kopiert (das Original bleibt) und verkleinert
   geladen, große Fotos brauchen also wenig Speicher. Ein Bild auf der freien Fläche wird kein
-  Pad, sondern bekommt einen Hinweis. Fehlt die Bilddatei oder ist sie kaputt, zeigt das Pad
-  seine Farbe und einen gelben Hinweis „Bild fehlt“ mit „Anderes Bild wählen“ und „Bild
-  entfernen“; abspielen geht trotzdem. „Bild entfernen“ und das Ersetzen eines Bildes lassen sich rückgängig machen.
+  Pad, sondern bekommt einen Hinweis. Lässt sich ein gewähltes oder gezogenes Bild nicht lesen
+  (kaputt, falsche Endung, WebP ohne Decoder), sagt ein gelber Hinweis warum, und das Pad
+  bleibt, wie es war. Fehlt eine Bilddatei später oder ist sie kaputt, zeigt das Pad ohne
+  Warnung still seine Farbe und spielt wie gewohnt; der Verweis bleibt gespeichert, kommt die
+  Datei zurück, ist auch das Bild wieder da. „Bild entfernen“ und das Ersetzen eines Bildes
+  lassen sich rückgängig machen. Rechtsklick → „Bilder-Ordner öffnen“ zeigt den Ordner mit den
+  Pad-Bildern im Explorer (das Bild des Pads ist markiert, falls vorhanden).
 - **Sounds hinzufügen:** MP3, WAV, OGG oder FLAC ins Fenster ziehen oder „Sounds hinzufügen …“.
   Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt. Ohne Sounds zeigt das
   Fenster eine Ablagefläche mit demselben Knopf.

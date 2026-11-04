@@ -14,7 +14,7 @@ public enum ImageProblem
     NoWebpCodec,
 }
 
-public sealed record ImageLoadResult(BitmapSource? Image, ImageProblem Problem, string? Detail = null);
+public sealed record ImageLoadResult(BitmapSource? Image, ImageProblem Problem);
 
 /// <summary>
 /// Loads a pad picture with Windows' own decoders (WIC): only the first frame (GIF), scaled down
@@ -52,7 +52,7 @@ public static class ImageLoader
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return new(null, ImageProblem.Broken, ex.Message);
+            return new(null, ImageProblem.Broken);
         }
 
         var kind = ImageFiles.Sniff(bytes);
@@ -100,7 +100,7 @@ public static class ImageLoader
         }
         catch (Exception ex) when (IsDecodeError(ex))
         {
-            return new(null, kind == ImageKind.Webp && !CanReadWebp ? ImageProblem.NoWebpCodec : ImageProblem.Broken, ex.Message);
+            return new(null, kind == ImageKind.Webp && !CanReadWebp ? ImageProblem.NoWebpCodec : ImageProblem.Broken);
         }
     }
 

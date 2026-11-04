@@ -12,7 +12,11 @@ public sealed partial class MainViewModel
 
     public string ImagesDir => _paths.ImagesDir;
 
-    /// <summary>Loads the picture of a pad in the background. A missing or broken file only shows a yellow chip on the pad.</summary>
+    /// <summary>
+    /// Loads the picture of a pad in the background. A missing or unreadable file is no warning:
+    /// the pad quietly shows its colour and plays as usual. The entry in the profile stays, so the
+    /// picture is back as soon as the file is.
+    /// </summary>
     private async Task LoadTileImageAsync(TileViewModel tile)
     {
         int version = ++tile.ImageLoadVersion;
@@ -21,43 +25,44 @@ public sealed partial class MainViewModel
         if (name is null)
         {
             tile.Image = null;
-            tile.SetImageIssue(null);
             return;
         }
 
-        ImageLoadResult result;
+        System.Windows.Media.Imaging.BitmapSource? image;
         try
         {
             var path = _paths.ImagePath(name);
-            result = path is null
-                ? new ImageLoadResult(null, ImageProblem.Missing)
-                : await Task.Run(() => ImageLoader.Load(path));
+            image = path is null ? null : (await Task.Run(() => ImageLoader.Load(path))).Image;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            result = new ImageLoadResult(null, ImageProblem.Broken, ex.Message);
+            image = null;
         }
         if (version != tile.ImageLoadVersion || _disposed) return; // superseded
+        tile.Image = image;
+    }
 
-        tile.Image = result.Image;
-        if (result.Problem == ImageProblem.None)
+    /// <summary>
+    /// "Bilder-Ordner öffnen" in the pad menu: the picture folder in Explorer (created if missing),
+    /// with this pad's picture selected when it has one that is there.
+    /// </summary>
+    public void ShowTileImageInFolder(TileViewModel tile)
+    {
+        try
         {
-            tile.SetImageIssue(null);
-            return;
+            var path = _paths.ImagePath(tile.Config.Image);
+            if (path is not null && File.Exists(path))
+            {
+                System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{path}\"");
+                return;
+            }
+            Directory.CreateDirectory(_paths.ImagesDir);
+            System.Diagnostics.Process.Start("explorer.exe", $"\"{_paths.ImagesDir}\"");
         }
-        tile.ImageProblemLabel = result.Problem switch
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
         {
-            ImageProblem.Missing => "Bild fehlt",
-            ImageProblem.NoWebpCodec => "WebP nicht lesbar",
-            _ => "Bild defekt",
-        };
-        var why = result.Problem switch
-        {
-            ImageProblem.Missing => $"Das Bild „{name}“ ist nicht mehr da (gelöscht oder verschoben). Das Pad spielt trotzdem, nur ohne Bild.",
-            ImageProblem.NoWebpCodec => $"„{name}“ ist ein WebP-Bild, und Windows kann WebP auf diesem Rechner nicht lesen. Das Pad spielt trotzdem, nur ohne Bild. {WebpWayOut}",
-            _ => $"Das Bild „{name}“ ist beschädigt und lässt sich nicht zeigen. Das Pad spielt trotzdem, nur ohne Bild.",
-        };
-        tile.SetImageIssue(why, "Anderes Bild wählen", () => ChooseImageDialog(tile), "Bild entfernen", () => RemoveImage(tile));
+            ShowNotice("image", $"Der Bilder-Ordner ließ sich nicht öffnen ({ex.Message}).", "Erneut versuchen", () => ShowTileImageInFolder(tile));
+        }
     }
 
     /// <summary>"Bild wählen …" in the pad menu.</summary>
@@ -104,7 +109,6 @@ public sealed partial class MainViewModel
             var config = tile.Config;
             config.Image = stored;
             tile.Image = result.Image;
-            tile.SetImageIssue(null);
             tile.RefreshImageConfigured();
             ScheduleSave();
             if (old is not null && !string.Equals(old, stored, StringComparison.OrdinalIgnoreCase))
@@ -140,7 +144,6 @@ public sealed partial class MainViewModel
         tile.ImageLoadVersion++;
         config.Image = null;
         tile.Image = null;
-        tile.SetImageIssue(null);
         tile.RefreshImageConfigured();
         _paths.ReleaseImage(old);
         ScheduleSave();
