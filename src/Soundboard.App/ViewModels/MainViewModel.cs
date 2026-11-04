@@ -732,12 +732,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _stateReady = true;
         CompareNow();
 
-        if (crashed)
+        // After an unclean exit, speak up only if something is actually off: a Windows default
+        // device that differs from the saved state. Nothing to do means nothing to say.
+        if (crashed && Comparison is { DefaultsChanged: true })
         {
-            bool changed = Comparison is { DefaultsChanged: true };
-            ShowNotice("crash", T(changed ? "Notice.CrashChanged" : "Notice.CrashSame"),
-                changed ? T("Action.Restore") : null,
-                changed ? RestoreDefaults : null);
+            ShowNotice("crash", T("Notice.CrashChanged"), T("Action.Restore"), RestoreDefaults);
             HideNoticeAfter("crash", TimeSpan.FromSeconds(3));
         }
     }

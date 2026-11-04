@@ -211,7 +211,6 @@
   <data name="Notice.PadRemoved" xml:space="preserve"><value>Pad „{0}“ entfernt. Die Datei bleibt im Sound-Ordner.</value></data>
   <data name="Notice.SnapshotFile" xml:space="preserve"><value>{0} Speichere den jetzigen Zustand neu, wenn er stimmt.</value></data>
   <data name="Notice.CrashChanged" xml:space="preserve"><value>Das Soundboard wurde beim letzten Mal nicht normal beendet. Seitdem hat sich ein Windows-Standardgerät geändert.</value></data>
-  <data name="Notice.CrashSame" xml:space="preserve"><value>Das Soundboard wurde beim letzten Mal nicht normal beendet. Die Windows-Standardgeräte sind wie gesichert; es ist nichts zu tun.</value></data>
   <data name="Notice.SnapshotSaveFailed" xml:space="preserve"><value>Der Audio-Zustand ließ sich nicht sichern ({0}). Ist der Datenordner schreibgeschützt?</value></data>
   <data name="Notice.CableDefault" xml:space="preserve"><value>Das virtuelle Kabel ist jetzt ein Windows-Standardgerät – nicht durch das Soundboard.</value></data>
   <data name="Notice.DefaultChanged.One" xml:space="preserve"><value>Ein Windows-Standardgerät weicht von der Sicherung ab – nicht durch das Soundboard.</value></data>

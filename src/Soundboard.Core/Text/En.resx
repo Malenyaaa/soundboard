@@ -211,7 +211,6 @@
   <data name="Notice.PadRemoved" xml:space="preserve"><value>Pad “{0}” removed. The file stays in the sound folder.</value></data>
   <data name="Notice.SnapshotFile" xml:space="preserve"><value>{0} Save the current state again if it is right.</value></data>
   <data name="Notice.CrashChanged" xml:space="preserve"><value>The soundboard did not close normally last time. A Windows default device has changed since then.</value></data>
-  <data name="Notice.CrashSame" xml:space="preserve"><value>The soundboard did not close normally last time. The Windows default devices are as saved; there is nothing to do.</value></data>
   <data name="Notice.SnapshotSaveFailed" xml:space="preserve"><value>The audio state could not be saved ({0}). Is the data folder read-only?</value></data>
   <data name="Notice.CableDefault" xml:space="preserve"><value>The virtual cable is now a Windows default device – not because of the soundboard.</value></data>
   <data name="Notice.DefaultChanged.One" xml:space="preserve"><value>A Windows default device differs from the saved state – not because of the soundboard.</value></data>
