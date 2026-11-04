@@ -20,14 +20,43 @@ public partial class MainWindow : Window
     private void OnDragOver(object sender, DragEventArgs e)
     {
         e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None;
+        // A picture over a pad: that pad shows it will take the picture.
+        bool picture = e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Any(Soundboard.Core.Images.ImageFiles.HasImageExtension);
+        MarkDropTarget(picture ? FindTile(e.OriginalSource as DependencyObject) : null);
         e.Handled = true;
+    }
+
+    /// <summary>Leaving a child element also raises DragLeave; only clear the mark when the mouse leaves the window.</summary>
+    private void OnDragLeave(object sender, DragEventArgs e)
+    {
+        var p = e.GetPosition(this);
+        if (p.X <= 0 || p.Y <= 0 || p.X >= ActualWidth || p.Y >= ActualHeight) MarkDropTarget(null);
     }
 
     private void OnDrop(object sender, DragEventArgs e)
     {
+        MarkDropTarget(null);
         if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
-            _vm.AddFiles(files);
+            _vm.DropFiles(files, FindTile(e.OriginalSource as DependencyObject));
         e.Handled = true;
+    }
+
+    private void MarkDropTarget(TileViewModel? target)
+    {
+        foreach (var t in _vm.Tiles) t.IsImageDropTarget = ReferenceEquals(t, target);
+    }
+
+    /// <summary>The pad under the mouse (the pad grid only; the settings panel lies above it when open).</summary>
+    private TileViewModel? FindTile(DependencyObject? source)
+    {
+        if (_vm.SettingsOpen) return null;
+        for (var d = source; d is not null; d = d is System.Windows.Media.Visual or System.Windows.Media.Media3D.Visual3D
+                 ? System.Windows.Media.VisualTreeHelper.GetParent(d)
+                 : LogicalTreeHelper.GetParent(d))
+        {
+            if (d is FrameworkElement { DataContext: TileViewModel tile } fe && fe.Name == "Root") return tile;
+        }
+        return null;
     }
 
     private void OnClosed(object? sender, EventArgs e) => _vm.Dispose();

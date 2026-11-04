@@ -13,8 +13,9 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.9.0 mit
-überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe).
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.10.0 mit
+überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe) und Bildern als
+Pad-Hintergrund.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -98,9 +99,20 @@ Discords Dateien.
   Pad leuchtet in seiner Farbe auf; der dunklere Teil wandert von links nach rechts und zeigt,
   wie weit der Sound ist. Oben links steht die Taste als Tastenkappe, oben rechts die Länge.
   Eine Lautstärke unter 100 % steht unten rechts.
-- **Rechtsklick auf ein Pad:** Taste belegen oder entfernen, Lautstärke (Regler), umbenennen, im
-  Sound-Ordner zeigen, Pad entfernen (mit „Rückgängig“). **Strg + Mausrad** über einem Pad
-  ändert seine Lautstärke in 5-%-Schritten.
+- **Rechtsklick auf ein Pad:** Taste belegen oder entfernen, Lautstärke (Regler), umbenennen,
+  Bild wählen oder entfernen, im Sound-Ordner zeigen, Pad entfernen (mit „Rückgängig“).
+  **Strg + Mausrad** über einem Pad ändert seine Lautstärke in 5-%-Schritten.
+- **Bild als Hintergrund:** Rechtsklick → „Bild wählen …“ oder eine Bilddatei direkt **auf ein
+  Pad** ziehen (PNG, JPG, GIF – davon das erste Bild –, BMP, WebP, sofern Windows WebP lesen
+  kann). Das Bild füllt das Pad, wird mittig zugeschnitten und ist im Ruhezustand leicht
+  abgedunkelt; unten liegt ein dunkler Verlauf, damit Name, Lautstärke und Länge auf jedem Bild
+  lesbar bleiben (auch auf reinem Weiß mindestens 4,5 : 1). Beim Abspielen wird das Bild voll
+  hell, der Rand leuchtet in der Pad-Farbe, und ein Balken unten zeigt, wie weit der Sound
+  ist. Das Bild wird in den Bilder-Ordner kopiert (das Original bleibt) und verkleinert
+  geladen, große Fotos brauchen also wenig Speicher. Ein Bild auf der freien Fläche wird kein
+  Pad, sondern bekommt einen Hinweis. Fehlt die Bilddatei oder ist sie kaputt, zeigt das Pad
+  seine Farbe und einen gelben Hinweis „Bild fehlt“ mit „Anderes Bild wählen“ und „Bild
+  entfernen“; abspielen geht trotzdem. „Bild entfernen“ und das Ersetzen eines Bildes lassen sich rückgängig machen.
 - **Sounds hinzufügen:** MP3, WAV, OGG oder FLAC ins Fenster ziehen oder „Sounds hinzufügen …“.
   Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt. Ohne Sounds zeigt das
   Fenster eine Ablagefläche mit demselben Knopf.
@@ -174,9 +186,9 @@ dem Weg „von Hand“ ausgegeben.
 Rechtsklick auf das Notensymbol → **„Alles entfernen …“** oder `Soundboard.exe --uninstall`:
 
 1. **Audio-Zustand prüfen**, bei Abweichung „Standardgerät zurückstellen“.
-2. **Eigene Daten löschen** – erst nach Rückfrage; „Sounds behalten“ ist vorausgewählt.
-   Entfernt werden Einstellungen, Sicherungen, Test-Aufnahmen und der Autostart-Eintrag,
-   falls gesetzt.
+2. **Eigene Daten löschen** – erst nach Rückfrage; „Sounds behalten“ ist vorausgewählt und
+   behält auch die Pad-Bilder. Entfernt werden Einstellungen, Sicherungen, Test-Aufnahmen und
+   der Autostart-Eintrag, falls gesetzt; ohne Häkchen auch Sound- und Bilder-Ordner.
 3. **Kabel entfernen** – das Soundboard deinstalliert keinen Treiber. Weg: VB-CABLE-Setup als
    Administrator → „Remove Driver“ → Neustart → Geräte-Manager, „Ausgeblendete Geräte
    anzeigen“, verbliebene VB-Audio-Einträge entfernen → zweiter Neustart. Bei Resten im
@@ -195,8 +207,9 @@ Alles liegt unter `%LOCALAPPDATA%\Soundboard\`:
 
 | Datei/Ordner | Inhalt |
 |---|---|
-| `config.json` | Pads, Tasten, Geräte-IDs, Lautstärken, Puffer, Design (Darstellung, Akzentfarbe, Pad-Farben, Animationen) |
+| `config.json` | Pads (mit Bild), Tasten, Geräte-IDs, Lautstärken, Puffer, Design (Darstellung, Akzentfarbe, Pad-Farben, Animationen) |
 | `Sounds\` | die hereingezogenen Sounds (Kopien) |
+| `Bilder\` | die Pad-Bilder (Kopien); ein entferntes oder ersetztes Bild wird beim Beenden gelöscht, sofern es kein Pad mehr nutzt. Andere Dateien im Ordner bleiben unberührt |
 | `Aufnahmen\` | 10-Sekunden-Testaufnahmen |
 | `audio-snapshot.json` | gesicherter Windows-Audio-Zustand (beim ersten Start automatisch) |
 | `audio-snapshot.vorher.json` | die Sicherung davor |

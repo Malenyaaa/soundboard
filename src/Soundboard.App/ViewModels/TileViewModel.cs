@@ -31,6 +31,9 @@ public sealed class PadBrushes
         LitPlayed = B(c.LitPlayed);
         LitText = B(c.LitText);
         GlowColor = ThemeManager.ToColor(c.Lit);
+        var sweep = new SolidColorBrush(GlowColor) { Opacity = PadImageStyle.SweepAlpha };
+        sweep.Freeze();
+        LitSweep = sweep;
     }
 
     public Brush Face { get; }
@@ -43,6 +46,9 @@ public sealed class PadBrushes
     public Brush LitPlayed { get; }
     public Brush LitText { get; }
     public Color GlowColor { get; }
+
+    /// <summary>Played part over a picture: the pad colour, see-through.</summary>
+    public Brush LitSweep { get; }
 
     private static SolidColorBrush B(Rgb c)
     {
@@ -127,9 +133,22 @@ public sealed partial class TileViewModel : ObservableObject
 
     public bool HasIssueAction => _issueAction is not null && !string.IsNullOrEmpty(IssueActionText);
 
-    // The pad keeps two problems apart: the file (cannot play) goes first, then the key.
+    /// <summary>Second way out in the yellow box (only the picture problem has two).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasIssueAction2))]
+    private string? _issueAction2Text;
+
+    private Action? _issueAction2;
+
+    public bool HasIssueAction2 => _issueAction2 is not null && !string.IsNullOrEmpty(IssueAction2Text);
+
+    // The pad keeps three problems apart: the file (cannot play) goes first, then the key, then the picture.
     private (string? Text, string? ActionText, Action? Action) _loadIssue;
     private (string? Text, string? ActionText, Action? Action) _keyIssue;
+    private (string? Text, string? ActionText, Action? Action, string? Action2Text, Action? Action2) _imageIssue;
+
+    // Set by a click on the "Bild fehlt" chip: the box shows the picture problem until it closes.
+    private bool _showImageIssue;
 
     /// <summary>Way out for a key problem (settings list, context menu); null without one.</summary>
     [ObservableProperty]
@@ -150,14 +169,55 @@ public sealed partial class TileViewModel : ObservableObject
         ShowIssue();
     }
 
+    /// <summary>Problem of the picture (missing, broken). Null clears it. The pad still plays.</summary>
+    public void SetImageIssue(string? text, string? actionText = null, Action? action = null, string? action2Text = null, Action? action2 = null)
+    {
+        _imageIssue = (text, actionText, action, action2Text, action2);
+        ImageProblemText = text;
+        if (text is null) _showImageIssue = false;
+        ShowIssue();
+    }
+
     private void ShowIssue()
     {
-        var shown = _loadIssue.Text is not null ? _loadIssue : _keyIssue;
+        var shown = _showImageIssue && _imageIssue.Text is not null
+            ? _imageIssue
+            : _loadIssue.Text is not null ? (_loadIssue.Text, _loadIssue.ActionText, _loadIssue.Action, null, null)
+            : _keyIssue.Text is not null ? (_keyIssue.Text, _keyIssue.ActionText, _keyIssue.Action, null, null)
+            : _imageIssue;
         _issueAction = shown.Action;
+        _issueAction2 = shown.Action2;
         IssueActionText = shown.ActionText;
+        IssueAction2Text = shown.Action2Text;
         IssueText = shown.Text;
         OnPropertyChanged(nameof(HasIssueAction));
+        OnPropertyChanged(nameof(HasIssueAction2));
         if (shown.Text is null) IsIssueOpen = false;
+    }
+
+    partial void OnIsIssueOpenChanged(bool value)
+    {
+        if (value || !_showImageIssue) return;
+        _showImageIssue = false;
+        ShowIssue(); // back to the usual order for the next time
+    }
+
+    /// <summary>Click on the "Bild fehlt" chip: opens the yellow box with the picture problem.</summary>
+    [RelayCommand]
+    private void ShowImageIssue()
+    {
+        if (_imageIssue.Text is null) return;
+        _showImageIssue = true;
+        ShowIssue();
+        IsIssueOpen = true;
+    }
+
+    [RelayCommand]
+    private void RunIssueAction2()
+    {
+        var action = _issueAction2;
+        IsIssueOpen = false;
+        action?.Invoke();
     }
 
     [RelayCommand]
@@ -185,6 +245,13 @@ public sealed partial class TileViewModel : ObservableObject
     {
         if (HotkeyProblem && _keyIssue.Text is not null)
         {
+            if (_showImageIssue && IsIssueOpen)
+            {
+                // The box shows the picture problem: switch it to the key problem instead of closing it.
+                _showImageIssue = false;
+                ShowIssue();
+                if (_loadIssue.Text is null) return;
+            }
             if (_loadIssue.Text is null) IsIssueOpen = !IsIssueOpen;
             else RunKeyIssueAction(); // the yellow box shows the file problem; go straight to the key fix
         }
@@ -221,6 +288,38 @@ public sealed partial class TileViewModel : ObservableObject
 
     public bool IsLoading => State == TileState.Loading;
 
+    // ---------------------------------------------------------------- picture
+
+    /// <summary>The decoded picture (frozen), null without one or while it loads or when it is missing.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasImage))]
+    private ImageSource? _image;
+
+    public bool HasImage => Image is not null;
+
+    /// <summary>A picture is set in the profile (shown or not): "Bild entfernen" in the menu.</summary>
+    public bool HasImageConfigured => Config.Image is not null;
+
+    /// <summary>Text of the yellow "Bild fehlt" chip's tooltip; null = no picture problem.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasImageProblem))]
+    private string? _imageProblemText;
+
+    public bool HasImageProblem => ImageProblemText is not null;
+
+    /// <summary>Short label on the chip ("Bild fehlt", "Bild defekt").</summary>
+    [ObservableProperty]
+    private string _imageProblemLabel = "Bild fehlt";
+
+    /// <summary>A picture file is being dragged over this pad.</summary>
+    [ObservableProperty]
+    private bool _isImageDropTarget;
+
+    /// <summary>Increased on every picture load; stale results are ignored.</summary>
+    public int ImageLoadVersion { get; set; }
+
+    public void RefreshImageConfigured() => OnPropertyChanged(nameof(HasImageConfigured));
+
     /// <summary>Length as printed on the pad ("3,5 s", "1:05 min"); empty while loading or broken.</summary>
     public string DurationText => State == TileState.Ready && Clip is not null ? FormatDuration(Clip.Duration) : "";
 
@@ -242,10 +341,10 @@ public sealed partial class TileViewModel : ObservableObject
     public string ToolTipText => State == TileState.Error && ErrorText is not null
         ? ErrorText
         : HotkeyText is null
-            ? "Klick: abspielen, nochmal klicken: stoppen. Strg + Mausrad: Lautstärke. Rechtsklick: Taste belegen, umbenennen, entfernen"
+            ? "Klick: abspielen, nochmal klicken: stoppen. Strg + Mausrad: Lautstärke. Rechtsklick: Taste belegen, Bild wählen, umbenennen, entfernen"
             : HotkeyProblem
                 ? $"Die Taste {HotkeyText} funktioniert gerade nicht – Klick auf die Taste oben links zeigt, warum. Klick aufs Pad: abspielen."
-                : $"Klick oder {HotkeyText}: abspielen, nochmal: stoppen. Strg + Mausrad: Lautstärke. Rechtsklick: Taste ändern, umbenennen, entfernen";
+                : $"Klick oder {HotkeyText}: abspielen, nochmal: stoppen. Strg + Mausrad: Lautstärke. Rechtsklick: Taste ändern, Bild wählen, umbenennen, entfernen";
 
     public void RefreshStatus()
     {
@@ -298,6 +397,12 @@ public sealed partial class TileViewModel : ObservableObject
 
     [RelayCommand]
     private void ShowInFolder() => _owner.ShowTileInFolder(this);
+
+    [RelayCommand]
+    private void ChooseImage() => _owner.ChooseImageDialog(this);
+
+    [RelayCommand]
+    private void RemoveImage() => _owner.RemoveImage(this);
 
     public static string FormatDuration(TimeSpan d) =>
         d.TotalMinutes >= 1

@@ -21,6 +21,9 @@ public sealed class TileConfig
 
     /// <summary>Global hotkey as token text (e.g. "NumPad1"); null = none.</summary>
     public string? Hotkey { get; set; }
+
+    /// <summary>Background picture: file name inside the picture folder (no directory part); null = none. Since version 3.</summary>
+    public string? Image { get; set; }
 }
 
 /// <summary>User settings: tiles and the chosen monitor device. Stored as JSON.</summary>
@@ -93,7 +96,7 @@ public sealed class Profile
     /// <summary>Short transitions (pad lighting up). Windows' own "animation effects" setting is respected as well.</summary>
     public bool Animations { get; set; } = true;
 
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     /// <summary>
     /// Brings an older or hand-edited profile up to date: missing design values get their
@@ -132,6 +135,12 @@ public sealed class Profile
             if (!Design.Rgb.TryParse(t.Color, out _))
             {
                 t.Color = Design.PadPalette.ForIndex(Tiles.IndexOf(t));
+                changed = true;
+            }
+            // Only a plain file name inside the picture folder; anything else (folder parts, "..") is dropped.
+            if (t.Image is not null && !Images.ImageFiles.IsPlainFileName(t.Image))
+            {
+                t.Image = null;
                 changed = true;
             }
         }
@@ -237,6 +246,7 @@ public sealed class AppPaths
     {
         DataDir = dataDir;
         SoundsDir = Path.Combine(dataDir, "Sounds");
+        ImagesDir = Path.Combine(dataDir, "Bilder");
         ProfileFile = Path.Combine(dataDir, "config.json");
         RecordingsDir = Path.Combine(dataDir, "Aufnahmen");
         SnapshotFile = Path.Combine(dataDir, "audio-snapshot.json");
@@ -248,6 +258,10 @@ public sealed class AppPaths
 
     public string DataDir { get; }
     public string SoundsDir { get; }
+
+    /// <summary>Copies of the pad pictures.</summary>
+    public string ImagesDir { get; }
+
     public string ProfileFile { get; }
 
     /// <summary>Test recordings (10-second WAV files).</summary>
@@ -264,15 +278,91 @@ public sealed class AppPaths
     /// If a file with that name exists and has the same content, it is reused; otherwise a
     /// number is appended.
     /// </summary>
-    public string ImportSound(string sourcePath)
+    public string ImportSound(string sourcePath) => Import(SoundsDir, sourcePath);
+
+    /// <summary>
+    /// Checks a picture (exists, picture ending, readable header) and copies it into the picture
+    /// folder like <see cref="ImportSound"/>. Returns the file name inside the picture folder.
+    /// Throws <see cref="Images.ImageImportException"/> with a German reason.
+    /// </summary>
+    public string ImportImage(string sourcePath)
     {
-        Directory.CreateDirectory(SoundsDir);
+        Images.ImageFiles.Check(sourcePath);
+        return Import(ImagesDir, sourcePath);
+    }
+
+    /// <summary>Full path of a picture stored in the profile; null for none or an unusable name.</summary>
+    public string? ImagePath(string? fileName) =>
+        Images.ImageFiles.IsPlainFileName(fileName) ? Path.Combine(ImagesDir, fileName!) : null;
+
+    /// <summary>List of pictures the app let go of (removed, replaced, pad removed), waiting to be deleted.</summary>
+    public string ReleasedImagesFile => Path.Combine(ImagesDir, ".loeschen");
+
+    /// <summary>
+    /// Notes that no pad needs this picture any more. It is not deleted yet ("Rückgängig" may bring
+    /// it back); <see cref="RemoveReleasedImages"/> deletes it later if it is still unused.
+    /// </summary>
+    public void ReleaseImage(string? fileName)
+    {
+        if (!Images.ImageFiles.IsPlainFileName(fileName) || !Directory.Exists(ImagesDir)) return;
+        try
+        {
+            File.AppendAllLines(ReleasedImagesFile, [fileName!]);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Only the tidying is missing; the picture stays.
+        }
+    }
+
+    /// <summary>
+    /// Deletes the released pictures that no pad in <paramref name="used"/> needs. Pictures the app
+    /// never released (copied there by hand, kept from an older installation) are never touched.
+    /// Returns how many went.
+    /// </summary>
+    public int RemoveReleasedImages(IEnumerable<string?> used)
+    {
+        if (!File.Exists(ReleasedImagesFile)) return 0;
+        var keep = new HashSet<string>(used.Where(u => u is not null)!, StringComparer.OrdinalIgnoreCase);
+        int removed = 0;
+        var stillPending = new List<string>();
+        try
+        {
+            foreach (var name in File.ReadAllLines(ReleasedImagesFile).Select(l => l.Trim()).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (!Images.ImageFiles.IsPlainFileName(name) || keep.Contains(name)) continue;
+                var path = Path.Combine(ImagesDir, name);
+                try
+                {
+                    if (File.Exists(path))
+                    {
+                        File.Delete(path);
+                        removed++;
+                    }
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    stillPending.Add(name); // in use or protected: next time
+                }
+            }
+            if (stillPending.Count == 0) File.Delete(ReleasedImagesFile);
+            else File.WriteAllLines(ReleasedImagesFile, stillPending);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+        }
+        return removed;
+    }
+
+    private static string Import(string dir, string sourcePath)
+    {
+        Directory.CreateDirectory(dir);
         var baseName = Path.GetFileNameWithoutExtension(sourcePath);
         var ext = Path.GetExtension(sourcePath);
         var name = baseName + ext;
         for (int i = 2; ; i++)
         {
-            var dest = Path.Combine(SoundsDir, name);
+            var dest = Path.Combine(dir, name);
             if (!File.Exists(dest))
             {
                 File.Copy(sourcePath, dest);

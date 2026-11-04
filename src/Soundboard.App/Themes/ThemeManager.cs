@@ -106,7 +106,43 @@ public static class ThemeManager
         Set(app, "AccentPressed", ToColor(Accent.Pressed));
         Set(app, "OnAccentBrush", ToColor(Accent.OnFill));
         Set(app, "AccentSoft", ToColor(Accent.Soft));
+        SetPadImageBrushes(app);
         Changed?.Invoke(null, EventArgs.Empty);
+    }
+
+    /// <summary>Brushes of pads with a picture. They lie on the picture, not on the window, so only the resting dim differs between light and dark.</summary>
+    private static void SetPadImageBrushes(Application app)
+    {
+        var ink = ToColor(PadImageStyle.Ink);
+        Color InkAt(double alpha) => Color.FromArgb((byte)Math.Round(alpha * 255), ink.R, ink.G, ink.B);
+        Set(app, "PadImageText", ToColor(PadImageStyle.Text));
+
+        Set(app, "PadImageDim", InkAt(PadImageStyle.IdleDimAlpha(IsDark)));
+        Set(app, "PadImageTrack", Color.FromArgb(0x59, 0xFF, 0xFF, 0xFF));
+        // One brush for the whole backdrop (no seam): soft over the first pixels, then solid ink down to the edge.
+        var fade = new LinearGradientBrush
+        {
+            MappingMode = BrushMappingMode.Absolute,
+            StartPoint = new Point(0, 0),
+            EndPoint = new Point(0, PadImageStyle.FadeHeight),
+            SpreadMethod = GradientSpreadMethod.Pad,
+        };
+        fade.GradientStops.Add(new GradientStop(InkAt(0), 0));
+        fade.GradientStops.Add(new GradientStop(InkAt(PadImageStyle.BackdropAlpha * 0.4), 0.5));
+        fade.GradientStops.Add(new GradientStop(InkAt(PadImageStyle.BackdropAlpha), 1));
+        fade.Freeze();
+        app.Resources["PadImageBackdrop"] = fade;
+        app.Resources["PadImageChip"] = Frozen(InkAt(PadImageStyle.BackdropAlpha));
+        // The backdrop reaches from the pad edges up to FadeHeight above the text.
+        app.Resources["PadImageBackdropMargin"] = new Thickness(-12, -PadImageStyle.FadeHeight, -12, -10);
+        app.Resources["PadImageBarHeight"] = PadImageStyle.BarHeight;
+    }
+
+    private static SolidColorBrush Frozen(Color c)
+    {
+        var b = new SolidColorBrush(c);
+        b.Freeze();
+        return b;
     }
 
     private static void Set(Application app, string key, Color c)

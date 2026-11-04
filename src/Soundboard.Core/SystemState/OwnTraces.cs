@@ -7,7 +7,7 @@ public sealed record TraceItem(string Description, string Path, bool Removed, st
 
 /// <summary>
 /// The app's own files in the data folder: settings, snapshots, running flag, test
-/// recordings and (only on request) the sound folder. Nothing outside the data folder.
+/// recordings and (only on request) the sound and picture folders. Nothing outside the data folder.
 /// </summary>
 public static class OwnTraces
 {
@@ -30,6 +30,7 @@ public static class OwnTraces
         AddFile("Merker „läuft gerade“", paths.DirtyFlagFile);
         if (Directory.Exists(paths.RecordingsDir)) list.Add(("Test-Aufnahmen", paths.RecordingsDir));
         if (!keepSounds && Directory.Exists(paths.SoundsDir)) list.Add(("Sound-Ordner mit allen Sounds", paths.SoundsDir));
+        if (!keepSounds && Directory.Exists(paths.ImagesDir)) list.Add(("Bilder-Ordner mit allen Pad-Bildern", paths.ImagesDir));
         return list;
     }
 

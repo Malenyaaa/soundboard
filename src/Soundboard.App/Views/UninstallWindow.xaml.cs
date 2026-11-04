@@ -113,7 +113,7 @@ public partial class UninstallWindow : Window
             sb.Append("Gelöscht wird im Datenordner ").Append(_paths.DataDir).Append(':');
             foreach (var group in items.GroupBy(i => i.Description)) sb.Append(Environment.NewLine).Append("•  ").Append(group.Key);
             if (autostart is not null) sb.Append(Environment.NewLine).Append("•  Eintrag „mit Windows starten“");
-            if (keep && Directory.Exists(_paths.SoundsDir)) sb.Append(Environment.NewLine).Append("Der Sound-Ordner bleibt.");
+            if (keep && (Directory.Exists(_paths.SoundsDir) || Directory.Exists(_paths.ImagesDir))) sb.Append(Environment.NewLine).Append("Sound- und Bilder-Ordner bleiben.");
         }
         TracesText.Text = sb.ToString();
     }
@@ -128,8 +128,8 @@ public partial class UninstallWindow : Window
         }
         bool keep = KeepSounds.IsChecked == true;
         var question = keep
-            ? "Einstellungen, Sicherungen und Test-Aufnahmen des Soundboards löschen? Der Sound-Ordner bleibt. Das lässt sich nicht rückgängig machen."
-            : "Einstellungen, Sicherungen, Test-Aufnahmen UND alle Sounds des Soundboards löschen? Das lässt sich nicht rückgängig machen.";
+            ? "Einstellungen, Sicherungen und Test-Aufnahmen des Soundboards löschen? Sound- und Bilder-Ordner bleiben. Das lässt sich nicht rückgängig machen."
+            : "Einstellungen, Sicherungen, Test-Aufnahmen UND alle Sounds und Pad-Bilder des Soundboards löschen? Das lässt sich nicht rückgängig machen.";
         if (MessageBox.Show(this, question, "Eigene Daten löschen", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
             return;
 

@@ -39,6 +39,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool _disposed;
     private bool _initialized;
 
+    // Released pictures are only tidied up when the profile was read cleanly, and at exit only
+    // when the profile on disk is current.
+    private readonly bool _imagesTidyAllowed;
+    private bool _lastSaveOk = true;
+
     public MainViewModel(AppServices services)
     {
         _services = services;
@@ -50,6 +55,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var loaded = ProfileStore.Load(_paths.ProfileFile);
         _profile = loaded.Profile;
         if (loaded.Problem is not null) ShowNotice("profile", loaded.Problem);
+        _imagesTidyAllowed = loaded.Problem is null;
+        RemoveReleasedImages();
 
         _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
         _saveTimer.Tick += (_, _) => SaveNow();
@@ -91,6 +98,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var tile = new TileViewModel(this, t);
             Tiles.Add(tile);
             _ = LoadTileAsync(tile);
+            _ = LoadTileImageAsync(tile);
         }
 
         _hotkeys = new HotkeyService(services.Hotkeys);
@@ -545,11 +553,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
+        var direct = new HashSet<string>(paths, StringComparer.OrdinalIgnoreCase);
         var rejected = new List<string>();
         var failed = new List<string>();
         int added = 0;
+        bool pictureChosen = false;
         foreach (var file in files)
         {
+            if (Soundboard.Core.Images.ImageFiles.HasImageExtension(file))
+            {
+                // Pictures in a dropped folder are skipped quietly; a picture picked as a sound gets a hint.
+                if (direct.Contains(file)) pictureChosen = true;
+                continue;
+            }
             if (!SoundDecoder.IsSupported(file))
             {
                 rejected.Add(Path.GetFileName(file));
@@ -587,6 +603,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ClearNotice("rejected");
         if (failed.Count > 0)
             ShowNotice("copy", $"Konnte nicht in den Sound-Ordner kopiert werden: {string.Join(", ", failed)}");
+        if (pictureChosen)
+            ShowNotice("image-many", "Bilder werden keine Pads, sondern der Hintergrund eines Pads: Rechtsklick auf das Pad → „Bild wählen …“ oder das Bild direkt auf das Pad ziehen.");
     }
 
     [RelayCommand]
@@ -610,6 +628,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         int configIndex = _profile.Tiles.IndexOf(tile.Config);
         _profile.Tiles.Remove(tile.Config);
         _bank.Remove(tile.Config.Id);
+        _paths.ReleaseImage(tile.Config.Image); // deleted later unless "Rückgängig" brings the pad back
         _hotkeys.Remove(tile.Config.Id.ToString());
         ClearNotice("hotkey-" + tile.Config.Id);
         RefreshHotkeyViews();
@@ -621,6 +640,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var restored = new TileViewModel(this, tile.Config);
             Tiles.Insert(Math.Clamp(index, 0, Tiles.Count), restored);
             _ = LoadTileAsync(restored);
+            _ = LoadTileImageAsync(restored);
             _hotkeys.Set(restored.Config.Id.ToString(), HotkeyGesture.Parse(restored.Config.Hotkey));
             RefreshHotkeyViews();
             ScheduleSave();
@@ -1699,17 +1719,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _saveTimer.Start();
     }
 
-    private void SaveNow()
+    private void SaveNow() => TrySave();
+
+    private bool TrySave()
     {
         _saveTimer.Stop();
         try
         {
             ProfileStore.Save(_paths.ProfileFile, _profile);
             ClearNotice("save");
+            _lastSaveOk = true;
+            return true;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             ShowNotice("save", $"Die Einstellungen ließen sich nicht speichern ({ex.Message}). Ist der Datenordner schreibgeschützt?", "Erneut versuchen", SaveNow);
+            _lastSaveOk = false;
+            return false;
         }
     }
 
@@ -1719,7 +1745,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _disposed = true;
         _progressTimer.Stop();
         _deviceTimer.Stop();
-        if (_saveTimer.IsEnabled) SaveNow();
+        // Pictures of removed pads (or replaced pictures) go once the profile without them is on disk.
+        bool saved = _saveTimer.IsEnabled ? TrySave() : _lastSaveOk;
+        if (saved) RemoveReleasedImages();
         StopMix();
         StopSink();
         _hotkeys.Dispose();

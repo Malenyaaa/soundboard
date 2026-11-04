@@ -11,12 +11,14 @@ public sealed class OwnTracesTests
         var paths = new AppPaths(Path.Combine(dir.Path, "Soundboard"));
         Directory.CreateDirectory(paths.SoundsDir);
         Directory.CreateDirectory(paths.RecordingsDir);
+        Directory.CreateDirectory(paths.ImagesDir);
         File.WriteAllText(paths.ProfileFile, "{}");
         File.WriteAllText(paths.SnapshotFile, "{}");
         File.WriteAllText(Path.Combine(paths.DataDir, "audio-snapshot.vorher.json"), "{}");
         File.WriteAllText(paths.DirtyFlagFile, "{}");
         File.WriteAllText(Path.Combine(paths.SoundsDir, "a.wav"), "x");
         File.WriteAllText(Path.Combine(paths.RecordingsDir, "test.wav"), "x");
+        File.WriteAllText(Path.Combine(paths.ImagesDir, "a.png"), "x");
         return paths;
     }
 
@@ -33,6 +35,7 @@ public sealed class OwnTracesTests
 
         Assert.IsTrue(result.All(r => r.Removed));
         Assert.IsTrue(File.Exists(Path.Combine(paths.SoundsDir, "a.wav")));
+        Assert.IsTrue(File.Exists(Path.Combine(paths.ImagesDir, "a.png")), "pictures are kept with the sounds");
         Assert.IsFalse(File.Exists(paths.ProfileFile));
         Assert.IsFalse(File.Exists(paths.SnapshotFile));
         Assert.IsFalse(File.Exists(paths.DirtyFlagFile));
@@ -49,6 +52,7 @@ public sealed class OwnTracesTests
 
         var listed = OwnTraces.List(paths, keepSounds: false);
         Assert.IsTrue(listed.Any(l => l.Path == paths.SoundsDir));
+        Assert.IsTrue(listed.Any(l => l.Path == paths.ImagesDir));
 
         OwnTraces.Remove(paths, keepSounds: false);
 

@@ -57,7 +57,7 @@
                 <!-- 2 -->
                 <TextBlock Style="{StaticResource H}" Text="2. Eigene Daten des Soundboards löschen" />
                 <TextBlock x:Name="TracesText" Style="{StaticResource P}" />
-                <CheckBox x:Name="KeepSounds" Content="Sounds behalten (der Sound-Ordner bleibt)" IsChecked="True" Margin="0,8,0,0" Checked="OnKeepChanged" Unchecked="OnKeepChanged" />
+                <CheckBox x:Name="KeepSounds" Content="Sounds behalten (Sound- und Bilder-Ordner bleiben)" IsChecked="True" Margin="0,8,0,0" Checked="OnKeepChanged" Unchecked="OnKeepChanged" />
                 <Button x:Name="RemoveButton" Style="{StaticResource B}" Content="Eigene Daten löschen …" Click="OnRemoveTraces" />
                 <TextBlock x:Name="RemoveText" Style="{StaticResource P}" Margin="0,6,0,0" Visibility="Collapsed" />
 

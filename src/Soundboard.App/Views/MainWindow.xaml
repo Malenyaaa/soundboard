@@ -7,7 +7,7 @@
         Background="{DynamicResource WindowBg}" Foreground="{DynamicResource TextBrush}"
         FontFamily="{DynamicResource FontText}" FontSize="{DynamicResource SizeText}"
         TextOptions.TextFormattingMode="Display"
-        AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown"
+        AllowDrop="True" DragOver="OnDragOver" DragLeave="OnDragLeave" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown"
         SizeChanged="OnSizeChanged" Closed="OnClosed">
 
     <!--
@@ -141,6 +141,37 @@
             </Setter>
         </Style>
 
+        <!-- Small yellow chip on a pad ("Bild fehlt"): click shows the problem with the way out. 28 px clickable, smaller printed. -->
+        <Style x:Key="PadChip" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource NoticeText}" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent" Padding="0,3">
+                            <Grid>
+                                <Border x:Name="Bd" Background="{DynamicResource NoticeBg}" BorderBrush="{DynamicResource NoticeLine}" BorderThickness="1" CornerRadius="5" Padding="5,1,7,2">
+                                    <ContentPresenter VerticalAlignment="Center" />
+                                </Border>
+                                <Border x:Name="Hover" CornerRadius="5" Background="{DynamicResource HoverOverlay}" Visibility="Collapsed" IsHitTestVisible="False" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Hover" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource NoticeButtonHover}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="WarnIcon" TargetType="Path">
             <Setter Property="Data" Value="{StaticResource WarnGeometry}" />
             <Setter Property="Stroke" Value="{DynamicResource NoticeText}" />
@@ -176,6 +207,10 @@
                             </MenuItem.Header>
                         </MenuItem>
                         <MenuItem Header="Umbenennen" Command="{Binding RenameCommand}" />
+                        <MenuItem Header="Bild wählen …" Command="{Binding ChooseImageCommand}"
+                                  ToolTip="Ein Bild als Hintergrund dieses Pads (PNG, JPG, GIF, BMP oder WebP). Es wird in den Bilder-Ordner kopiert; ziehen geht auch." />
+                        <MenuItem Header="Bild entfernen" Command="{Binding RemoveImageCommand}"
+                                  Visibility="{Binding HasImageConfigured, Converter={StaticResource BoolToVis}}" />
                         <MenuItem Header="Im Sound-Ordner zeigen" Command="{Binding ShowInFolderCommand}" />
                         <Separator />
                         <MenuItem Header="Pad entfernen" Command="{Binding RemoveCommand}" />
@@ -192,36 +227,74 @@
                 <Button x:Name="PadBtn" Style="{StaticResource PadButton}" Command="{Binding ClickCommand}"
                         Background="{Binding Pad.Face}" BorderBrush="{Binding Pad.Line}" Foreground="{Binding Pad.Text}"
                         AutomationProperties.Name="{Binding Name}">
-                    <Grid>
+                    <!-- Everything inside the rim, cut to the pad's rounded shape. -->
+                    <Grid Margin="-12,-10" views:RoundClip.Radius="8.5">
+                        <!-- Picture: fills the pad, centred and cut (uniform to fill); a little dimmed while the pad rests. -->
+                        <Grid x:Name="Art" Visibility="{Binding HasImage, Converter={StaticResource BoolToVis}}" IsHitTestVisible="False">
+                            <Border>
+                                <Border.Background>
+                                    <ImageBrush ImageSource="{Binding Image}" Stretch="UniformToFill" AlignmentX="Center" AlignmentY="Center" />
+                                </Border.Background>
+                            </Border>
+                            <Border x:Name="Dim" Background="{DynamicResource PadImageDim}" />
+                        </Grid>
                         <!-- Played part: sweeps from left to right like a play head. -->
-                        <Border x:Name="Played" Margin="-12,-10" CornerRadius="9,0,0,9" Background="{Binding Pad.LitPlayed}" Visibility="Collapsed"
+                        <Border x:Name="Played" Background="{Binding Pad.LitPlayed}" Visibility="Collapsed"
                                 RenderTransformOrigin="0,0.5" IsHitTestVisible="False">
                             <Border.RenderTransform>
                                 <ScaleTransform ScaleX="{Binding Progress}" />
                             </Border.RenderTransform>
                         </Border>
-                        <DockPanel>
-                            <DockPanel DockPanel.Dock="Bottom" LastChildFill="True">
-                                <TextBlock x:Name="Vol" DockPanel.Dock="Right" Text="{Binding VolumeText}" Style="{StaticResource Num}" FontSize="12" VerticalAlignment="Bottom" Margin="8,0,0,2"
-                                           Visibility="{Binding ShowVolume, Converter={StaticResource BoolToVis}}" />
-                                <StackPanel VerticalAlignment="Bottom">
-                                    <TextBlock x:Name="Status" Text="{Binding StatusText}" FontSize="12" Margin="0,0,0,2"
-                                               Visibility="{Binding StatusText, Converter={StaticResource TextToVis}}" />
-                                    <TextBlock Text="{Binding Name}" FontFamily="{DynamicResource FontPad}" FontSize="16" LineHeight="19"
-                                               LineStackingStrategy="BlockLineHeight" MaxHeight="57" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
-                            </DockPanel>
+                        <DockPanel Margin="12,10">
+                            <Grid DockPanel.Dock="Bottom">
+                                <!-- Dark ink under the text on a picture: soft above, solid where the text is. -->
+                                <Border x:Name="Backdrop" Margin="{DynamicResource PadImageBackdropMargin}" Background="{DynamicResource PadImageBackdrop}" IsHitTestVisible="False"
+                                        Visibility="{Binding HasImage, Converter={StaticResource BoolToVis}}" />
+                                <DockPanel LastChildFill="True">
+                                    <TextBlock x:Name="Vol" DockPanel.Dock="Right" Text="{Binding VolumeText}" Style="{StaticResource Num}" FontSize="12" VerticalAlignment="Bottom" Margin="8,0,0,2"
+                                               Visibility="{Binding ShowVolume, Converter={StaticResource BoolToVis}}" />
+                                    <StackPanel VerticalAlignment="Bottom">
+                                        <Button Style="{StaticResource PadChip}" Command="{Binding ShowImageIssueCommand}" Margin="0,0,0,2"
+                                                ToolTip="{Binding ImageProblemText}" AutomationProperties.Name="{Binding ImageProblemLabel}"
+                                                Visibility="{Binding HasImageProblem, Converter={StaticResource BoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource WarnIcon}" Width="13" Height="12" Stretch="Uniform" Margin="0,0,5,0" StrokeThickness="1.4" VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding ImageProblemLabel}" />
+                                            </StackPanel>
+                                        </Button>
+                                        <TextBlock x:Name="Status" Text="{Binding StatusText}" FontSize="12" Margin="0,0,0,2"
+                                                   Visibility="{Binding StatusText, Converter={StaticResource TextToVis}}" />
+                                        <TextBlock Text="{Binding Name}" FontFamily="{DynamicResource FontPad}" FontSize="16" LineHeight="19"
+                                                   LineStackingStrategy="BlockLineHeight" MaxHeight="57" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Grid>
                             <Border />
                         </DockPanel>
+                        <!-- Progress on a picture: a bar in the pad colour on the dark edge, readable on any picture. -->
+                        <Grid x:Name="Bar" VerticalAlignment="Bottom" Margin="8,0,8,3" Height="{DynamicResource PadImageBarHeight}" Visibility="Collapsed" IsHitTestVisible="False"
+                              views:RoundClip.Radius="2">
+                            <Border Background="{DynamicResource PadImageTrack}" />
+                            <Border Background="{Binding Pad.Lit}" RenderTransformOrigin="0,0.5">
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleX="{Binding Progress}" />
+                                </Border.RenderTransform>
+                            </Border>
+                        </Grid>
                     </Grid>
                 </Button>
 
                 <!-- Top row: key cap (left), length (right). The length never gives way. -->
                 <DockPanel VerticalAlignment="Top" Margin="11,8,12,0" LastChildFill="False">
-                    <TextBlock x:Name="Dur" DockPanel.Dock="Right" Text="{Binding DurationText}" Style="{StaticResource Num}" FontSize="13"
-                               Foreground="{Binding Pad.Text}" Margin="8,5,0,0" VerticalAlignment="Top" IsHitTestVisible="False" />
-                    <Rectangle x:Name="StopGlyph" DockPanel.Dock="Right" Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" VerticalAlignment="Top" Margin="8,8,0,0"
-                               Fill="{Binding Pad.LitText}" Visibility="Collapsed" IsHitTestVisible="False" />
+                    <!-- Length (and the stop square while playing); on a picture it sits on a small ink chip. -->
+                    <Border x:Name="DurChip" DockPanel.Dock="Right" VerticalAlignment="Top" Margin="8,5,0,0" CornerRadius="5" IsHitTestVisible="False"
+                            Visibility="{Binding DurationText, Converter={StaticResource TextToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Rectangle x:Name="StopGlyph" Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" VerticalAlignment="Center" Margin="0,0,7,0"
+                                       Fill="{Binding Pad.LitText}" Visibility="Collapsed" />
+                            <TextBlock x:Name="Dur" Text="{Binding DurationText}" Style="{StaticResource Num}" FontSize="13" Foreground="{Binding Pad.Text}" />
+                        </StackPanel>
+                    </Border>
                     <Button x:Name="Cap" DockPanel.Dock="Left" Style="{StaticResource KeyCap}" Command="{Binding KeyCapClickCommand}"
                             Background="{Binding Pad.CapBg}" BorderBrush="{Binding Pad.CapLine}" Foreground="{Binding Pad.Text}"
                             Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}"
@@ -237,6 +310,14 @@
                             Background="Transparent" BorderBrush="{Binding Pad.Line}" Foreground="{Binding Pad.Text}" FontFamily="{DynamicResource FontText}"
                             Content="Taste …" ToolTip="Taste für dieses Pad belegen" Visibility="Collapsed" />
                 </DockPanel>
+
+                <!-- A picture is dragged over this pad: it will take it. -->
+                <Border CornerRadius="10" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="3" IsHitTestVisible="False"
+                        Visibility="{Binding IsImageDropTarget, Converter={StaticResource BoolToVis}}">
+                    <Border Background="{DynamicResource AccentBrush}" CornerRadius="5" Padding="8,3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Bild für dieses Pad" Foreground="{DynamicResource OnAccentBrush}" FontSize="12" />
+                    </Border>
+                </Border>
 
                 <!-- Rename in place -->
                 <TextBox x:Name="RenameBox" Text="{Binding Name, UpdateSourceTrigger=Explicit}" VerticalAlignment="Bottom" Margin="8"
@@ -261,6 +342,8 @@
                         <WrapPanel Margin="0,6,0,0">
                             <Button Style="{StaticResource NoticeButton}" Content="{Binding IssueActionText}" Command="{Binding RunIssueActionCommand}" FontSize="12"
                                     Margin="0,0,6,4" Visibility="{Binding HasIssueAction, Converter={StaticResource BoolToVis}}" />
+                            <Button Style="{StaticResource NoticeButton}" Content="{Binding IssueAction2Text}" Command="{Binding RunIssueAction2Command}" FontSize="12"
+                                    Margin="0,0,6,4" Visibility="{Binding HasIssueAction2, Converter={StaticResource BoolToVis}}" />
                             <Button Style="{StaticResource NoticeButton}" Content="Schließen" Command="{Binding CloseIssueCommand}" FontSize="12" Margin="0,0,6,4" />
                         </WrapPanel>
                     </StackPanel>
@@ -268,6 +351,15 @@
                 </Canvas>
             </Grid>
             <DataTemplate.Triggers>
+                <!-- Picture: light text on the ink, the length on its chip, the ghost key cap on its own ground. -->
+                <DataTrigger Binding="{Binding HasImage}" Value="True">
+                    <Setter TargetName="PadBtn" Property="Foreground" Value="{DynamicResource PadImageText}" />
+                    <Setter TargetName="Dur" Property="Foreground" Value="{DynamicResource PadImageText}" />
+                    <Setter TargetName="DurChip" Property="Background" Value="{DynamicResource PadImageChip}" />
+                    <Setter TargetName="DurChip" Property="Padding" Value="6,1,6,2" />
+                    <Setter TargetName="DurChip" Property="Margin" Value="8,4,0,0" />
+                    <Setter TargetName="GhostCap" Property="Background" Value="{Binding Pad.CapBg}" />
+                </DataTrigger>
                 <DataTrigger Binding="{Binding IsPlaying}" Value="True">
                     <Setter TargetName="Glow" Property="Opacity" Value="1" />
                     <Setter TargetName="Glow" Property="Visibility" Value="Visible" />
@@ -278,6 +370,20 @@
                     <Setter TargetName="Played" Property="Visibility" Value="Visible" />
                     <Setter TargetName="StopGlyph" Property="Visibility" Value="Visible" />
                 </DataTrigger>
+                <!-- Picture playing: full brightness, the rim lights in the pad colour, the played part as a tint plus the bar. -->
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding HasImage}" Value="True" />
+                        <Condition Binding="{Binding IsPlaying}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter TargetName="PadBtn" Property="Foreground" Value="{DynamicResource PadImageText}" />
+                    <Setter TargetName="PadBtn" Property="BorderBrush" Value="{Binding Pad.Lit}" />
+                    <Setter TargetName="Dur" Property="Foreground" Value="{DynamicResource PadImageText}" />
+                    <Setter TargetName="StopGlyph" Property="Fill" Value="{DynamicResource PadImageText}" />
+                    <Setter TargetName="Played" Property="Background" Value="{Binding Pad.LitSweep}" />
+                    <Setter TargetName="Dim" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="Bar" Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
                 <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
                         <Condition Binding="{Binding IsPlaying}" Value="True" />
