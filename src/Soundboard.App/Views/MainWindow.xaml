@@ -84,7 +84,7 @@
                         Command="{Binding OpenSoundsFolderCommand}" ToolTip="{Binding SoundsDir}" />
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock TextTrimming="CharacterEllipsis">
-                        <Run Text="{Binding StatusMonitor, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusHotkeys, Mode=OneWay}" />
+                        <Run Text="{Binding StatusMonitor, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusHotkeys, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusMix, Mode=OneWay}" />
                     </TextBlock>
                     <TextBlock Text="{Binding StatusDefaults}" Foreground="{DynamicResource SubTextBrush}" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
@@ -146,6 +146,45 @@
                             Margin="0,4,20,4" ToolTip="MP3-, WAV-, OGG- oder FLAC-Dateien auswählen. Sie werden in den Sound-Ordner kopiert." />
                 </WrapPanel>
             </DockPanel>
+        </Border>
+
+        <!-- Microphone path: microphone + sounds go into the mix (test file now, cable later) -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Padding="12,6,12,8">
+            <WrapPanel VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
+                    <TextBlock Text="Mikrofon" VerticalAlignment="Center" />
+                    <ComboBox ItemsSource="{Binding MicChoices}" SelectedItem="{Binding SelectedMic}" DisplayMemberPath="Display"
+                              Width="270" Margin="8,0,0,0"
+                              ToolTip="Dein echtes Mikrofon. Es wird mit den Sounds gemischt. Die Windows-Einstellungen bleiben unverändert." />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
+                    <TextBlock Text="Mikro-Lautstärke" VerticalAlignment="Center" />
+                    <Slider Minimum="0" Maximum="200" Width="110" Margin="8,0" VerticalAlignment="Center"
+                            Value="{Binding MicVolumePercent}" SmallChange="1" LargeChange="10" IsMoveToPointEnabled="True"
+                            ToolTip="Lautstärke deiner Stimme im Mix. 100 % = unverändert. Die Windows-Lautstärke des Mikrofons bleibt, wie sie ist." />
+                    <TextBlock Text="{Binding MicVolumePercent, StringFormat={}{0:0} %}" Width="44" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4,20,4" ToolTip="Wie laut das ist, was gerade gemischt wird (Stimme und Sounds).">
+                    <TextBlock Text="Pegel" VerticalAlignment="Center" />
+                    <ProgressBar Width="110" Height="8" Margin="8,0,0,0" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}"
+                                 Foreground="{DynamicResource MeterBrush}" Background="{DynamicResource TrackBg}" BorderThickness="0" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
+                    <TextBlock Text="Puffer" VerticalAlignment="Center" />
+                    <ComboBox ItemsSource="{Binding BufferChoices}" SelectedItem="{Binding SelectedBuffer}" DisplayMemberPath="Display"
+                              Width="140" Margin="8,0,0,0"
+                              ToolTip="Klein = weniger Verzögerung. Größer wählen, wenn die Stimme knackt oder Aussetzer hat." />
+                </StackPanel>
+                <CheckBox Content="Stimme blockieren" IsChecked="{Binding BlockVoice}" VerticalAlignment="Center" Margin="0,4,20,4"
+                          ToolTip="Dein Mikrofon ist stumm, solange ein Sound läuft." />
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
+                    <Button Content="10 s Test aufnehmen" Style="{StaticResource PlainButton}" Command="{Binding RecordTestCommand}"
+                            ToolTip="Nimmt 10 Sekunden Mikrofon und Sounds in eine WAV-Datei auf. So hörst du ohne Kabel, wie der Mix klingt." />
+                    <TextBlock Text="{Binding TestStatus}" VerticalAlignment="Center" Foreground="{DynamicResource SubTextBrush}" TextWrapping="Wrap" MaxWidth="360" />
+                    <Button Content="Im Ordner zeigen" Style="{StaticResource PlainButton}" Margin="8,0,0,0" Command="{Binding ShowTestFileCommand}"
+                            Visibility="{Binding HasTestFile, Converter={StaticResource BoolToVis}}" />
+                </StackPanel>
+            </WrapPanel>
         </Border>
 
         <!-- Yellow notices -->
@@ -214,7 +253,7 @@
                                                 CornerRadius="6,6,0,0" Padding="10,6"
                                                 Visibility="{Binding IsCapturingKey, Converter={StaticResource BoolToVis}}">
                                             <TextBlock Text="{Binding CaptureHint}" TextWrapping="Wrap" VerticalAlignment="Center"
-                                                       Foreground="{DynamicResource TextBrush}" FontSize="12" />
+                                                       Foreground="{DynamicResource TextBrush}" FontSize="11.5" LineHeight="15" />
                                         </Border>
                                     </Grid>
                                     <ProgressBar Height="5" Minimum="0" Maximum="1" Value="{Binding Progress}"

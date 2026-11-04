@@ -30,3 +30,6 @@ public sealed record OutputChoice(string Id, string Name, bool IsAvailable, bool
         : IsDefault ? $"{Name} (Windows-Standard)"
         : Name;
 }
+
+/// <summary>An entry of the buffer size selection.</summary>
+public sealed record BufferChoice(BufferSize Size, string Display);

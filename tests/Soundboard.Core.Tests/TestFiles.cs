@@ -42,3 +42,23 @@ internal static class WavFactory
         for (int i = 0; i < frames * channels; i++) writer.WriteSample(value);
     }
 }
+
+internal static class Alloc
+{
+    /// <summary>
+    /// Bytes allocated on this thread by <paramref name="action"/>. Measured up to three
+    /// times; the smallest value counts, because the runtime may allocate once on its own
+    /// (e.g. when it recompiles a hot method). A real allocation shows up in every round.
+    /// </summary>
+    public static long Measure(Action action)
+    {
+        long best = long.MaxValue;
+        for (int round = 0; round < 3 && best != 0; round++)
+        {
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            action();
+            best = Math.Min(best, GC.GetAllocatedBytesForCurrentThread() - before);
+        }
+        return best;
+    }
+}

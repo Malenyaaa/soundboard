@@ -38,6 +38,9 @@ public interface IAudioSystem : IDisposable
 
     /// <summary>Opens an active render endpoint by ID; null if it is not there or not active.</summary>
     IAudioOutput? OpenOutput(string id, int latencyMs);
+
+    /// <summary>Opens an active capture endpoint (microphone) by ID; null if it is not there or not active.</summary>
+    ICaptureInput? OpenCapture(string id, int bufferMs);
 }
 
 /// <summary>The real thing: WASAPI via <see cref="DeviceCatalog"/>.</summary>
@@ -71,6 +74,21 @@ public sealed class WasapiAudioSystem : IAudioSystem
         {
             dev.Dispose();
             throw new SinkException($"Das Gerät antwortet nicht ({ex.Message}).", ex);
+        }
+    }
+
+    public ICaptureInput? OpenCapture(string id, int bufferMs)
+    {
+        var dev = _catalog.OpenActive(id);
+        if (dev is null) return null;
+        try
+        {
+            return new CaptureSource(dev, bufferMs);
+        }
+        catch (System.Runtime.InteropServices.COMException ex)
+        {
+            dev.Dispose();
+            throw new SinkException($"Das Mikrofon antwortet nicht ({ex.Message}).", ex);
         }
     }
 

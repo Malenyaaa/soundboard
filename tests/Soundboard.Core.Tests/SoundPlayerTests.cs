@@ -147,14 +147,15 @@ public sealed class SoundPlayerTests
 
         foreach (var c in clips) p.Play(c, 0.7f);
         p.SetVolume(clips[1].Handle, 0.3f);
-        long before = GC.GetAllocatedBytesForCurrentThread();
-        for (int i = 0; i < 200; i++) p.Read(buf, 0, buf.Length);
-        p.StopAll();
-        p.Read(buf, 0, buf.Length);
-        long after = GC.GetAllocatedBytesForCurrentThread();
+        long bytes = Alloc.Measure(() =>
+        {
+            for (int i = 0; i < 200; i++) p.Read(buf, 0, buf.Length);
+            p.StopAll();
+            p.Read(buf, 0, buf.Length);
+        });
 
         // StopAll() itself runs on this thread too; it enqueues into an existing segment.
-        Assert.AreEqual(0, after - before, "audio thread must not allocate");
+        Assert.AreEqual(0, bytes, "audio thread must not allocate");
     }
 
     [TestMethod]

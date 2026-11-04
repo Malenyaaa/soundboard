@@ -35,7 +35,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly DispatcherTimer _saveTimer;
     private readonly DispatcherTimer _deviceTimer;
     private readonly SoundBank _bank;
-    private SoundPlayer _player;
+    private PlayerGroup _player;
     private IAudioOutput? _sink;
     private AudioStateReport _state;
     private bool _syncingSelection;
@@ -85,6 +85,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MasterVolumePercent = Math.Round(Math.Clamp(_profile.MasterVolume, 0f, 1f) * 100);
         OverlayEnabled = _profile.Overlap == OverlapMode.Overlay;
 
+        InitMixSettings();
         RefreshDeviceViews();
         Tiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoTiles));
         foreach (var t in _profile.Tiles)
@@ -207,6 +208,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _syncingSelection = false;
         }
 
+        RefreshMicChoices();
+
         StatusDefaults = $"Standard-Wiedergabe: {DefaultText(DeviceFlow.Render)}   ·   Standard-Aufnahme: {DefaultText(DeviceFlow.Capture)}";
     }
 
@@ -271,7 +274,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return mix is null ? null : new TargetFormat(mix.SampleRate, mix.Channels);
     }
 
-    private SoundPlayer CreatePlayer(TargetFormat format) => new(format)
+    private PlayerGroup CreatePlayer(TargetFormat format) => new(format)
     {
         MasterVolume = (float)Math.Clamp(_profile.MasterVolume, 0f, 1f),
         Overlap = _profile.Overlap,
@@ -309,9 +312,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 return;
             }
             if (sink.SourceFormat != _player.Format) SwitchFormat(sink.SourceFormat);
-            _player.Reset();
+            _player.SetMonitorActive(true);
             sink.Stopped += OnSinkStopped;
-            sink.Start(_player);
+            sink.Start(_player.Monitor);
             _sink = sink;
             ClearNotice("monitor");
             ClearNotice("play");
@@ -339,7 +342,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             sink.Dispose();
         }
         // No audio thread reads the player any more.
-        _player?.Reset();
+        _player?.SetMonitorActive(false);
     }
 
     private void OnSinkStopped(object? sender, Exception? error)
@@ -355,6 +358,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>The monitor device has another mix format: decode all sounds again for it.</summary>
     private void SwitchFormat(TargetFormat format)
     {
+        StopMix("Die Sounds werden gerade neu geladen, weil das Mithörgerät ein anderes Format hat.");
         _player = CreatePlayer(format);
         _bank.Reset(format);
         foreach (var tile in Tiles)
@@ -362,6 +366,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             tile.Clip = null;
             _ = LoadTileAsync(tile);
         }
+        RestartMix();
     }
 
     private void UpdateMonitorStatus()
@@ -428,16 +433,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        if (!MonitorEnabled)
+        if (!_player.AnyActive)
         {
-            ShowNotice("play", "Mithören ist ausgeschaltet – deshalb ist nichts zu hören. Setze oben das Häkchen bei „Mithören auf“.");
+            ShowNotice("play", MonitorEnabled
+                ? "Der Sound geht gerade nirgendwohin: Das Mithörgerät funktioniert nicht, und es wird nichts ans Kabel gesendet. Wähle oben bei „Mithören auf“ ein angeschlossenes Gerät."
+                : "Der Sound geht gerade nirgendwohin: Mithören ist aus, und es wird nichts ans Kabel gesendet. Setze oben das Häkchen bei „Mithören auf“.");
             return;
         }
-        if (_sink is null)
-        {
-            ShowNotice("play", "Es gibt gerade kein funktionierendes Gerät zum Mithören. Wähle oben bei „Mithören auf“ ein angeschlossenes Gerät.");
-            return;
-        }
+        ClearNotice("play");
 
         _player.Play(tile.Clip!, tile.Volume);
         tile.PlayRequestedAt = DateTime.UtcNow;
@@ -472,6 +475,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void UpdateProgress()
     {
+        UpdateMixStatus();
         var now = DateTime.UtcNow;
         foreach (var t in Tiles)
         {
@@ -480,8 +484,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 t.IsPlaying = false;
                 continue;
             }
-            var p = _sink is null ? null : _player.GetProgress(t.Clip.Handle);
-            if (p is null && (now - t.PlayRequestedAt).TotalMilliseconds < 250 && _sink is not null)
+            var p = _player.GetProgress(t.Clip.Handle);
+            if (p is null && (now - t.PlayRequestedAt).TotalMilliseconds < 250 && _player.AnyActive)
                 continue; // the audio thread has not picked up the start yet
             t.IsPlaying = p is not null;
             t.Progress = p ?? 0;
@@ -602,6 +606,309 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Process.Start("explorer.exe", $"\"{_paths.SoundsDir}\"");
     }
 
+    // ---------------------------------------------------------------- microphone and mix
+
+    private enum MixPurpose
+    {
+        None,
+        FileTest,
+        Cable,
+    }
+
+    private static readonly TimeSpan TestLength = TimeSpan.FromSeconds(10);
+
+    private MixSession? _mix;
+    private MixPurpose _mixPurpose;
+    private FileSink? _fileSink;
+    private string? _lastTestFile;
+    private bool _syncingMic;
+
+    public ObservableCollection<OutputChoice> MicChoices { get; } = [];
+
+    public IReadOnlyList<BufferChoice> BufferChoices { get; } =
+        [.. Enum.GetValues<BufferSize>().Select(b => new BufferChoice(b, BufferSizes.Display(b)))];
+
+    [ObservableProperty]
+    private OutputChoice? _selectedMic;
+
+    [ObservableProperty]
+    private BufferChoice? _selectedBuffer;
+
+    [ObservableProperty]
+    private bool _blockVoice;
+
+    [ObservableProperty]
+    private double _micVolumePercent;
+
+    /// <summary>Level of what the mix sends right now, 0..1.</summary>
+    [ObservableProperty]
+    private double _mixLevel;
+
+    [ObservableProperty]
+    private string _testStatus = "";
+
+    [ObservableProperty]
+    private bool _hasTestFile;
+
+    [ObservableProperty]
+    private string _statusMix = "";
+
+    private void InitMixSettings()
+    {
+        SelectedBuffer = BufferChoices.First(b => b.Size == _profile.Buffer);
+        BlockVoice = _profile.BlockVoiceWhileSound;
+        MicVolumePercent = Math.Round(Math.Clamp(_profile.MicVolume, 0f, 2f) * 100);
+    }
+
+    /// <summary>Microphone list: active capture endpoints, without virtual cables (that would feed back).</summary>
+    private void RefreshMicChoices()
+    {
+        if (_profile.MicDeviceId is null)
+        {
+            // First start: the current Windows default microphone, only read, remembered by ID.
+            var def = _state.GetDefault(DeviceFlow.Capture, DeviceRoleKind.Communications) ?? _state.GetDefault(DeviceFlow.Capture, DeviceRoleKind.Console);
+            if (def?.Id is not null && !CableDetector.IsCableName(def.Name))
+            {
+                _profile.MicDeviceId = def.Id;
+                _profile.MicDeviceName = def.Name;
+                ScheduleSave();
+            }
+        }
+
+        var defaultMic = _state.GetDefault(DeviceFlow.Capture, DeviceRoleKind.Communications);
+        _syncingMic = true;
+        try
+        {
+            MicChoices.Clear();
+            foreach (var d in _state.Devices.Where(d => d.Flow == DeviceFlow.Capture && d.Status == DeviceStatus.Active && !CableDetector.IsCableName(d.Name)))
+                MicChoices.Add(new OutputChoice(d.Id, d.Name, true, d.Id == defaultMic?.Id));
+            var id = _profile.MicDeviceId;
+            if (id is not null && MicChoices.All(c => c.Id != id))
+                MicChoices.Add(new OutputChoice(id, _state.FindById(id)?.Name ?? _profile.MicDeviceName ?? "Gewähltes Mikrofon", false, false));
+            SelectedMic = MicChoices.FirstOrDefault(c => c.Id == id);
+        }
+        finally
+        {
+            _syncingMic = false;
+        }
+    }
+
+    partial void OnSelectedMicChanged(OutputChoice? value)
+    {
+        if (_syncingMic || value is null || value.Id == _profile.MicDeviceId) return;
+        _profile.MicDeviceId = value.Id;
+        _profile.MicDeviceName = value.Name;
+        ScheduleSave();
+        if (_mixPurpose == MixPurpose.Cable) RestartMix();
+    }
+
+    partial void OnSelectedBufferChanged(BufferChoice? value)
+    {
+        if (value is null || value.Size == _profile.Buffer) return;
+        _profile.Buffer = value.Size;
+        ScheduleSave();
+        if (_mixPurpose == MixPurpose.Cable) RestartMix();
+    }
+
+    partial void OnBlockVoiceChanged(bool value)
+    {
+        if (_mix is not null) _mix.Mixer.BlockVoiceWhileSound = value;
+        if (_profile.BlockVoiceWhileSound == value) return;
+        _profile.BlockVoiceWhileSound = value;
+        ScheduleSave();
+    }
+
+    partial void OnMicVolumePercentChanged(double value)
+    {
+        float v = (float)Math.Clamp(value / 100.0, 0, 2);
+        if (_mix is not null) _mix.Mixer.VoiceVolume = v;
+        if (Math.Abs(_profile.MicVolume - v) < 0.0001f) return;
+        _profile.MicVolume = v;
+        ScheduleSave();
+    }
+
+    /// <summary>Opens the chosen microphone. Null plus a yellow notice if that is not possible.</summary>
+    private ICaptureInput? OpenMic(string noticeKey)
+    {
+        var id = _profile.MicDeviceId;
+        if (id is null)
+        {
+            ShowNotice(noticeKey, "Es ist kein Mikrofon gewählt, und Windows meldet keins. Schließe ein Mikrofon an und wähle es oben bei „Mikrofon“.");
+            return null;
+        }
+        try
+        {
+            var mic = _audio.OpenCapture(id, BufferSizes.Milliseconds(_profile.Buffer));
+            if (mic is null)
+            {
+                var name = _profile.MicDeviceName ?? "Das gewählte Mikrofon";
+                ShowNotice(noticeKey, $"Das Mikrofon „{name}“ ist nicht angeschlossen oder in Windows deaktiviert. Schließe es an oder wähle oben bei „Mikrofon“ ein anderes.");
+            }
+            return mic;
+        }
+        catch (SinkException ex)
+        {
+            ShowNotice(noticeKey, ex.Message + " Wähle oben bei „Mikrofon“ ein anderes oder versuche es erneut.");
+            return null;
+        }
+    }
+
+    /// <summary>Starts a mix session on <paramref name="output"/>. Takes ownership of both devices.</summary>
+    private bool StartMix(IAudioOutput output, ICaptureInput? mic, MixPurpose purpose, string noticeKey)
+    {
+        MixSession? session = null;
+        try
+        {
+            session = new MixSession(output, mic, _player.Mix, _profile.Buffer);
+            session.Mixer.BlockVoiceWhileSound = BlockVoice;
+            session.Mixer.VoiceVolume = (float)(MicVolumePercent / 100.0);
+            session.Stopped += OnMixStopped;
+            _player.SetMixActive(true);
+            _mix = session;
+            _mixPurpose = purpose;
+            session.Start();
+            return true;
+        }
+        catch (Exception ex) when (ex is SinkException or COMException or ArgumentException or InvalidOperationException)
+        {
+            _mix = null;
+            _mixPurpose = MixPurpose.None;
+            _player.SetMixActive(false);
+            if (session is not null) session.Dispose();
+            else
+            {
+                output.Dispose();
+                mic?.Dispose();
+            }
+            ShowNotice(noticeKey, ex is SinkException ? ex.Message : $"Die Ausgabe ließ sich nicht starten ({ex.Message}).", "Erneut versuchen", purpose == MixPurpose.FileTest ? RecordTest : RestartMix);
+            return false;
+        }
+    }
+
+    /// <summary>Stops the running mix. <paramref name="reason"/> is shown if a test recording is cut short.</summary>
+    private void StopMix(string? reason = null)
+    {
+        var session = _mix;
+        var purpose = _mixPurpose;
+        _mix = null;
+        _mixPurpose = MixPurpose.None;
+        _fileSink = null;
+        if (session is not null)
+        {
+            session.Stopped -= OnMixStopped;
+            session.Dispose();
+        }
+        _player.SetMixActive(false);
+        MixLevel = 0;
+        if (purpose == MixPurpose.FileTest && reason is not null)
+        {
+            TestStatus = "";
+            ShowNotice("test", reason + " Die Test-Aufnahme wurde abgebrochen; starte sie neu.", "Neu aufnehmen", RecordTest);
+        }
+    }
+
+    private void OnMixStopped(object? sender, MixStoppedEventArgs e)
+    {
+        if (!ReferenceEquals(sender, _mix)) return;
+        var purpose = _mixPurpose;
+        if (purpose == MixPurpose.FileTest && !e.Microphone && e.Error is null)
+        {
+            var file = _lastTestFile;
+            StopMix();
+            TestStatus = $"Fertig: {Path.GetFileName(file)} – zum Anhören im Ordner öffnen.";
+            HasTestFile = true;
+            ClearNotice("test");
+            RestartMix();
+            return;
+        }
+
+        var why = e.Error is null ? "" : $" ({e.Error.Message})";
+        if (e.Microphone)
+        {
+            var name = _profile.MicDeviceName ?? "Das Mikrofon";
+            StopMix($"„{name}“ hat aufgehört zu liefern{why}. Wurde es abgezogen?");
+            if (purpose == MixPurpose.Cable)
+                ShowNotice("cable", $"„{name}“ hat aufgehört zu liefern{why}. Wurde es abgezogen? Sobald es wieder da ist, startet die Übertragung von selbst.", "Erneut versuchen", RestartMix);
+        }
+        else
+        {
+            StopMix($"Die Ausgabe wurde unterbrochen{why}.");
+            if (purpose == MixPurpose.Cable)
+                ShowNotice("cable", $"Die Übertragung ans Kabel wurde unterbrochen{why}. Sobald das Kabel wieder da ist, startet sie von selbst.", "Erneut versuchen", RestartMix);
+        }
+    }
+
+    /// <summary>Restarts the permanent mix output (if one is configured) after a change.</summary>
+    private void RestartMix()
+    {
+    }
+
+    /// <summary>Records microphone + sounds for 10 seconds into a WAV file (test without cable).</summary>
+    [RelayCommand]
+    private void RecordTest()
+    {
+        if (_mixPurpose == MixPurpose.FileTest && _fileSink is not null)
+        {
+            int left = (int)Math.Ceiling(TestLength.TotalSeconds * (1 - _fileSink.Progress));
+            ShowNotice("test", $"Die Test-Aufnahme läuft schon – noch {left} s.");
+            return;
+        }
+
+        var mic = OpenMic("test");
+        if (mic is null) return;
+        StopMix();
+        ClearNotice("test");
+
+        Directory.CreateDirectory(_paths.RecordingsDir);
+        _lastTestFile = Path.Combine(_paths.RecordingsDir, $"test-{DateTime.Now:yyyyMMdd-HHmmss}.wav");
+        var sink = new FileSink(_lastTestFile, new TargetFormat(48000, 2), TestLength);
+        if (StartMix(sink, mic, MixPurpose.FileTest, "test"))
+        {
+            _fileSink = sink;
+            HasTestFile = false;
+            TestStatus = "Aufnahme läuft – sprich und spiel Sounds ab. Noch 10 s.";
+        }
+    }
+
+    [RelayCommand]
+    private void ShowTestFile()
+    {
+        if (_lastTestFile is not null && File.Exists(_lastTestFile)) Process.Start("explorer.exe", $"/select,\"{_lastTestFile}\"");
+        else
+        {
+            Directory.CreateDirectory(_paths.RecordingsDir);
+            Process.Start("explorer.exe", $"\"{_paths.RecordingsDir}\"");
+        }
+    }
+
+    /// <summary>Meter, countdown and drop-out counter; called by the 40-ms timer.</summary>
+    private void UpdateMixStatus()
+    {
+        var mix = _mix;
+        if (mix is null)
+        {
+            if (MixLevel != 0) MixLevel = 0;
+        }
+        else
+        {
+            double peak = mix.Mixer.TakePeak();
+            MixLevel = Math.Max(peak, MixLevel * 0.85);
+        }
+
+        if (_mixPurpose == MixPurpose.FileTest && _fileSink is not null)
+        {
+            int left = (int)Math.Ceiling(TestLength.TotalSeconds * (1 - _fileSink.Progress));
+            TestStatus = $"Aufnahme läuft – sprich und spiel Sounds ab. Noch {left} s.";
+        }
+
+        var micName = SelectedMic?.Name ?? _profile.MicDeviceName ?? "keins";
+        string text = mix is null || !mix.HasVoice
+            ? "Mikrofon: aus"
+            : mix.Underruns == 0 ? $"Mikrofon: {micName}, keine Aussetzer"
+            : $"Mikrofon: {micName}, Aussetzer: {mix.Underruns}";
+        if (text != StatusMix) StatusMix = text;
+    }
+
     // ---------------------------------------------------------------- hotkeys
 
     private const string StopAllOwner = "stop-all";
@@ -655,8 +962,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CapturingTile = tile;
         var suggestion = SuggestHotkey(tile);
         tile.CaptureHint = suggestion is null
-            ? "Taste drücken … Esc: abbrechen, Entf: Taste entfernen"
-            : $"Taste drücken … Enter: {suggestion.Value.Display} nehmen, Esc: abbrechen, Entf: entfernen";
+            ? "Taste drücken\nEsc: abbrechen\nEntf: Taste löschen"
+            : $"Taste drücken\nEnter: {suggestion.Value.Display} nehmen\nEsc: abbrechen\nEntf: Taste löschen";
         // Registered keys never reach the window; release them while waiting for a key.
         _hotkeys.Paused = true;
         tile.IsCapturingKey = true;
@@ -814,6 +1121,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _progressTimer.Stop();
         _deviceTimer.Stop();
         if (_saveTimer.IsEnabled) SaveNow();
+        StopMix();
         StopSink();
         _hotkeys.Dispose();
         _services.Hotkeys.Dispose();

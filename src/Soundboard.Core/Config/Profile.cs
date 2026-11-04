@@ -41,6 +41,21 @@ public sealed class Profile
 
     public OverlapMode Overlap { get; set; } = OverlapMode.StopPrevious;
 
+    /// <summary>Endpoint ID of the microphone. Null = not chosen yet.</summary>
+    public string? MicDeviceId { get; set; }
+
+    /// <summary>Last known name of the microphone, for messages when it is missing.</summary>
+    public string? MicDeviceName { get; set; }
+
+    /// <summary>Microphone level inside the app, 0..2 (1 = unchanged). Not the Windows volume.</summary>
+    public float MicVolume { get; set; } = 1f;
+
+    /// <summary>Buffer size of the microphone path.</summary>
+    public BufferSize Buffer { get; set; } = BufferSize.Medium;
+
+    /// <summary>Mute the microphone while a sound plays. Default off.</summary>
+    public bool BlockVoiceWhileSound { get; set; }
+
     /// <summary>Global hotkey for "stop all" as token text; null = none.</summary>
     public string? StopAllHotkey { get; set; } = "Pause";
 
@@ -106,6 +121,7 @@ public sealed class AppPaths
         DataDir = dataDir;
         SoundsDir = Path.Combine(dataDir, "Sounds");
         ProfileFile = Path.Combine(dataDir, "config.json");
+        RecordingsDir = Path.Combine(dataDir, "Aufnahmen");
     }
 
     public static AppPaths Default { get; } = new(Path.Combine(
@@ -114,6 +130,9 @@ public sealed class AppPaths
     public string DataDir { get; }
     public string SoundsDir { get; }
     public string ProfileFile { get; }
+
+    /// <summary>Test recordings (10-second WAV files).</summary>
+    public string RecordingsDir { get; }
 
     /// <summary>
     /// Copies a sound file into the sound folder (original stays) and returns the new file name.
