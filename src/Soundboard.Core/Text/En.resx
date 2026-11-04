@@ -432,6 +432,14 @@ Delete: remove key</value></data>
   <data name="Design.Glow" xml:space="preserve"><value>Pads light up softly</value></data>
   <data name="Design.GlowHint" xml:space="preserve"><value>Off: pads light up at once, without a transition. The progress shows in both cases.</value></data>
   <data name="Design.WindowsOff" xml:space="preserve"><value>Animation effects are switched off in Windows – so there are no transitions here either.</value></data>
+  <data name="Autostart.Title" xml:space="preserve"><value>Start</value></data>
+  <data name="Autostart.Switch" xml:space="preserve"><value>Start with Windows (only in the notification area)</value></data>
+  <data name="Autostart.Hint" xml:space="preserve"><value>No window opens when you sign in; a click on the icon opens it.</value></data>
+  <data name="Autostart.OtherCopy" xml:space="preserve"><value>Starts another copy: {0}</value></data>
+  <data name="Autostart.UseThisCopy" xml:space="preserve"><value>Switch to this copy</value></data>
+  <data name="Autostart.CannotOn" xml:space="preserve"><value>Windows did not allow the start entry: {0}</value></data>
+  <data name="Autostart.CannotOff" xml:space="preserve"><value>Windows did not allow removing the start entry: {0}</value></data>
+  <data name="Autostart.NoPath" xml:space="preserve"><value>The program file of this copy is unknown.</value></data>
   <data name="Discord.WayBackDefault" xml:space="preserve"><value>In Discord, go to User Settings → Voice &amp; Video and choose your microphone again as the input device (or “Default”).</value></data>
   <data name="Discord.WayBack" xml:space="preserve"><value>In Discord, go to User Settings → Voice &amp; Video and choose “{0}” again as the input device.</value></data>
   <data name="Exit.Silence" xml:space="preserve"><value>Discord then hears silence from the cable: your microphone is silent in Discord until you start the soundboard again.</value></data>

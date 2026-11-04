@@ -432,6 +432,14 @@ Entf: Taste löschen</value></data>
   <data name="Design.Glow" xml:space="preserve"><value>Pads leuchten weich auf</value></data>
   <data name="Design.GlowHint" xml:space="preserve"><value>Aus: Pads leuchten sofort auf, ohne Übergang. Der Fortschritt läuft in beiden Fällen mit.</value></data>
   <data name="Design.WindowsOff" xml:space="preserve"><value>In Windows sind die Animationseffekte ausgeschaltet – deshalb gibt es auch hier keine Übergänge.</value></data>
+  <data name="Autostart.Title" xml:space="preserve"><value>Start</value></data>
+  <data name="Autostart.Switch" xml:space="preserve"><value>Mit Windows starten (nur im Infobereich)</value></data>
+  <data name="Autostart.Hint" xml:space="preserve"><value>Beim Anmelden öffnet sich kein Fenster; ein Klick auf das Symbol öffnet es.</value></data>
+  <data name="Autostart.OtherCopy" xml:space="preserve"><value>Startet eine andere Kopie: {0}</value></data>
+  <data name="Autostart.UseThisCopy" xml:space="preserve"><value>Auf diese Kopie umstellen</value></data>
+  <data name="Autostart.CannotOn" xml:space="preserve"><value>Windows hat den Start-Eintrag nicht erlaubt: {0}</value></data>
+  <data name="Autostart.CannotOff" xml:space="preserve"><value>Windows hat das Entfernen des Start-Eintrags nicht erlaubt: {0}</value></data>
+  <data name="Autostart.NoPath" xml:space="preserve"><value>Die Programmdatei dieser Kopie ist unbekannt.</value></data>
   <data name="Discord.WayBackDefault" xml:space="preserve"><value>In Discord unter Einstellungen → Sprache &amp; Video beim Eingabegerät wieder dein Mikrofon wählen (oder „Default“).</value></data>
   <data name="Discord.WayBack" xml:space="preserve"><value>In Discord unter Einstellungen → Sprache &amp; Video beim Eingabegerät wieder „{0}“ wählen.</value></data>
   <data name="Exit.Silence" xml:space="preserve"><value>Discord hört danach Stille vom Kabel: Dein Mikrofon ist in Discord stumm, bis du das Soundboard wieder startest.</value></data>

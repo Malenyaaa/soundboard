@@ -932,6 +932,27 @@
                                            Text="{t:T Design.GlowHint}" />
                                 <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0" Visibility="{Binding WindowsAnimationsOff, Converter={StaticResource BoolToVis}}"
                                            Text="{t:T Design.WindowsOff}" />
+
+                                <!-- Start with Windows: the real Run entry, also one the installer set. -->
+                                <TextBlock Text="{t:T Autostart.Title}" Style="{StaticResource H2}" />
+                                <CheckBox Style="{StaticResource Switch}" Content="{t:T Autostart.Switch}" IsChecked="{Binding AutostartOn}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0" Text="{t:T Autostart.Hint}" />
+                                <!-- Quiet line: the entry starts another copy (moved EXE, old portable copy). -->
+                                <DockPanel Margin="48,8,0,0" MaxWidth="560" HorizontalAlignment="Left"
+                                           Visibility="{Binding AutostartOtherText, Converter={StaticResource TextToVis}}">
+                                    <Path Style="{StaticResource InfoIcon}" Margin="0,2,8,0" />
+                                    <TextBlock Style="{StaticResource Sub}" TextWrapping="Wrap">
+                                        <Run Text="{Binding AutostartOtherText, Mode=OneWay}" /><Run Text=" – " /><Hyperlink Command="{Binding UseThisCopyForAutostartCommand}" Foreground="{DynamicResource TextBrush}"><Run Text="{t:T Autostart.UseThisCopy}" /></Hyperlink>
+                                    </TextBlock>
+                                </DockPanel>
+                                <!-- Windows refused the change: the switch sprang back, the reason stands here. -->
+                                <Border Style="{StaticResource NoticeBox}" Padding="14,10" Margin="0,10,0,0" MaxWidth="608" HorizontalAlignment="Left"
+                                        Visibility="{Binding AutostartError, Converter={StaticResource TextToVis}}">
+                                    <DockPanel>
+                                        <Path Style="{StaticResource WarnIcon}" Margin="0,1,8,0" />
+                                        <TextBlock Text="{Binding AutostartError}" TextWrapping="Wrap" LineHeight="20" />
+                                    </DockPanel>
+                                </Border>
                             </StackPanel>
                         </Grid>
                     </ScrollViewer>

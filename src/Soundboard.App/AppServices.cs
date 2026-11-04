@@ -19,6 +19,9 @@ public sealed class AppServices
     /// <summary>Only used when the user asks to put the saved default devices back.</summary>
     public required IDefaultEndpointWriter Policy { get; init; }
 
+    /// <summary>"Start with Windows": the Run entry of this program file (a fake for previews and tests).</summary>
+    public required Autostart Autostart { get; init; }
+
     /// <summary>Write the running flag (off for previews).</summary>
     public bool UseDirtyFlag { get; init; } = true;
 
@@ -28,5 +31,6 @@ public sealed class AppServices
         Audio = new WasapiAudioSystem(),
         Hotkeys = new Win32HotkeyApi(),
         Policy = new PolicyConfigWriter(),
+        Autostart = new Autostart(new RegistryRunKey(), Environment.ProcessPath),
     };
 }

@@ -147,6 +147,16 @@ Discords Dateien.
   Wellenform) weiterlaufen, damit Discord weiter dein Mikrofon bekommt. **Beenden** über Rechtsklick auf das Symbol; die
   Rückfrage sagt, dass Discord dann Stille vom Kabel hört, und zeigt den Vergleich mit der
   Sicherung.
+- **Mit Windows starten:** Schalter „Mit Windows starten (nur im Infobereich)“ unter
+  „Darstellung“ → „Start“, für die portable EXE genauso wie für die installierte. Er setzt den
+  Wert `Soundboard` unter `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` auf
+  `"<Pfad dieser EXE>" --tray` (ohne Adminrechte) – derselbe Eintrag wie die Option im
+  Installer, der Schalter zeigt also auch einen dort gesetzten an. Beim Anmelden erscheint nur
+  das Symbol im Infobereich, kein Fenster; die Einrichtung beim ersten Start kommt erst, wenn
+  du das Fenster öffnest. Startet der Eintrag eine andere Kopie (EXE verschoben, alte portable
+  Kopie), steht der Schalter auf an, und darunter steht, welche Datei er startet, mit
+  „Auf diese Kopie umstellen“. Verweigert Windows die Änderung (Richtlinie, Rechte), springt
+  der Schalter zurück und ein Hinweis nennt den Grund.
 - **Absturz:** Ein kleiner Wächter-Prozess merkt, wenn das Programm unerwartet endet, und
   meldet, was das für Discord heißt – mit „Neu starten“ und, falls nötig, „Standardgerät
   zurückstellen“.
@@ -162,7 +172,7 @@ Die Einstellungen legen sich über die Pads; Kopfzeile und „Stop“ bleiben. E
 | Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
 | Tasten | Tasten pausieren; alle Pads mit Taste und Zustand, Ausweg bei Konflikten; Sounds überlagern (aus: ein neuer Sound stoppt den laufenden) |
 | Audio-Zustand | Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken; „Standardgerät zurückstellen“, „Audio-Zustand jetzt sichern“, „Neu vergleichen“; darunter die Audiogeräte in Windows (nur angezeigt) |
-| Darstellung | Sprache (English, Deutsch); hell oder dunkel (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); weiches Aufleuchten an/aus |
+| Darstellung | Sprache (English, Deutsch); hell oder dunkel (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); weiches Aufleuchten an/aus; mit Windows starten (nur im Infobereich) |
 
 **Akzentfarbe:** sechs vertraute Farben (Blau, Petrol, Grün, Orange, Pink, Violett) oder eine
 eigene. „Eigene“ öffnet einen Farbwähler: links eine Fläche für Sättigung (nach rechts) und
@@ -229,7 +239,7 @@ Rechtsklick auf das Soundboard-Symbol im Infobereich → **„Alles entfernen �
 1. **Audio-Zustand prüfen**, bei Abweichung „Standardgerät zurückstellen“.
 2. **Eigene Daten löschen** – erst nach Rückfrage; „Sounds behalten“ ist vorausgewählt und
    behält auch die Pad-Bilder. Entfernt werden Einstellungen, Sicherungen, Test-Aufnahmen und
-   der Autostart-Eintrag, falls gesetzt; ohne Häkchen auch Sound- und Bilder-Ordner.
+   der Autostart-Eintrag, falls er diese EXE startet (einer für eine andere Kopie bleibt); ohne Häkchen auch Sound- und Bilder-Ordner.
 3. **Kabel entfernen** – das Soundboard deinstalliert keinen Treiber. Weg: VB-CABLE-Setup als
    Administrator → „Remove Driver“ → Neustart → Geräte-Manager, „Ausgeblendete Geräte
    anzeigen“, verbliebene VB-Audio-Einträge entfernen → zweiter Neustart. Bei Resten im
@@ -289,7 +299,7 @@ Taskleiste vorsieht.
 `installer/soundboard.iss` ist ein Skript für [Inno Setup 6](https://jrsoftware.org/isinfo.php):
 Installation nur für den eigenen Benutzer nach `%LOCALAPPDATA%\Programs\Soundboard`, ohne
 Adminrechte, Startmenü-Eintrag (mit dem Symbol der EXE), „Mit Windows starten“ als abwählbare
-Option. Der Installer spricht Englisch, auf einem deutschen Windows Deutsch. Beim
+Option (derselbe Run-Wert wie der Schalter im Programm; die Deinstallation entfernt ihn). Der Installer spricht Englisch, auf einem deutschen Windows Deutsch. Beim
 Deinstallieren startet die Anleitung `--uninstall`; bei stiller Deinstallation nur
 `--restore`. Das Skript kompiliert mit Inno Setup 6.7 ohne Warnungen; Installieren und
 Deinstallieren sind **noch nicht ausprobiert**. Bauen nach dem Publish:

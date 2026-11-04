@@ -8,6 +8,7 @@
 ;
 ; - Installs to %LOCALAPPDATA%\Programs\Soundboard, start menu entry for the user only.
 ; - Optional task: start with Windows (HKCU Run value "Soundboard", started with --tray).
+;   The app's own switch uses the same value name, so both show and change one entry.
 ; - Uninstalling runs "Soundboard.exe --uninstall" (guided removal, it asks before it
 ;   deletes anything); a silent uninstall runs "--restore" instead (puts the Windows default
 ;   devices back to the saved ones, nothing else).

@@ -115,6 +115,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyAllHotkeys();
 
         InitDesign();
+        RefreshAutostart();
         ThemeManager.Changed += OnThemeChanged;
         Notices.CollectionChanged += (_, _) => UpdateNoticeView();
 
@@ -1390,6 +1391,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void OpenSettings(string tab)
     {
         RefreshDevices();
+        RefreshAutostart(); // the installer or another copy may have changed the entry
         if (tab == SettingsTabs.Setup)
         {
             ClearNotice("cable"); // the setup says the same in detail

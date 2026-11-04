@@ -86,7 +86,8 @@ public partial class App : Application
             Core.Config.AppPaths.Default,
             ReadStateSafe,
             new Core.SystemState.PolicyConfigWriter(),
-            SingleInstance.IsRunning);
+            SingleInstance.IsRunning,
+            new Autostart(new RegistryRunKey(), Environment.ProcessPath));
         window.Closed += (_, _) => Shutdown();
         MainWindow = window;
         window.Show();

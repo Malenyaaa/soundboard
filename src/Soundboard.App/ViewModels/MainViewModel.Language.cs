@@ -73,6 +73,7 @@ public sealed partial class MainViewModel
         UpdateMixStatus();
         foreach (var a in AccentChoices) a.RefreshText();
         UpdateCustomAccentHint();
+        UpdateAutostartTexts();
         OnPropertyChanged(nameof(StopAllToolTip));
         OnPropertyChanged(nameof(MasterVolumeText));
         OnPropertyChanged(nameof(MicVolumeText));

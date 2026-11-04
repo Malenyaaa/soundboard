@@ -26,11 +26,12 @@ public partial class UninstallWindow : Window
     private readonly Func<AudioStateReport> _readState;
     private readonly IDefaultEndpointWriter _writer;
     private readonly Func<bool> _isRunning;
+    private readonly Autostart _autostart;
     private readonly AudioSnapshot? _snapshot;
     private readonly string? _previousMic;
     private readonly DispatcherTimer _runningTimer;
 
-    public UninstallWindow(AppPaths paths, Func<AudioStateReport> readState, IDefaultEndpointWriter writer, Func<bool> isRunning)
+    public UninstallWindow(AppPaths paths, Func<AudioStateReport> readState, IDefaultEndpointWriter writer, Func<bool> isRunning, Autostart autostart)
     {
         InitializeComponent();
         Text.UiLanguage.Attach(this);
@@ -38,6 +39,7 @@ public partial class UninstallWindow : Window
         _readState = readState;
         _writer = writer;
         _isRunning = isRunning;
+        _autostart = autostart;
 
         try { _snapshot = SnapshotStore.Load(paths.SnapshotFile); }
         catch (SnapshotException) { _snapshot = null; }
@@ -102,9 +104,10 @@ public partial class UninstallWindow : Window
         if (TracesText is null || _paths is null) return; // during InitializeComponent
         bool keep = KeepSounds.IsChecked == true;
         var items = OwnTraces.List(_paths, keep);
-        var autostart = Autostart.Read();
+        // Only an entry that starts this program file is ours; one for another copy stays.
+        bool autostart = _autostart.Read().Kind == AutostartKind.ThisCopy;
         var sb = new StringBuilder();
-        if (items.Count == 0 && autostart is null)
+        if (items.Count == 0 && !autostart)
         {
             sb.Append(L.Get("Uninstall.NoData"));
         }
@@ -112,7 +115,7 @@ public partial class UninstallWindow : Window
         {
             sb.Append(L.F("Uninstall.WillDelete", _paths.DataDir));
             foreach (var group in items.GroupBy(i => i.Description)) sb.Append(Environment.NewLine).Append("•  ").Append(group.Key);
-            if (autostart is not null) sb.Append(Environment.NewLine).Append("•  ").Append(L.Get("Uninstall.AutostartEntry"));
+            if (autostart) sb.Append(Environment.NewLine).Append("•  ").Append(L.Get("Uninstall.AutostartEntry"));
             if (keep && (Directory.Exists(_paths.SoundsDir) || Directory.Exists(_paths.ImagesDir))) sb.Append(Environment.NewLine).Append(L.Get("Uninstall.FoldersStay"));
         }
         TracesText.Text = sb.ToString();
@@ -135,11 +138,8 @@ public partial class UninstallWindow : Window
         var sb = new StringBuilder();
         int ok = removed.Count(r => r.Removed);
         sb.Append(L.Count("Uninstall.Deleted", ok));
-        if (Autostart.Read() is not null)
-        {
-            var err = Autostart.Remove();
+        if (_autostart.RemoveIfThisCopy(out var err))
             sb.Append(' ').Append(err is null ? L.Get("Uninstall.AutostartRemoved") : L.F("Uninstall.AutostartFailed", err));
-        }
         foreach (var f in removed.Where(r => !r.Removed))
             sb.Append(Environment.NewLine).Append(L.F("Uninstall.NotDeleted", f.Path, f.Error));
         RemoveText.Text = sb.ToString();
