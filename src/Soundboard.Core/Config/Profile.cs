@@ -83,6 +83,9 @@ public sealed class Profile
     /// <summary>Global hotkey for "stop all" as token text; null = none.</summary>
     public string? StopAllHotkey { get; set; } = "Pause";
 
+    /// <summary>What the key of a playing pad does: "Stop" (default) or "Restart" (play from the start). Clicks always stop.</summary>
+    public string SameKeyAgain { get; set; } = SameKeyModes.Stop;
+
     /// <summary>Global hotkey that switches the microphone mute on and off; null = none (default).</summary>
     public string? MuteMicHotkey { get; set; }
 
@@ -158,6 +161,11 @@ public sealed class Profile
             AccentId = Design.AccentPalette.DefaultId;
             changed = true;
         }
+        if (SameKeyAgain is not (SameKeyModes.Stop or SameKeyModes.Restart))
+        {
+            SameKeyAgain = SameKeyModes.Stop;
+            changed = true;
+        }
         if (PadColors is not (PadColorModes.Colorful or PadColorModes.Accent))
         {
             PadColors = PadColorModes.Colorful;
@@ -187,6 +195,12 @@ public static class AppearanceModes
     public const string Light = "Hell";
     public const string Dark = "Dunkel";
     public static readonly string[] All = [System, Light, Dark];
+}
+
+public static class SameKeyModes
+{
+    public const string Stop = "Stop";
+    public const string Restart = "Restart";
 }
 
 public static class PadColorModes

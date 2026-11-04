@@ -861,6 +861,15 @@
                                 <CheckBox Style="{StaticResource Switch}" Content="{t:T Keys.Overlay}" IsChecked="{Binding OverlayEnabled}" />
                                 <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0"
                                            Text="{t:T Keys.OverlayHint}" />
+                                <!-- What the key of a playing pad does. -->
+                                <TextBlock Text="{t:T Keys.SameKey}" Margin="0,20,0,8" FontWeight="SemiBold" />
+                                <WrapPanel>
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="SameKey" Content="{t:T Keys.SameKeyStop}"
+                                                 IsChecked="{Binding SameKeyAgain, Converter={StaticResource Eq}, ConverterParameter=Stop}" />
+                                    <RadioButton Style="{StaticResource Segment}" GroupName="SameKey" Content="{t:T Keys.SameKeyRestart}"
+                                                 IsChecked="{Binding SameKeyAgain, Converter={StaticResource Eq}, ConverterParameter=Restart}" />
+                                </WrapPanel>
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,6,0,0" Text="{t:T Keys.SameKeyHint}" />
                             </StackPanel>
 
                             <!-- ............................................ Audio-Zustand -->

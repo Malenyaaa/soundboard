@@ -537,4 +537,8 @@ Entf: Taste löschen</value></data>
   <data name="Hint.StillLoading" xml:space="preserve"><value>„{0}“ lädt noch. Drück die Taste gleich noch einmal.</value></data>
   <data name="Hint.CannotPlay" xml:space="preserve"><value>„{0}“ lässt sich nicht abspielen – die Datei fehlt oder ist kaputt. Öffne das Soundboard, dort steht der Grund.</value></data>
   <data name="Hint.Nowhere" xml:space="preserve"><value>„{0}“ hat kein Ziel: Mithören ist aus oder gestört, und ans Kabel geht nichts. Öffne das Soundboard, um es einzuschalten.</value></data>
+  <data name="Keys.SameKey" xml:space="preserve"><value>Dieselbe Taste, während der Sound läuft</value></data>
+  <data name="Keys.SameKeyStop" xml:space="preserve"><value>Stoppen</value></data>
+  <data name="Keys.SameKeyRestart" xml:space="preserve"><value>Von vorn spielen</value></data>
+  <data name="Keys.SameKeyHint" xml:space="preserve"><value>Gilt nur für die Tasten. Ein Klick auf ein laufendes Pad stoppt es immer.</value></data>
 </root>

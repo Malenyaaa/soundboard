@@ -537,4 +537,8 @@ Delete: remove key</value></data>
   <data name="Hint.StillLoading" xml:space="preserve"><value>“{0}” is still loading. Press the key again in a moment.</value></data>
   <data name="Hint.CannotPlay" xml:space="preserve"><value>“{0}” cannot be played – the file is missing or broken. Open the soundboard to see why.</value></data>
   <data name="Hint.Nowhere" xml:space="preserve"><value>“{0}” has nowhere to go: monitoring is off or not working, and nothing goes to the cable. Open the soundboard to switch it on.</value></data>
+  <data name="Keys.SameKey" xml:space="preserve"><value>Same key again while the sound plays</value></data>
+  <data name="Keys.SameKeyStop" xml:space="preserve"><value>Stop</value></data>
+  <data name="Keys.SameKeyRestart" xml:space="preserve"><value>Play from the start</value></data>
+  <data name="Keys.SameKeyHint" xml:space="preserve"><value>Only for the keys. A click on a playing pad always stops it.</value></data>
 </root>

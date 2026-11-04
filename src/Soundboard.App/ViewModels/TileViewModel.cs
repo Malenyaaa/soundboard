@@ -271,9 +271,11 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
     private string? _errorText;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DurationText))]
     private bool _isPlaying;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DurationText))]
     private double _progress;
 
     [ObservableProperty]
@@ -307,8 +309,13 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
 
     public void RefreshImageConfigured() => OnPropertyChanged(nameof(HasImageConfigured));
 
-    /// <summary>Length as printed on the pad ("3.5 s", "1:05 min"); empty while loading or broken.</summary>
-    public string DurationText => State == TileState.Ready && Clip is not null ? FormatDuration(Clip.Duration) : "";
+    /// <summary>
+    /// Length as printed on the pad ("3.5 s", "1:05 min"); while it plays the time left ("−2.1 s").
+    /// Empty while loading or broken.
+    /// </summary>
+    public string DurationText => State != TileState.Ready || Clip is null ? ""
+        : IsPlaying ? "−" + FormatDuration(Clip.Duration * Math.Clamp(1 - Progress, 0, 1))
+        : FormatDuration(Clip.Duration);
 
     /// <summary>Second line on the pad when it cannot play.</summary>
     public string StatusText => State switch

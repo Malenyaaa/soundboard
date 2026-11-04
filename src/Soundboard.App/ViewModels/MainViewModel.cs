@@ -97,6 +97,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         MonitorEnabled = _profile.MonitorEnabled;
         MasterVolumePercent = Math.Round(Math.Clamp(_profile.MasterVolume, 0f, 1f) * 100);
         OverlayEnabled = _profile.Overlap == OverlapMode.Overlay;
+        SameKeyAgain = _profile.SameKeyAgain;
 
         InitMixSettings();
         RefreshDeviceViews();
@@ -306,6 +307,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>"Stop" or "Restart": what the key of a playing pad does.</summary>
+    [ObservableProperty]
+    private string _sameKeyAgain = SameKeyModes.Stop;
+
+    partial void OnSameKeyAgainChanged(string value)
+    {
+        if (value is not (SameKeyModes.Stop or SameKeyModes.Restart) || value == _profile.SameKeyAgain) return;
+        _profile.SameKeyAgain = value;
+        ScheduleSave();
+    }
+
     partial void OnOverlayEnabledChanged(bool value)
     {
         var mode = value ? OverlapMode.Overlay : OverlapMode.StopPrevious;
@@ -499,7 +511,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _player.Stop(tile.Clip!.Handle);
             tile.IsPlaying = false;
             tile.PlayRequestedAt = default;
-            return;
+            // The pad's key again: stop (default) or play from the start. A click always stops.
+            if (!fromKey || SameKeyAgain != SameKeyModes.Restart) return;
         }
 
         if (!_player.AnyActive)
