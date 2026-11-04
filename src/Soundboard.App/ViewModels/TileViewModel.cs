@@ -106,6 +106,10 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
     [NotifyPropertyChangedFor(nameof(HasHotkey))]
     private string? _hotkeyText;
 
+    /// <summary>The key for the cap on the pad, from full to shortened at the front ("…Shift+F12").</summary>
+    [ObservableProperty]
+    private IReadOnlyList<string>? _hotkeyVariants;
+
     [ObservableProperty]
     private bool _hotkeyProblem;
 
@@ -282,7 +286,7 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
     public string VolumeText => L.Percent(VolumePercent / 100.0);
 
     /// <summary>Tooltip of the printed key.</summary>
-    public string HotkeyToolTip => HotkeyProblem ? L.Get("Pad.KeyBrokenTip") : L.F("Pad.KeyTip", HotkeyText);
+    public string HotkeyToolTip => HotkeyProblem ? L.F("Pad.KeyBrokenTip", HotkeyText) : L.F("Pad.KeyTip", HotkeyText);
 
     /// <summary>Only printed on the pad when it is not 100 %.</summary>
     public bool ShowVolume => VolumePercent < 99.5;

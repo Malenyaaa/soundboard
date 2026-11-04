@@ -1737,6 +1737,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var tile = Tiles.FirstOrDefault(t => t.OwnerId == b.Owner);
             if (tile is null) continue;
             tile.HotkeyText = b.Gesture?.Display;
+            tile.HotkeyVariants = b.Gesture is { } shown ? KeyCapText.Variants(shown) : null;
             tile.HotkeyProblem = b.State is HotkeyState.Duplicate or HotkeyState.TakenByOtherProgram or HotkeyState.Failed;
             Func<string>? issue = null, action = null;
             Action? fix = null;

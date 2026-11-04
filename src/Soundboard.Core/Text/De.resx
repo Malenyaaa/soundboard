@@ -260,7 +260,7 @@
   <data name="Pad.GhostTip" xml:space="preserve"><value>Taste für dieses Pad belegen</value></data>
   <data name="Pad.DropPicture" xml:space="preserve"><value>Bild für dieses Pad</value></data>
   <data name="Pad.KeyTip" xml:space="preserve"><value>{0} – Klick: andere Taste belegen</value></data>
-  <data name="Pad.KeyBrokenTip" xml:space="preserve"><value>Diese Taste funktioniert gerade nicht – klicken zeigt, warum</value></data>
+  <data name="Pad.KeyBrokenTip" xml:space="preserve"><value>{0} wirkt gerade nicht – klicken zeigt, warum</value></data>
   <data name="Pad.Loading" xml:space="preserve"><value>wird geladen …</value></data>
   <data name="Pad.CannotPlay" xml:space="preserve"><value>nicht abspielbar</value></data>
   <data name="Pad.LoadFailed" xml:space="preserve"><value>Die Datei ließ sich nicht laden ({0}).</value></data>

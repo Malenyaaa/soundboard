@@ -260,7 +260,7 @@
   <data name="Pad.GhostTip" xml:space="preserve"><value>Assign a key to this pad</value></data>
   <data name="Pad.DropPicture" xml:space="preserve"><value>Picture for this pad</value></data>
   <data name="Pad.KeyTip" xml:space="preserve"><value>{0} – click to assign another key</value></data>
-  <data name="Pad.KeyBrokenTip" xml:space="preserve"><value>This key does not work right now – click to see why</value></data>
+  <data name="Pad.KeyBrokenTip" xml:space="preserve"><value>{0} does not work right now – click to see why</value></data>
   <data name="Pad.Loading" xml:space="preserve"><value>loading…</value></data>
   <data name="Pad.CannotPlay" xml:space="preserve"><value>cannot be played</value></data>
   <data name="Pad.LoadFailed" xml:space="preserve"><value>The file could not be loaded ({0}).</value></data>

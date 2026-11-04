@@ -288,10 +288,27 @@
                     </Grid>
                 </Button>
 
-                <!-- Top row: key cap (left), length (right). The length never gives way. -->
-                <DockPanel VerticalAlignment="Top" Margin="11,8,12,0" LastChildFill="False">
+                <!-- Top row: key cap (left), length (right). Short of room, the length gives way first;
+                     then the cap shortens from the front ("…Shift+F12"), never the key itself. -->
+                <views:PadTopRow VerticalAlignment="Top" Margin="11,8,12,0">
+                    <Grid HorizontalAlignment="Left">
+                        <Button x:Name="Cap" Style="{StaticResource KeyCap}" Command="{Binding KeyCapClickCommand}" HorizontalAlignment="Left"
+                                Background="{Binding Pad.CapBg}" BorderBrush="{Binding Pad.CapLine}" Foreground="{Binding Pad.Text}"
+                                Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}"
+                                ToolTip="{Binding HotkeyToolTip}">
+                            <DockPanel>
+                                <Path x:Name="CapWarn" Style="{StaticResource WarnIcon}" DockPanel.Dock="Left" Width="13" Height="12" Stretch="Uniform" Margin="0,0,5,0" StrokeThickness="1.5" VerticalAlignment="Center"
+                                      Visibility="Collapsed" />
+                                <views:FitText Variants="{Binding HotkeyVariants}" VerticalAlignment="Center" />
+                            </DockPanel>
+                        </Button>
+                        <!-- No key yet: a ghost cap appears on hover. -->
+                        <Button x:Name="GhostCap" Style="{StaticResource KeyCap}" Command="{Binding AssignHotkeyCommand}" HorizontalAlignment="Left"
+                                Background="Transparent" BorderBrush="{Binding Pad.Line}" Foreground="{Binding Pad.Text}" FontFamily="{DynamicResource FontText}"
+                                Content="{t:T Pad.Ghost}" ToolTip="{t:T Pad.GhostTip}" Visibility="Collapsed" />
+                    </Grid>
                     <!-- Length (and the stop square while playing); on a picture it sits on a small ink chip. -->
-                    <Border x:Name="DurChip" DockPanel.Dock="Right" VerticalAlignment="Top" Margin="8,5,0,0" CornerRadius="5" IsHitTestVisible="False"
+                    <Border x:Name="DurChip" VerticalAlignment="Top" Margin="8,5,0,0" CornerRadius="5" IsHitTestVisible="False"
                             Visibility="{Binding DurationText, Converter={StaticResource TextToVis}}">
                         <StackPanel Orientation="Horizontal">
                             <Rectangle x:Name="StopGlyph" Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" VerticalAlignment="Center" Margin="0,0,7,0"
@@ -299,21 +316,7 @@
                             <TextBlock x:Name="Dur" Text="{Binding DurationText}" Style="{StaticResource Num}" FontSize="13" Foreground="{Binding Pad.Text}" />
                         </StackPanel>
                     </Border>
-                    <Button x:Name="Cap" DockPanel.Dock="Left" Style="{StaticResource KeyCap}" Command="{Binding KeyCapClickCommand}"
-                            Background="{Binding Pad.CapBg}" BorderBrush="{Binding Pad.CapLine}" Foreground="{Binding Pad.Text}"
-                            Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}"
-                            ToolTip="{Binding HotkeyToolTip}">
-                        <DockPanel>
-                            <Path x:Name="CapWarn" Style="{StaticResource WarnIcon}" DockPanel.Dock="Left" Width="13" Height="12" Stretch="Uniform" Margin="0,0,5,0" StrokeThickness="1.5" VerticalAlignment="Center"
-                                  Visibility="Collapsed" />
-                            <TextBlock Text="{Binding HotkeyText}" TextTrimming="CharacterEllipsis" />
-                        </DockPanel>
-                    </Button>
-                    <!-- No key yet: a ghost cap appears on hover. -->
-                    <Button x:Name="GhostCap" DockPanel.Dock="Left" Style="{StaticResource KeyCap}" Command="{Binding AssignHotkeyCommand}"
-                            Background="Transparent" BorderBrush="{Binding Pad.Line}" Foreground="{Binding Pad.Text}" FontFamily="{DynamicResource FontText}"
-                            Content="{t:T Pad.Ghost}" ToolTip="{t:T Pad.GhostTip}" Visibility="Collapsed" />
-                </DockPanel>
+                </views:PadTopRow>
 
                 <!-- A picture is dragged over this pad: it will take it. -->
                 <Border CornerRadius="10" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="3" IsHitTestVisible="False"

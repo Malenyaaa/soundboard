@@ -28,7 +28,10 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
     private static readonly Dictionary<int, (string Token, string Display)> Names = BuildNames();
 
     /// <summary>Text for the user, e.g. "Ctrl+Alt+Num 1" (English) or "Strg+Alt+Num 1" (German).</summary>
-    public string Display
+    public string Display => string.Join("+", DisplayParts);
+
+    /// <summary>The modifiers and the key as separate texts ("Strg", "Alt", "Num +"); the key comes last.</summary>
+    public IReadOnlyList<string> DisplayParts
     {
         get
         {
@@ -38,7 +41,7 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
             if (Modifiers.HasFlag(HotkeyModifiers.Shift)) parts.Add(Text.L.Get("Key.Shift"));
             if (Modifiers.HasFlag(HotkeyModifiers.Win)) parts.Add(Text.L.Get("Key.Win"));
             parts.Add(Names.TryGetValue(VirtualKey, out var n) ? Shown(n.Display) : Text.L.F("Key.Unknown", VirtualKey.ToString("X2", CultureInfo.InvariantCulture)));
-            return string.Join("+", parts);
+            return parts;
         }
     }
 
