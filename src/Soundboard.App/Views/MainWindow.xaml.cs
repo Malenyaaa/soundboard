@@ -94,7 +94,7 @@ public partial class MainWindow : Window
     /// </summary>
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (_vm.CapturingTile is null)
+        if (_vm.Capturing is null)
         {
             if (e.Key == Key.Escape && Keyboard.FocusedElement is not TextBox { DataContext: TileViewModel { IsRenaming: true } }
                 && !IsInOpenDropDown(e.OriginalSource as DependencyObject))

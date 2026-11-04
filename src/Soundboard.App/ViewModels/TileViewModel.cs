@@ -60,7 +60,7 @@ public sealed class PadBrushes
 }
 
 /// <summary>One sound pad.</summary>
-public sealed partial class TileViewModel : ObservableObject
+public sealed partial class TileViewModel : ObservableObject, IKeyTarget
 {
     private readonly MainViewModel _owner;
     private Action? _issueAction;
@@ -75,6 +75,9 @@ public sealed partial class TileViewModel : ObservableObject
     }
 
     public TileConfig Config { get; }
+
+    /// <summary>Owner name of this pad's key in the hotkey service.</summary>
+    public string OwnerId => Config.Id.ToString();
 
     /// <summary>Decoded sound, null while loading or on error.</summary>
     public SoundClip? Clip { get; set; }

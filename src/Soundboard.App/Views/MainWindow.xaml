@@ -107,6 +107,61 @@
             </Setter>
         </Style>
 
+        <!-- A key printed as a key cap in lists (not clickable; the row has the button). -->
+        <Style x:Key="CapLook" TargetType="Border">
+            <Setter Property="BorderThickness" Value="1,1,1,3" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Padding" Value="7,2,7,1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+            <Setter Property="Background" Value="{DynamicResource RaisedBg}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+
+        <!-- One row of the key list: function keys and pads alike. -->
+        <DataTemplate x:Key="KeyRowTemplate">
+            <Border BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="12,8">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="K" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="B" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
+                            <DockPanel Margin="0,2,0,0">
+                                <Path x:Name="W" Style="{StaticResource WarnIcon}" Margin="0,0,6,0" Visibility="Collapsed" />
+                                <TextBlock x:Name="S" Text="{Binding HotkeyStateText}" Foreground="{DynamicResource SubTextBrush}" FontSize="13" TextWrapping="Wrap" />
+                            </DockPanel>
+                            <Button Content="{Binding KeyIssueActionText}" Command="{Binding RunKeyIssueActionCommand}" FontSize="13" HorizontalAlignment="Left" Margin="0,6,0,0"
+                                    Visibility="{Binding HotkeyProblem, Converter={StaticResource BoolToVis}}" />
+                        </StackPanel>
+                        <Border x:Name="KeyCap" Grid.Column="1" Style="{StaticResource CapLook}" Margin="0,0,16,0">
+                            <TextBlock Text="{Binding HotkeyText}" FontFamily="{DynamicResource FontPad}" FontSize="13" />
+                        </Border>
+                        <TextBlock x:Name="NoKey" Grid.Column="1" Text="–" Foreground="{DynamicResource SubTextBrush}" VerticalAlignment="Center" Margin="0,0,16,0" Visibility="Collapsed" />
+                        <Button x:Name="Change" Grid.Column="2" Content="{t:T Keys.Change}" Command="{Binding AssignHotkeyCommand}" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                    </Grid>
+                    <Border Margin="0,8,0,0" Padding="10,6" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}"
+                            Visibility="{Binding IsCapturingKey, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{Binding CaptureHint}" TextWrapping="Wrap" />
+                    </Border>
+                </StackPanel>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding HasHotkey}" Value="False">
+                    <Setter TargetName="Change" Property="Content" Value="{t:T Pad.AssignKey}" />
+                    <Setter TargetName="KeyCap" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="NoKey" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding HotkeyProblem}" Value="True">
+                    <Setter TargetName="W" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="S" Property="Foreground" Value="{DynamicResource DiffText}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
         <!-- Colour chip in the design tab: selected = ring + tick. -->
         <Style x:Key="Swatch" TargetType="RadioButton">
             <Setter Property="Cursor" Value="Hand" />
@@ -739,52 +794,17 @@
                                            Text="{t:T Keys.PauseHint}" />
 
                                 <TextBlock Text="{t:T Keys.PadKeys}" Style="{StaticResource H2}" />
-                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,10" Text="{Binding StopKeyLine}" />
-                                <Border BorderBrush="{DynamicResource LineSoft}" BorderThickness="1" CornerRadius="6" Background="{DynamicResource FieldBg}">
-                                    <ItemsControl ItemsSource="{Binding Tiles}" Grid.IsSharedSizeScope="True">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="12,8">
-                                                    <StackPanel>
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="Auto" SharedSizeGroup="K" />
-                                                                <ColumnDefinition Width="Auto" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
-                                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
-                                                                <DockPanel Margin="0,2,0,0">
-                                                                    <Path x:Name="W" Style="{StaticResource WarnIcon}" Margin="0,0,6,0" Visibility="Collapsed" />
-                                                                    <TextBlock x:Name="S" Text="{Binding HotkeyStateText}" Foreground="{DynamicResource SubTextBrush}" FontSize="13" TextWrapping="Wrap" />
-                                                                </DockPanel>
-                                                                <Button Content="{Binding KeyIssueActionText}" Command="{Binding RunKeyIssueActionCommand}" FontSize="13" HorizontalAlignment="Left" Margin="0,6,0,0"
-                                                                        Visibility="{Binding HotkeyProblem, Converter={StaticResource BoolToVis}}" />
-                                                            </StackPanel>
-                                                            <TextBlock Grid.Column="1" Text="{Binding HotkeyText, TargetNullValue=–}" FontFamily="{DynamicResource FontPad}" VerticalAlignment="Center" Margin="0,0,16,0" />
-                                                            <Button x:Name="Change" Grid.Column="2" Content="{t:T Keys.Change}" Command="{Binding AssignHotkeyCommand}" FontSize="13" VerticalAlignment="Center" />
-                                                        </Grid>
-                                                        <Border Margin="0,8,0,0" Padding="10,6" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}"
-                                                                Visibility="{Binding IsCapturingKey, Converter={StaticResource BoolToVis}}">
-                                                            <TextBlock Text="{Binding CaptureHint}" TextWrapping="Wrap" />
-                                                        </Border>
-                                                    </StackPanel>
-                                                </Border>
-                                                <DataTemplate.Triggers>
-                                                    <DataTrigger Binding="{Binding HasHotkey}" Value="False">
-                                                        <Setter TargetName="Change" Property="Content" Value="{t:T Pad.AssignKey}" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding HotkeyProblem}" Value="True">
-                                                        <Setter TargetName="W" Property="Visibility" Value="Visible" />
-                                                        <Setter TargetName="S" Property="Foreground" Value="{DynamicResource DiffText}" />
-                                                    </DataTrigger>
-                                                </DataTemplate.Triggers>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                <!-- One list: the function keys ("Stop all sounds" first), then every pad. All rows are built alike. -->
+                                <Border BorderBrush="{DynamicResource LineSoft}" BorderThickness="1" CornerRadius="6" Background="{DynamicResource FieldBg}"
+                                        Grid.IsSharedSizeScope="True">
+                                    <StackPanel>
+                                        <ItemsControl ItemsSource="{Binding FunctionKeys}" ItemTemplate="{StaticResource KeyRowTemplate}" Focusable="False" />
+                                        <ItemsControl ItemsSource="{Binding Tiles}" ItemTemplate="{StaticResource KeyRowTemplate}" Focusable="False" />
+                                    </StackPanel>
                                 </Border>
                                 <TextBlock Style="{StaticResource Sub}" Margin="0,8,0,0" Visibility="{Binding HasNoTiles, Converter={StaticResource BoolToVis}}"
                                            Text="{t:T Keys.NoPads}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,8,0,0" Text="{t:T Keys.NumLockHint}" />
 
                                 <TextBlock Text="{t:T Keys.Playing}" Style="{StaticResource H2}" />
                                 <CheckBox Style="{StaticResource Switch}" Content="{t:T Keys.Overlay}" IsChecked="{Binding OverlayEnabled}" />

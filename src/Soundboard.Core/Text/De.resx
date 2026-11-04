@@ -182,7 +182,7 @@
   <data name="Status.CableMissingTip" xml:space="preserve"><value>Kein virtuelles Kabel installiert, deshalb kommt in Discord noch nichts an – Klick öffnet die Einrichtung, die den Weg zeigt</value></data>
   <data name="Status.LevelTip" xml:space="preserve"><value>Pegel: Das sendet dein Kabel gerade</value></data>
   <data name="Status.MicTip" xml:space="preserve"><value>Mikrofon im Mix – Einstellungen öffnen</value></data>
-  <data name="Status.KeysTip" xml:space="preserve"><value>Globale Tasten der Pads – Einstellungen öffnen</value></data>
+  <data name="Status.KeysTip" xml:space="preserve"><value>Globale Tasten – Einstellungen öffnen</value></data>
   <data name="Status.MicOff" xml:space="preserve"><value>Mikrofon: aus</value></data>
   <data name="Status.MicOn" xml:space="preserve"><value>Mikrofon: an</value></data>
   <data name="Status.MicDropouts.One" xml:space="preserve"><value>Mikrofon: 1 Aussetzer</value></data>
@@ -275,7 +275,6 @@ Entf: Taste löschen</value></data>
 Enter: {1} nehmen
 Esc: abbrechen
 Entf: Taste löschen</value></data>
-  <data name="Key.IsStopKey" xml:space="preserve"><value>{0} ist schon die Taste für „Stop“. Wähle für dieses Pad eine andere Taste.</value></data>
   <data name="Key.AnotherPad" xml:space="preserve"><value>ein anderes Pad</value></data>
   <data name="Key.Duplicate" xml:space="preserve"><value>{0} gehört schon zu „{1}“. Dieses Pad reagiert deshalb nicht auf die Taste.</value></data>
   <data name="Key.MoveHere" xml:space="preserve"><value>{0} hierher holen</value></data>
@@ -361,8 +360,7 @@ Entf: Taste löschen</value></data>
   <data name="Keys.Pause" xml:space="preserve"><value>Tasten pausieren</value></data>
   <data name="Keys.PauseTip" xml:space="preserve"><value>Gibt alle Tasten frei, z. B. wenn du im Spiel chattest.</value></data>
   <data name="Keys.PauseHint" xml:space="preserve"><value>Die Tasten der Pads wirken überall, auch im Spiel – das Spiel bekommt sie dann nicht. Pausiert gibt das Soundboard alle frei.</value></data>
-  <data name="Keys.PadKeys" xml:space="preserve"><value>Tasten der Pads</value></data>
-  <data name="Keys.StopLine" xml:space="preserve"><value>„Stop“: {0}. Num-Tasten liefern „Num 1“ usw. nur bei eingeschaltetem NumLock.</value></data>
+  <data name="Keys.PadKeys" xml:space="preserve"><value>Globale Tasten</value></data>
   <data name="Keys.Change" xml:space="preserve"><value>Taste ändern …</value></data>
   <data name="Keys.NoPads" xml:space="preserve"><value>Noch keine Pads. Zieh Sounds ins Fenster, dann kannst du hier jedem eine Taste geben.</value></data>
   <data name="Keys.Playing" xml:space="preserve"><value>Abspielen</value></data>
@@ -511,4 +509,8 @@ Entf: Taste löschen</value></data>
   <data name="Cli.HelpUninstall" xml:space="preserve"><value>Anleitung zum Entfernen (Daten löschen, Kabel entfernen, vergleichen)</value></data>
   <data name="Cli.HelpTray" xml:space="preserve"><value>ohne Fenster starten (nur Symbol im Infobereich)</value></data>
   <data name="Cli.HelpWait" xml:space="preserve"><value>In PowerShell auf die Ausgabe warten:</value></data>
+  <data name="Keys.StopAll" xml:space="preserve"><value>Alle Sounds stoppen</value></data>
+  <data name="Keys.NumLockHint" xml:space="preserve"><value>Num-Tasten liefern „Num 1“ usw. nur bei eingeschaltetem NumLock.</value></data>
+  <data name="Keys.FunctionTaken" xml:space="preserve"><value>{0} gehört schon zu „{1}“ und bleibt dort. Wähle eine andere Taste.</value></data>
+  <data name="Key.IsFunctionKey" xml:space="preserve"><value>{0} ist schon die Taste für „{1}“. Wähle für dieses Pad eine andere Taste.</value></data>
 </root>

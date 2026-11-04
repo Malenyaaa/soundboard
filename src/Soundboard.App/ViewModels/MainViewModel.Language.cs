@@ -39,10 +39,6 @@ public sealed partial class MainViewModel
     [ObservableProperty]
     private string _statusCableTab = SettingsTabs.MicAndCable;
 
-    /// <summary>"“Stop”: Pause. Num keys give “Num 1” … only with Num Lock on." in the keys tab.</summary>
-    [ObservableProperty]
-    private string _stopKeyLine = "";
-
     public string MasterVolumeText => L.Percent(MasterVolumePercent / 100.0);
 
     public string MicVolumeText => L.Percent(MicVolumePercent / 100.0);
@@ -58,6 +54,7 @@ public sealed partial class MainViewModel
         CompareNow();
         if (!hadSnapshotNotice) ClearNotice("snapshot");
         UpdateCableStatus();
+        foreach (var f in FunctionKeys) f.RefreshTexts();
         RefreshHotkeyViews();
         foreach (var b in BufferChoices) b.RefreshText();
         foreach (var t in Tiles)

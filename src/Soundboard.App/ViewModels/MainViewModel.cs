@@ -109,6 +109,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ = LoadTileImageAsync(tile);
         }
 
+        InitFunctionKeys();
         _hotkeys = new HotkeyService(services.Hotkeys);
         services.Hotkeys.Pressed += id => _hotkeys.HandleHotkey(id);
         _hotkeys.Triggered += (_, owner) => OnHotkey(owner);
@@ -1520,12 +1521,56 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _statusHotkeys = "";
 
-    /// <summary>Tile currently waiting for a key press, or null.</summary>
-    public TileViewModel? CapturingTile { get; private set; }
+    /// <summary>Rows of the function keys in the keys tab, "Stop all sounds" first.</summary>
+    public ObservableCollection<FunctionKeyViewModel> FunctionKeys { get; } = [];
+
+    /// <summary>The key for "Stop all sounds" (default Pause, may be none).</summary>
+    public FunctionKeyViewModel StopKey { get; private set; } = null!;
+
+    /// <summary>Pad or function row currently waiting for a key press, or null.</summary>
+    public IKeyTarget? Capturing { get; private set; }
+
+    /// <summary>The suggestion shown while waiting; Enter takes only this one.</summary>
+    private HotkeyGesture? _captureSuggestion;
+
+    /// <summary>A key the user just tried to give to a function row, but which belongs to someone else.</summary>
+    private readonly Dictionary<string, Func<string>> _refusedKeys = [];
 
     public string StopAllToolTip => HotkeyGesture.Parse(_profile.StopAllHotkey) is { } g
         ? L.F("Main.StopTipKey", g.Display)
         : L.Get("Main.StopTip");
+
+    private void InitFunctionKeys()
+    {
+        StopKey = new FunctionKeyViewModel(this, StopAllOwner, "Keys.StopAll");
+        FunctionKeys.Add(StopKey);
+    }
+
+    private bool IsFunctionOwner(string owner) => FunctionKeys.Any(f => f.OwnerId == owner);
+
+    private string? FunctionKeyToken(string owner) => owner switch
+    {
+        StopAllOwner => _profile.StopAllHotkey,
+        _ => null,
+    };
+
+    private void SetFunctionKeyToken(string owner, string? token)
+    {
+        switch (owner)
+        {
+            case StopAllOwner: _profile.StopAllHotkey = token; break;
+        }
+    }
+
+    /// <summary>Name of whoever owns a key, for messages: a pad name or the name of a function.</summary>
+    private string OwnerName(string owner) =>
+        FunctionKeys.FirstOrDefault(f => f.OwnerId == owner)?.Name
+        ?? Tiles.FirstOrDefault(t => t.OwnerId == owner)?.Name
+        ?? L.Get("Key.AnotherPad");
+
+    private IEnumerable<(string Owner, HotkeyGesture? Gesture)> AllKeys() =>
+        FunctionKeys.Select(f => (f.OwnerId, HotkeyGesture.Parse(FunctionKeyToken(f.OwnerId))))
+            .Concat(Tiles.Select(t => (t.OwnerId, HotkeyGesture.Parse(t.Config.Hotkey))));
 
     partial void OnHotkeysPausedChanged(bool value)
     {
@@ -1535,9 +1580,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void ApplyAllHotkeys()
     {
-        var list = new List<(string, HotkeyGesture?)> { (StopAllOwner, HotkeyGesture.Parse(_profile.StopAllHotkey)) };
-        foreach (var t in Tiles) list.Add((t.Config.Id.ToString(), HotkeyGesture.Parse(t.Config.Hotkey)));
-        _hotkeys.SetAll(list);
+        // Function keys first: with a duplicate from a hand-edited profile, the first binding wins.
+        _hotkeys.SetAll(AllKeys().ToList());
         RefreshHotkeyViews();
     }
 
@@ -1548,45 +1592,63 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StopAll();
             return;
         }
-        var tile = Tiles.FirstOrDefault(t => t.Config.Id.ToString() == owner);
+        var tile = Tiles.FirstOrDefault(t => t.OwnerId == owner);
         if (tile is not null) OnTileClicked(tile);
     }
 
     /// <summary>Next free numpad key (Num 1 … Num 9, Num 0, then Ctrl+Alt+Num …).</summary>
     public HotkeyGesture? SuggestHotkey(TileViewModel forTile) =>
         HotkeyGesture.NumpadSuggestions().Cast<HotkeyGesture?>()
-            .FirstOrDefault(g => _hotkeys.FindOwner(g!.Value, forTile.Config.Id.ToString()) is null);
+            .FirstOrDefault(g => _hotkeys.FindOwner(g!.Value, forTile.OwnerId) is null);
 
-    public void BeginKeyCapture(TileViewModel tile)
+    private HotkeyGesture? SuggestFor(IKeyTarget target) => target switch
     {
-        if (CapturingTile is not null) CapturingTile.IsCapturingKey = false;
-        CapturingTile = tile;
-        var suggestion = SuggestHotkey(tile);
-        tile.CaptureHint = suggestion is null
-            ? L.F("Key.CaptureHint", tile.Name)
-            : L.F("Key.CaptureHintSuggest", tile.Name, suggestion.Value.Display);
+        TileViewModel tile => SuggestHotkey(tile),
+        // "Stop" goes back to its usual key, if that is free.
+        FunctionKeyViewModel f when f.OwnerId == StopAllOwner && FunctionKeyToken(StopAllOwner) is null
+            && _hotkeys.FindOwner(HotkeyGesture.StopAllDefault, f.OwnerId) is null => HotkeyGesture.StopAllDefault,
+        _ => null,
+    };
+
+    public void BeginKeyCapture(IKeyTarget target)
+    {
+        if (Capturing is not null) Capturing.IsCapturingKey = false;
+        Capturing = target;
+        _refusedKeys.Remove(target.OwnerId);
+        _captureSuggestion = SuggestFor(target);
+        target.CaptureHint = _captureSuggestion is { } suggestion
+            ? L.F("Key.CaptureHintSuggest", target.Name, suggestion.Display)
+            : L.F("Key.CaptureHint", target.Name);
         // Registered keys never reach the window; release them while waiting for a key.
         _hotkeys.Paused = true;
-        tile.IsCapturingKey = true;
+        target.IsCapturingKey = true;
+    }
+
+    /// <summary>"Choose another key" for a function key from a notice: the keys tab, waiting on its row.</summary>
+    private void ChooseFunctionKey(FunctionKeyViewModel f)
+    {
+        OpenSettings(SettingsTabs.Keys);
+        BeginKeyCapture(f);
     }
 
     public void CancelKeyCapture()
     {
-        if (CapturingTile is null) return;
-        CapturingTile.IsCapturingKey = false;
-        CapturingTile = null;
+        if (Capturing is null) return;
+        Capturing.IsCapturingKey = false;
+        Capturing = null;
+        _captureSuggestion = null;
         _hotkeys.Paused = HotkeysPaused;
         RefreshHotkeyViews();
     }
 
     /// <summary>
-    /// A key arrived while a tile waits for one. Returns true if it was consumed.
-    /// Enter takes the suggestion, Esc cancels, Delete/Backspace removes the key.
+    /// A key arrived while a pad or row waits for one. Returns true if it was consumed.
+    /// Enter takes the suggestion shown (nothing else), Esc cancels, Delete/Backspace removes the key.
     /// </summary>
     public bool OnCapturedKey(int vk, HotkeyModifiers mods)
     {
-        var tile = CapturingTile;
-        if (tile is null) return false;
+        var target = Capturing;
+        if (target is null) return false;
         if (vk == 0x1B) // Esc
         {
             CancelKeyCapture();
@@ -1595,71 +1657,84 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (vk is 0x2E or 0x08) // Delete, Backspace
         {
             CancelKeyCapture();
-            SetTileHotkey(tile, null);
+            SetKey(target, null);
             return true;
         }
-        if (vk == 0x0D) // Enter: take the suggestion
+        if (vk == 0x0D) // Enter: only a suggestion that is on screen
         {
-            var s = SuggestHotkey(tile);
+            var s = _captureSuggestion;
+            if (s is null) return true; // nothing offered: keep waiting for a real key
             CancelKeyCapture();
-            if (s is not null) SetTileHotkey(tile, s);
+            SetKey(target, s);
             return true;
         }
         if (!HotkeyGesture.IsUsableKey(vk)) return true; // wait for the real key (modifier alone)
         CancelKeyCapture();
-        SetTileHotkey(tile, new HotkeyGesture(mods, vk));
+        SetKey(target, new HotkeyGesture(mods, vk));
         return true;
+    }
+
+    public void SetKey(IKeyTarget target, HotkeyGesture? gesture)
+    {
+        if (target is TileViewModel tile) SetTileHotkey(tile, gesture);
+        else if (target is FunctionKeyViewModel f) SetFunctionHotkey(f, gesture);
     }
 
     public void SetTileHotkey(TileViewModel tile, HotkeyGesture? gesture)
     {
-        if (gesture is { } g && g == HotkeyGesture.Parse(_profile.StopAllHotkey))
+        if (gesture is { } g && HotkeyRules.Conflict(g, tile.OwnerId, AllKeys(), IsFunctionOwner) is { } owner)
         {
-            tile.SetKeyIssue(() => L.F("Key.IsStopKey", g.Display), T("Action.OtherKey"), () => BeginKeyCapture(tile));
+            tile.SetKeyIssue(() => L.F("Key.IsFunctionKey", g.Display, OwnerName(owner)), T("Action.OtherKey"), () => BeginKeyCapture(tile));
             tile.IsIssueOpen = true;
             return;
         }
         tile.Config.Hotkey = gesture?.ToToken();
-        _hotkeys.Set(tile.Config.Id.ToString(), gesture);
+        _hotkeys.Set(tile.OwnerId, gesture);
         ScheduleSave();
         RefreshHotkeyViews();
+    }
+
+    private void SetFunctionHotkey(FunctionKeyViewModel f, HotkeyGesture? gesture)
+    {
+        if (gesture is { } g && HotkeyRules.Conflict(g, f.OwnerId, AllKeys(), IsFunctionOwner) is { } owner)
+        {
+            // The key stays where it is; the row says whose it is.
+            _refusedKeys[f.OwnerId] = () => L.F("Keys.FunctionTaken", g.Display, OwnerName(owner));
+            RefreshHotkeyViews();
+            return;
+        }
+        _refusedKeys.Remove(f.OwnerId);
+        SetFunctionKeyToken(f.OwnerId, gesture?.ToToken());
+        _hotkeys.Set(f.OwnerId, gesture);
+        ScheduleSave();
+        RefreshHotkeyViews();
+        OnPropertyChanged(nameof(StopAllToolTip));
     }
 
     /// <summary>Gives the key to <paramref name="tile"/> and removes it from the tile that had it.</summary>
     private void MoveHotkeyTo(TileViewModel tile, string fromOwner)
     {
-        var from = Tiles.FirstOrDefault(t => t.Config.Id.ToString() == fromOwner);
+        var from = Tiles.FirstOrDefault(t => t.OwnerId == fromOwner);
         if (from is not null)
         {
             from.Config.Hotkey = null;
             _hotkeys.Set(fromOwner, null);
         }
-        _hotkeys.Set(tile.Config.Id.ToString(), HotkeyGesture.Parse(tile.Config.Hotkey));
+        _hotkeys.Set(tile.OwnerId, HotkeyGesture.Parse(tile.Config.Hotkey));
         ScheduleSave();
         RefreshHotkeyViews();
     }
 
-    /// <summary>Updates the keys printed on the pads and the problem boxes on the pads.</summary>
+    /// <summary>Updates the keys printed on the pads, the rows in the keys tab and the problem boxes.</summary>
     private void RefreshHotkeyViews()
     {
         int active = 0, problems = 0;
+        foreach (var f in FunctionKeys) RefreshFunctionKey(f, ref problems);
         foreach (var b in _hotkeys.Bindings)
         {
-            if (b.State == HotkeyState.Active && b.Owner != StopAllOwner) active++;
-            string key = "hotkey-" + b.Owner;
-            if (b.Owner == StopAllOwner)
-            {
-                if (b.State is HotkeyState.TakenByOtherProgram or HotkeyState.Failed)
-                {
-                    problems++;
-                    var gesture = b.Gesture;
-                    ShowNotice(key, () => L.F("Notice.StopKeyTaken", gesture?.Display));
-                }
-                else ClearNotice(key);
-                continue;
-            }
-
-            var tile = Tiles.FirstOrDefault(t => t.Config.Id.ToString() == b.Owner);
+            if (IsFunctionOwner(b.Owner)) continue;
+            if (b.State == HotkeyState.Active) active++;
+            var tile = Tiles.FirstOrDefault(t => t.OwnerId == b.Owner);
             if (tile is null) continue;
             tile.HotkeyText = b.Gesture?.Display;
             tile.HotkeyProblem = b.State is HotkeyState.Duplicate or HotkeyState.TakenByOtherProgram or HotkeyState.Failed;
@@ -1670,13 +1745,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 case HotkeyState.Duplicate:
                     problems++;
-                    var first = Tiles.FirstOrDefault(t => t.Config.Id.ToString() == b.DuplicateOf);
-                    var firstName = first?.Name;
-                    issue = () => L.F("Key.Duplicate", g?.Display, firstName ?? L.Get("Key.AnotherPad"));
-                    action = () => L.F("Key.MoveHere", g?.Display);
-                    var from = b.DuplicateOf!;
-                    fix = () => MoveHotkeyTo(tile, from);
-                    tile.HotkeyStateText = L.F("Key.StateDuplicate", firstName ?? L.Get("Key.AnotherPad"));
+                    var dupOf = b.DuplicateOf!;
+                    var firstName = OwnerName(dupOf);
+                    issue = () => L.F("Key.Duplicate", g?.Display, firstName);
+                    if (IsFunctionOwner(dupOf))
+                    {
+                        action = T("Action.OtherKey");
+                        fix = () => BeginKeyCapture(tile);
+                    }
+                    else
+                    {
+                        action = () => L.F("Key.MoveHere", g?.Display);
+                        fix = () => MoveHotkeyTo(tile, dupOf);
+                    }
+                    tile.HotkeyStateText = L.F("Key.StateDuplicate", firstName);
                     break;
                 case HotkeyState.TakenByOtherProgram:
                     problems++;
@@ -1700,11 +1782,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
             tile.SetKeyIssue(issue, action, fix);
         }
-        foreach (var t in Tiles.Where(t => t.HotkeyText is null && !_hotkeys.Bindings.Any(b => b.Owner == t.Config.Id.ToString())))
+        foreach (var t in Tiles.Where(t => t.HotkeyText is null && !_hotkeys.Bindings.Any(b => b.Owner == t.OwnerId)))
             t.HotkeyStateText = L.Get("Key.StateNone");
 
-        StopAllKeyText = HotkeyGesture.Parse(_profile.StopAllHotkey)?.Display ?? L.Get("Key.None");
-        StopKeyLine = L.F("Keys.StopLine", StopAllKeyText);
         HotkeyProblems = problems;
         StatusHotkeys = HotkeysPaused ? L.Get("Status.KeysPaused")
             : problems > 0 ? L.F("Status.KeysProblems", active, problems)
@@ -1712,9 +1792,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : L.Count("Status.Keys", active);
     }
 
-    /// <summary>Key for "Stop", as shown in the settings.</summary>
-    [ObservableProperty]
-    private string _stopAllKeyText = "";
+    /// <summary>State of one function key row; a key held by another program also gets a notice with the way out.</summary>
+    private void RefreshFunctionKey(FunctionKeyViewModel f, ref int problems)
+    {
+        var b = _hotkeys.Get(f.OwnerId);
+        var g = b?.Gesture;
+        f.HotkeyText = g?.Display;
+        string noticeKey = "hotkey-" + f.OwnerId;
+        if (b is { State: HotkeyState.TakenByOtherProgram or HotkeyState.Failed })
+        {
+            problems++;
+            f.SetProblem(L.F(b.State == HotkeyState.Failed ? "Key.Refused" : "Key.TakenByOther", g?.Display), L.Get("Action.OtherKey"), () => BeginKeyCapture(f));
+            if (f.OwnerId == StopAllOwner)
+                ShowNotice(noticeKey, () => L.F("Notice.StopKeyTaken", g?.Display), T("Action.OtherKey"), () => ChooseFunctionKey(f));
+        }
+        else
+        {
+            ClearNotice(noticeKey);
+            f.SetProblem(null, null, null);
+            f.HotkeyStateText = L.Get(g is null ? "Key.StateNone" : HotkeysPaused ? "Key.StatePaused" : "Key.StateWorks");
+        }
+        if (_refusedKeys.TryGetValue(f.OwnerId, out var refused))
+            f.SetProblem(refused(), L.Get("Action.OtherKey"), () => BeginKeyCapture(f));
+    }
 
     /// <summary>Number of keys that do not work (status line warns when > 0).</summary>
     [ObservableProperty]
