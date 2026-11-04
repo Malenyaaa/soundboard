@@ -26,7 +26,7 @@ public sealed class TileConfig
 /// <summary>User settings: tiles and the chosen monitor device. Stored as JSON.</summary>
 public sealed class Profile
 {
-    public int Version { get; set; } = 1;
+    public int Version { get; set; } = CurrentVersion;
 
     /// <summary>Endpoint ID of the monitor (headphones). Null = not chosen yet.</summary>
     public string? MonitorDeviceId { get; set; }
@@ -75,6 +75,82 @@ public sealed class Profile
     public string? StopAllHotkey { get; set; } = "Pause";
 
     public List<TileConfig> Tiles { get; set; } = [];
+
+    // ---- design (since version 2); stored as text so an unknown value never breaks loading
+
+    /// <summary>"System" (follow Windows), "Hell" or "Dunkel".</summary>
+    public string Appearance { get; set; } = AppearanceModes.System;
+
+    /// <summary>Accent preset id (see Design.AccentPalette) or "eigene" for <see cref="CustomAccent"/>.</summary>
+    public string AccentId { get; set; } = Design.AccentPalette.DefaultId;
+
+    /// <summary>Free accent colour as #RRGGBB, used when <see cref="AccentId"/> is "eigene".</summary>
+    public string? CustomAccent { get; set; }
+
+    /// <summary>"Bunt" (every pad its own colour) or "Akzent" (all pads in the accent colour).</summary>
+    public string PadColors { get; set; } = PadColorModes.Colorful;
+
+    /// <summary>Short transitions (pad lighting up). Windows' own "animation effects" setting is respected as well.</summary>
+    public bool Animations { get; set; } = true;
+
+    public const int CurrentVersion = 2;
+
+    /// <summary>
+    /// Brings an older or hand-edited profile up to date: missing design values get their
+    /// defaults, unknown values are replaced. Returns true if something changed.
+    /// </summary>
+    public bool Migrate()
+    {
+        bool changed = false;
+        if (Version < CurrentVersion)
+        {
+            Version = CurrentVersion;
+            changed = true;
+        }
+        if (!AppearanceModes.All.Contains(Appearance))
+        {
+            Appearance = AppearanceModes.System;
+            changed = true;
+        }
+        if (AccentId != Design.AccentPalette.CustomId && Design.AccentPalette.Find(AccentId) is null)
+        {
+            AccentId = Design.AccentPalette.DefaultId;
+            changed = true;
+        }
+        if (AccentId == Design.AccentPalette.CustomId && !Design.Rgb.TryParse(CustomAccent, out _))
+        {
+            AccentId = Design.AccentPalette.DefaultId;
+            changed = true;
+        }
+        if (PadColors is not (PadColorModes.Colorful or PadColorModes.Accent))
+        {
+            PadColors = PadColorModes.Colorful;
+            changed = true;
+        }
+        foreach (var t in Tiles)
+        {
+            if (!Design.Rgb.TryParse(t.Color, out _))
+            {
+                t.Color = Design.PadPalette.ForIndex(Tiles.IndexOf(t));
+                changed = true;
+            }
+        }
+        return changed;
+    }
+}
+
+public static class AppearanceModes
+{
+    public const string System = "System";
+    public const string Light = "Hell";
+    public const string Dark = "Dunkel";
+    public static readonly string[] All = [System, Light, Dark];
+}
+
+public static class PadColorModes
+{
+    public const string Colorful = "Bunt";
+    public const string Accent = "Akzent";
 }
 
 /// <summary>Result of loading a profile; <see cref="Problem"/> is a German hint if something went wrong.</summary>
@@ -98,6 +174,10 @@ public static class ProfileStore
             var profile = JsonSerializer.Deserialize<Profile>(json, JsonOptions) ?? new Profile();
             profile.Tiles ??= [];
             profile.Tiles.RemoveAll(t => t is null);
+            profile.Appearance ??= AppearanceModes.System;
+            profile.AccentId ??= Design.AccentPalette.DefaultId;
+            profile.PadColors ??= PadColorModes.Colorful;
+            profile.Migrate();
             return new ProfileLoadResult(profile, null);
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException or NotSupportedException)
@@ -116,6 +196,28 @@ public static class ProfileStore
                 ? "Die Einstellungen ließen sich nicht lesen und wurden zurückgesetzt."
                 : $"Die Einstellungen ließen sich nicht lesen und wurden zurückgesetzt. Die alte Datei liegt als „{Path.GetFileName(backup)}“ im Datenordner.";
             return new ProfileLoadResult(new Profile(), hint);
+        }
+    }
+
+    /// <summary>Reads the profile without any side effect (no backup, no reset); null if it cannot be read.</summary>
+    public static Profile? Peek(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return null;
+            var profile = JsonSerializer.Deserialize<Profile>(File.ReadAllText(path), JsonOptions);
+            if (profile is null) return null;
+            profile.Tiles ??= [];
+            profile.Tiles.RemoveAll(t => t is null);
+            profile.Appearance ??= AppearanceModes.System;
+            profile.AccentId ??= Design.AccentPalette.DefaultId;
+            profile.PadColors ??= PadColorModes.Colorful;
+            profile.Migrate();
+            return profile;
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException or NotSupportedException)
+        {
+            return null;
         }
     }
 
