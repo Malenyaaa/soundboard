@@ -60,10 +60,10 @@ public sealed class TrayIcon : IDisposable
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged += OnDisplayChanged;
     }
 
-    /// <summary>Always the default accent (as the light mode fills it, like the app icon), so the
-    /// symbol stays recognisable whatever accent is chosen; plus the tray size for the taskbar's DPI.</summary>
+    /// <summary>Always the fixed colour of the app icon, so the symbol stays recognisable whatever
+    /// accent is chosen; plus the tray size for the taskbar's DPI.</summary>
     private static (Rgb Accent, int Size) Wanted() =>
-        (AccentPalette.Resolve(AccentPalette.DefaultId, null, false).Fill, TrayIconImage.CurrentSize());
+        (Icons.AppIconDrawing.DefaultAccent, TrayIconImage.CurrentSize());
 
     /// <summary>Draws the symbol again when accent or size changed. Setting Icon disposes the previous one (and its HICON).</summary>
     private void Redraw()

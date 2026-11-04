@@ -20,8 +20,9 @@ public static class AppIconDrawing
 
     private static readonly Color White = Colors.White;
 
-    /// <summary>Face colour of the default accent (Petrol) as the light mode uses it.</summary>
-    public static Rgb DefaultAccent => AccentPalette.Resolve(AccentPalette.DefaultId, null, false).Fill;
+    /// <summary>Fixed face colour of the app symbol (dark orchid), the same for the EXE icon and the
+    /// tray symbol and independent of the accent chosen in the settings. White bars on it: 5.6 : 1.</summary>
+    public static Rgb DefaultAccent { get; } = Rgb.Parse("#9932CC");
 
     /// <summary>The lower edge of the cap: same hue, 0.10 darker in OKLCH, a little less chroma.</summary>
     public static Rgb EdgeFor(Rgb accent)
