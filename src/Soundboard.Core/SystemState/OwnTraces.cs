@@ -29,6 +29,7 @@ public static class OwnTraces
         }
         AddFile(Text.L.Get("Traces.Running"), paths.DirtyFlagFile);
         if (Directory.Exists(paths.RecordingsDir)) list.Add((Text.L.Get("Traces.Recordings"), paths.RecordingsDir));
+        if (Directory.Exists(paths.BackupsDir)) list.Add((Text.L.Get("Traces.Backups"), paths.BackupsDir));
         if (!keepSounds && Directory.Exists(paths.SoundsDir)) list.Add((Text.L.Get("Traces.Sounds"), paths.SoundsDir));
         if (!keepSounds && Directory.Exists(paths.ImagesDir)) list.Add((Text.L.Get("Traces.Images"), paths.ImagesDir));
         return list;

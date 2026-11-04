@@ -218,6 +218,9 @@
                                 </DockPanel>
                             </MenuItem.Header>
                         </MenuItem>
+                        <MenuItem Header="{t:T Pad.EvenOut}" Command="{Binding EvenOutCommand}" ToolTip="{t:T Pad.EvenOutTip}" />
+                        <MenuItem Header="{t:T Pad.EvenOutAll}" Command="{Binding EvenOutAllCommand}" ToolTip="{t:T Pad.EvenOutAllTip}" />
+                        <Separator />
                         <MenuItem Header="{t:T Pad.Rename}" Command="{Binding RenameCommand}" InputGestureText="F2" />
                         <!-- Colour: automatic (by order) or one of the seven pad colours, each with its swatch. -->
                         <MenuItem Header="{t:T Pad.Colour}" ItemsSource="{Binding ColorMenu}">
@@ -1055,6 +1058,42 @@
                                            Text="{t:T Design.GlowHint}" />
                                 <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0" Visibility="{Binding WindowsAnimationsOff, Converter={StaticResource BoolToVis}}"
                                            Text="{t:T Design.WindowsOff}" />
+
+                                <!-- Profile: pads with sounds and pictures as one ZIP file, out and in. -->
+                                <TextBlock Text="{t:T Profile.Title}" Style="{StaticResource H2}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,10" MaxWidth="608" HorizontalAlignment="Left" Text="{t:T Profile.Text}" />
+                                <WrapPanel>
+                                    <Button Content="{t:T Profile.Export}" Command="{Binding ExportProfileCommand}" Margin="0,0,8,6" ToolTip="{t:T Profile.ExportTip}" />
+                                    <Button Content="{t:T Profile.Import}" Command="{Binding ImportProfileCommand}" Margin="0,0,8,6" ToolTip="{t:T Profile.ImportTip}" />
+                                </WrapPanel>
+                                <TextBlock Text="{Binding ProfileResultText}" Style="{StaticResource Sub}" Margin="0,2,0,0" MaxWidth="608" HorizontalAlignment="Left"
+                                           Visibility="{Binding ProfileResultText, Converter={StaticResource TextToVis}}" />
+                                <!-- The file cannot be used: why, and the way to another file. -->
+                                <Border Style="{StaticResource NoticeBox}" Padding="14,10" Margin="0,8,0,0" MaxWidth="608" HorizontalAlignment="Left"
+                                        Visibility="{Binding ProfileErrorText, Converter={StaticResource TextToVis}}">
+                                    <StackPanel>
+                                        <DockPanel>
+                                            <Path Style="{StaticResource WarnIcon}" Margin="0,1,8,0" />
+                                            <TextBlock Text="{Binding ProfileErrorText}" TextWrapping="Wrap" LineHeight="20" />
+                                        </DockPanel>
+                                        <Button Style="{StaticResource NoticeButton}" Content="{t:T Profile.OtherFile}" Command="{Binding ImportProfileCommand}"
+                                                HorizontalAlignment="Left" Margin="26,8,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <!-- Preview: what the file holds, then the choice. Nothing has changed yet. -->
+                                <Border Margin="0,8,0,0" Padding="14,12" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}" Background="{DynamicResource FieldBg}"
+                                        MaxWidth="608" HorizontalAlignment="Left" Visibility="{Binding HasImportPreview, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding ImportPreviewText}" Style="{StaticResource P}" FontWeight="SemiBold" />
+                                        <CheckBox Content="{t:T Profile.EvenOut}" IsChecked="{Binding EvenOutOnImport}" Margin="0,10,0,0" ToolTip="{t:T Profile.EvenOutTip}" />
+                                        <TextBlock Style="{StaticResource Sub}" Margin="0,8,0,0" Text="{t:T Profile.BackupHint}" />
+                                        <WrapPanel Margin="0,12,0,0">
+                                            <Button Style="{StaticResource PrimaryButton}" Content="{t:T Profile.Add}" Command="{Binding ImportAddCommand}" Margin="0,0,8,6" />
+                                            <Button Content="{t:T Profile.Replace}" Command="{Binding ImportReplaceCommand}" Margin="0,0,8,6" ToolTip="{t:T Profile.ReplaceTip}" />
+                                            <Button Content="{t:T Common.Cancel}" Command="{Binding CancelImportCommand}" Margin="0,0,8,6" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </Border>
 
                                 <!-- Start with Windows: the real Run entry, also one the installer set. -->
                                 <TextBlock Text="{t:T Autostart.Title}" Style="{StaticResource H2}" />

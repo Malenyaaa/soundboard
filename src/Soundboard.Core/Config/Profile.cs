@@ -312,6 +312,7 @@ public sealed class AppPaths
         ImagesDir = Path.Combine(dataDir, "Bilder");
         ProfileFile = Path.Combine(dataDir, "config.json");
         RecordingsDir = Path.Combine(dataDir, "Aufnahmen");
+        BackupsDir = Path.Combine(dataDir, "Sicherungen");
         SnapshotFile = Path.Combine(dataDir, "audio-snapshot.json");
         DirtyFlagFile = Path.Combine(dataDir, "running.json");
     }
@@ -326,6 +327,9 @@ public sealed class AppPaths
     public string ImagesDir { get; }
 
     public string ProfileFile { get; }
+
+    /// <summary>Automatic backups of the pads (ZIP) made before an import.</summary>
+    public string BackupsDir { get; }
 
     /// <summary>Test recordings (10-second WAV files).</summary>
     public string RecordingsDir { get; }

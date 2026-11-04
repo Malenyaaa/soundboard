@@ -549,4 +549,48 @@ Delete: remove key</value></data>
   <data name="Design.PadLarge" xml:space="preserve"><value>Large</value></data>
   <data name="Design.PadCompact" xml:space="preserve"><value>Compact</value></data>
   <data name="Design.PadSizeHint" xml:space="preserve"><value>Compact pads are smaller and flatter, so many fit on one screen.</value></data>
+  <data name="Common.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Profile.Title" xml:space="preserve"><value>Profile</value></data>
+  <data name="Profile.Text" xml:space="preserve"><value>Takes your pads with their sounds and pictures along as one ZIP file – to another computer, or as a backup. Devices and microphones are not included.</value></data>
+  <data name="Profile.Export" xml:space="preserve"><value>Export profile…</value></data>
+  <data name="Profile.ExportTip" xml:space="preserve"><value>Saves all pads with their sounds and pictures as a ZIP file.</value></data>
+  <data name="Profile.Import" xml:space="preserve"><value>Import profile…</value></data>
+  <data name="Profile.ImportTip" xml:space="preserve"><value>Reads a profile ZIP file. Before anything changes, you see what it holds.</value></data>
+  <data name="Profile.ExportTitle" xml:space="preserve"><value>Export profile</value></data>
+  <data name="Profile.ImportTitle" xml:space="preserve"><value>Import profile</value></data>
+  <data name="Profile.Filter" xml:space="preserve"><value>Soundboard profile (*.zip)|*.zip</value></data>
+  <data name="Profile.Exported.One" xml:space="preserve"><value>Saved: “{1}” with 1 pad.</value></data>
+  <data name="Profile.Exported.Other" xml:space="preserve"><value>Saved: “{1}” with {0} pads.</value></data>
+  <data name="Profile.ExportFailed" xml:space="preserve"><value>“{0}” could not be saved ({1}). Choose another folder.</value></data>
+  <data name="Profile.ImportFailed" xml:space="preserve"><value>“{0}” could not be imported ({1}). Nothing has changed.</value></data>
+  <data name="Profile.Preview.One" xml:space="preserve"><value>“{1}” holds 1 pad.</value></data>
+  <data name="Profile.Preview.Other" xml:space="preserve"><value>“{1}” holds {0} pads.</value></data>
+  <data name="Profile.PreviewMissing.One" xml:space="preserve"><value>The sound of 1 pad is missing in the file; that pad is left out.</value></data>
+  <data name="Profile.PreviewMissing.Other" xml:space="preserve"><value>The sound of {0} pads is missing in the file; those pads are left out.</value></data>
+  <data name="Profile.EvenOut" xml:space="preserve"><value>Even out the volume of the new pads</value></data>
+  <data name="Profile.EvenOutTip" xml:space="preserve"><value>Sets each new pad’s volume so they sound about as loud as the others. The sound files stay unchanged.</value></data>
+  <data name="Profile.BackupHint" xml:space="preserve"><value>Before the import, your current pads are saved as a ZIP in the folder “Sicherungen” in the data folder. “Undo” brings them back.</value></data>
+  <data name="Profile.Add" xml:space="preserve"><value>Add to existing</value></data>
+  <data name="Profile.Replace" xml:space="preserve"><value>Replace</value></data>
+  <data name="Profile.ReplaceTip" xml:space="preserve"><value>Your current pads are replaced by the ones in the file.</value></data>
+  <data name="Profile.OtherFile" xml:space="preserve"><value>Choose another file…</value></data>
+  <data name="Archive.NotZip" xml:space="preserve"><value>“{0}” is not a ZIP file, or it is damaged.</value></data>
+  <data name="Archive.CannotOpen" xml:space="preserve"><value>“{0}” cannot be opened ({1}).</value></data>
+  <data name="Archive.NoConfig" xml:space="preserve"><value>This ZIP file is no soundboard profile: “config.json” is missing.</value></data>
+  <data name="Archive.BadConfig" xml:space="preserve"><value>The “config.json” in this file cannot be read.</value></data>
+  <data name="Archive.NoPads" xml:space="preserve"><value>“{0}” holds no pad that could be used.</value></data>
+  <data name="Notice.ImportedReplace.One" xml:space="preserve"><value>1 pad imported, the previous pads replaced. Backup: “{1}”.</value></data>
+  <data name="Notice.ImportedReplace.Other" xml:space="preserve"><value>{0} pads imported, the previous pads replaced. Backup: “{1}”.</value></data>
+  <data name="Notice.ImportedAdd.One" xml:space="preserve"><value>1 pad imported and added. Backup: “{1}”.</value></data>
+  <data name="Notice.ImportedAdd.Other" xml:space="preserve"><value>{0} pads imported and added. Backup: “{1}”.</value></data>
+  <data name="Pad.EvenOut" xml:space="preserve"><value>Even out volume</value></data>
+  <data name="Pad.EvenOutTip" xml:space="preserve"><value>Sets this pad’s volume so it sounds about as loud as the others. The file stays unchanged.</value></data>
+  <data name="Pad.EvenOutAll" xml:space="preserve"><value>Even out all pads</value></data>
+  <data name="Pad.EvenOutAllTip" xml:space="preserve"><value>Brings loud pads down to the level of the middle one. Nothing gets louder than 100%.</value></data>
+  <data name="Notice.EvenOutBroken" xml:space="preserve"><value>“{0}” cannot be played, so it cannot be measured either.</value></data>
+  <data name="Notice.EvenOutNothing" xml:space="preserve"><value>The volumes already fit – nothing changed.</value></data>
+  <data name="Notice.EvenedOutOne" xml:space="preserve"><value>“{0}” evened out: {1} → {2}.</value></data>
+  <data name="Notice.EvenedOut.One" xml:space="preserve"><value>Volume of 1 pad evened out.</value></data>
+  <data name="Notice.EvenedOut.Other" xml:space="preserve"><value>Volume of {0} pads evened out.</value></data>
+  <data name="Traces.Backups" xml:space="preserve"><value>Backups made before an import (folder “Sicherungen”)</value></data>
 </root>

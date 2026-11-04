@@ -415,6 +415,12 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
     private void Remove() => _owner.RemoveTile(this);
 
     [RelayCommand]
+    private void EvenOut() => _owner.EvenOut(this);
+
+    [RelayCommand]
+    private void EvenOutAll() => _owner.EvenOutAll();
+
+    [RelayCommand]
     private void ShowInFolder() => _owner.ShowTileInFolder(this);
 
     [RelayCommand]
