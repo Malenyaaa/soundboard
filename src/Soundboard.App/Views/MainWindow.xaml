@@ -118,6 +118,44 @@
             </DockPanel>
         </Expander>
 
+        <!-- Saved Windows audio state vs. now -->
+        <Expander DockPanel.Dock="Bottom" Margin="12,4,12,0" Header="{Binding SnapshotHeader}">
+            <DockPanel Margin="0,6,0,0">
+                <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <Button Content="Wie vorher" Style="{StaticResource PlainButton}" Command="{Binding RestoreDefaultsCommand}" Margin="0,0,8,4"
+                            ToolTip="Stellt die Windows-Standardgeräte auf die gesicherten zurück. Sonst wird nichts verändert." />
+                    <Button Content="Audio-Zustand jetzt sichern" Style="{StaticResource PlainButton}" Command="{Binding SaveSnapshotNowCommand}" Margin="0,0,8,4"
+                            ToolTip="Merkt sich, wie Windows-Audio gerade eingestellt ist. Spätere Änderungen werden damit verglichen." />
+                    <Button Content="Neu vergleichen" Style="{StaticResource PlainButton}" Command="{Binding CompareAgainCommand}" Margin="0,0,16,4" />
+                    <TextBlock Text="{Binding SnapshotInfo}" VerticalAlignment="Center" Foreground="{DynamicResource SubTextBrush}" TextWrapping="Wrap" Margin="0,0,0,4" />
+                </WrapPanel>
+                <TextBlock DockPanel.Dock="Top" Text="{Binding RestoreResultText}" TextWrapping="Wrap" Margin="0,0,0,6"
+                           Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
+                <DataGrid ItemsSource="{Binding ComparisonRows}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="200"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" CanUserAddRows="False"
+                          HorizontalGridLinesBrush="{DynamicResource GridLine}" Background="{DynamicResource SurfaceBg}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Was" Binding="{Binding What}" Width="2*" />
+                        <DataGridTextColumn Header="Gesichert" Binding="{Binding Saved}" Width="2*" />
+                        <DataGridTextColumn Header="Jetzt" Binding="{Binding Now}" Width="2*" />
+                        <DataGridTemplateColumn Header="Ergebnis" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock x:Name="K" Text="{Binding KindText}" FontWeight="SemiBold" Foreground="{DynamicResource DiffText}" Margin="4,0" />
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding KindText}" Value="gleich">
+                                            <Setter TargetName="K" Property="Foreground" Value="{DynamicResource OkText}" />
+                                            <Setter TargetName="K" Property="FontWeight" Value="Normal" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Expander>
+
         <!-- Header: playback controls -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Padding="12,10">
             <DockPanel>

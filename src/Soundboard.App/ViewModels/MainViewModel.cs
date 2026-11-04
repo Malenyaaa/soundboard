@@ -10,6 +10,7 @@ using Soundboard.Core.Audio;
 using Soundboard.Core.Audio.Sinks;
 using Soundboard.Core.Config;
 using Soundboard.Core.Hotkeys;
+using Soundboard.Core.SystemState;
 using Soundboard.App.Themes;
 
 namespace Soundboard.App.ViewModels;
@@ -30,6 +31,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IAudioSystem _audio;
     private readonly HotkeyService _hotkeys;
     private readonly AppServices _services;
+    private readonly DirtyFlag _dirty;
     private readonly Dispatcher _dispatcher;
     private readonly DispatcherTimer _progressTimer;
     private readonly DispatcherTimer _saveTimer;
@@ -47,6 +49,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _services = services;
         _paths = services.Paths;
         _audio = services.Audio;
+        _dirty = new DirtyFlag(_paths.DirtyFlagFile);
         _dispatcher = Dispatcher.CurrentDispatcher;
 
         var loaded = ProfileStore.Load(_paths.ProfileFile);
@@ -101,6 +104,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyAllHotkeys();
 
         ThemeManager.Changed += (_, _) => { foreach (var t in Tiles) t.RefreshTheme(); };
+
+        InitAudioState();
 
         _initialized = true;
         EnsureMonitor();
@@ -167,6 +172,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _state = _audio.ReadState();
         RefreshDeviceViews();
+        CompareNow();
     }
 
     private void OnDevicesChanged()
@@ -604,6 +610,191 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         Directory.CreateDirectory(_paths.SoundsDir);
         Process.Start("explorer.exe", $"\"{_paths.SoundsDir}\"");
+    }
+
+    // ---------------------------------------------------------------- audio state: saved vs. now
+
+    private static readonly System.Globalization.CultureInfo De = System.Globalization.CultureInfo.GetCultureInfo("de-DE");
+
+    private AudioSnapshot? _snapshot;
+    private bool _stateReady;
+
+    public ObservableCollection<ComparisonRow> ComparisonRows { get; } = [];
+
+    [ObservableProperty]
+    private string _snapshotHeader = "Audio-Zustand";
+
+    [ObservableProperty]
+    private string _snapshotInfo = "";
+
+    [ObservableProperty]
+    private string _restoreResultText = "";
+
+    /// <summary>Latest comparison (null without a snapshot).</summary>
+    public SnapshotComparison? Comparison { get; private set; }
+
+    public static string AppVersion =>
+        typeof(MainViewModel).Assembly.GetName().Version?.ToString(3) ?? "?";
+
+    /// <summary>Start path: running flag, load or take the first snapshot, compare.</summary>
+    private void InitAudioState()
+    {
+        bool crashed = false;
+        if (_services.UseDirtyFlag)
+        {
+            var info = _dirty.Read();
+            crashed = info is not null && DirtyFlag.IsStale(info, DirtyFlag.ProcessStartTime);
+            WriteDirtyFlag(cableActive: false);
+        }
+
+        try
+        {
+            _snapshot = SnapshotStore.Load(_paths.SnapshotFile);
+        }
+        catch (SnapshotException ex)
+        {
+            ShowNotice("snapshot-file", ex.Message + " Speichere den jetzigen Zustand neu, wenn er stimmt.", "Audio-Zustand jetzt sichern", SaveSnapshotNow);
+        }
+
+        if (_snapshot is null && !File.Exists(_paths.SnapshotFile))
+        {
+            // First start: remember how Windows audio looks before anything else happens.
+            TrySaveSnapshot(_state);
+        }
+
+        _stateReady = true;
+        CompareNow();
+
+        if (crashed)
+        {
+            var tail = Comparison is { DefaultsChanged: true }
+                ? "Seitdem hat sich ein Windows-Standardgerät geändert – „Wie vorher“ stellt es zurück."
+                : "Die Windows-Standardgeräte sind wie gesichert; es ist nichts zu tun.";
+            ShowNotice("crash", "Das Soundboard wurde beim letzten Mal nicht normal beendet. " + tail,
+                Comparison is { DefaultsChanged: true } ? "Wie vorher" : null,
+                Comparison is { DefaultsChanged: true } ? RestoreDefaults : null);
+        }
+    }
+
+    private void WriteDirtyFlag(bool cableActive)
+    {
+        if (!_services.UseDirtyFlag) return;
+        try
+        {
+            using var me = Process.GetCurrentProcess();
+            _dirty.Write(new DirtyInfo(Environment.ProcessId, me.StartTime, cableActive));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Not fatal: only the crash detection is missing.
+        }
+    }
+
+    private bool TrySaveSnapshot(AudioStateReport state)
+    {
+        try
+        {
+            var snap = AudioSnapshot.From(state, AppVersion);
+            SnapshotStore.Save(_paths.SnapshotFile, snap);
+            _snapshot = snap;
+            ClearNotice("snapshot-file");
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ShowNotice("snapshot-file", $"Der Audio-Zustand ließ sich nicht sichern ({ex.Message}). Ist der Datenordner schreibgeschützt?", "Erneut versuchen", SaveSnapshotNow);
+            return false;
+        }
+    }
+
+    /// <summary>Compares the snapshot with the current state and shows the result.</summary>
+    public void CompareNow()
+    {
+        if (!_stateReady) return;
+        ComparisonRows.Clear();
+        if (_snapshot is null)
+        {
+            Comparison = null;
+            SnapshotHeader = "Audio-Zustand: noch nicht gesichert";
+            SnapshotInfo = "Sichere den Zustand, solange alles so ist, wie du es willst. Danach siehst du hier jede Änderung.";
+            ClearNotice("snapshot");
+            return;
+        }
+
+        var cmp = SnapshotService.Compare(_snapshot, _state);
+        Comparison = cmp;
+        foreach (var r in cmp.Rows) ComparisonRows.Add(r);
+        string when = _snapshot.TakenAt.ToString("dd.MM.yyyy, HH:mm", De);
+        SnapshotHeader = cmp.IsIdentical
+            ? $"Audio-Zustand: wie gesichert am {when}"
+            : cmp.DifferenceCount == 1
+                ? $"Audio-Zustand: 1 Abweichung seit der Sicherung am {when}"
+                : $"Audio-Zustand: {cmp.DifferenceCount} Abweichungen seit der Sicherung am {when}";
+        SnapshotInfo = cmp.UnchangedDevices == 1 ? "Ein weiteres Gerät ist unverändert." : $"{cmp.UnchangedDevices} weitere Geräte sind unverändert.";
+
+        if (cmp.DefaultsChanged)
+        {
+            var lines = string.Join("; ", cmp.DefaultChangeLines);
+            var lead = cmp.CableBecameDefault
+                ? "Das virtuelle Kabel ist jetzt ein Windows-Standardgerät – das hat das Soundboard nicht getan (meist war es das Treiber-Setup). "
+                : "Ein Windows-Standardgerät hat sich seit der Sicherung geändert – das Soundboard hat das nicht getan. ";
+            ShowNotice("snapshot", lead + lines + ". Wolltest du das selbst so, sichere unten unter „Audio-Zustand“ neu.", "Wie vorher", RestoreDefaults);
+        }
+        else
+        {
+            ClearNotice("snapshot");
+        }
+    }
+
+    /// <summary>Puts the default devices back to the saved ones (and only those).</summary>
+    [RelayCommand]
+    private void RestoreDefaults()
+    {
+        if (_snapshot is null)
+        {
+            ShowNotice("restore", "Es gibt noch keine Sicherung, auf die sich zurückstellen ließe. Sichere zuerst den Audio-Zustand.", "Audio-Zustand jetzt sichern", SaveSnapshotNow);
+            return;
+        }
+
+        var before = _audio.ReadState();
+        var cmp = SnapshotService.Compare(_snapshot, before);
+        if (!cmp.DefaultsChanged)
+        {
+            RestoreResultText = "Die Standardgeräte sind schon wie gesichert – es war nichts zu tun.";
+            RefreshDevices();
+            return;
+        }
+
+        var result = SnapshotService.Restore(_snapshot, before, _services.Policy);
+        RefreshDevices();
+        RestoreResultText = result.RestoredCount switch
+        {
+            0 => "Es wurde nichts zurückgestellt.",
+            1 => "1 Standardgerät zurückgestellt. Prüfe es zur Sicherheit in den Windows-Soundeinstellungen.",
+            _ => $"{result.RestoredCount} Standardgeräte zurückgestellt. Prüfe sie zur Sicherheit in den Windows-Soundeinstellungen.",
+        };
+        if (result.AllGood) ClearNotice("restore");
+        else
+            ShowNotice("restore", "Nicht alles ließ sich automatisch zurückstellen. So geht es von Hand: " + result.ManualSteps().Replace(Environment.NewLine, "; ").Replace("\n", "; "));
+    }
+
+    /// <summary>Saves the current Windows audio state as the new reference.</summary>
+    [RelayCommand]
+    private void SaveSnapshotNow()
+    {
+        RefreshDevices();
+        if (TrySaveSnapshot(_state))
+        {
+            RestoreResultText = $"Gesichert am {DateTime.Now.ToString("dd.MM.yyyy, HH:mm", De)}. Die vorige Sicherung liegt als „audio-snapshot.vorher.json“ im Datenordner.";
+            CompareNow();
+        }
+    }
+
+    [RelayCommand]
+    private void CompareAgain()
+    {
+        RefreshDevices();
+        RestoreResultText = Comparison is null ? "" : Comparison.IsIdentical ? "Verglichen: alles wie gesichert." : "Verglichen: die Abweichungen stehen in der Liste.";
     }
 
     // ---------------------------------------------------------------- microphone and mix
@@ -1124,6 +1315,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StopMix();
         StopSink();
         _hotkeys.Dispose();
+        if (_services.UseDirtyFlag) _dirty.Delete();
         _services.Hotkeys.Dispose();
         _audio.Dispose();
     }

@@ -8,6 +8,8 @@ internal static class Program
     {
         if (args.Any(a => Is(a, "--check")))
             return Cli.RunCheck();
+        if (args.Any(a => Is(a, "--restore")))
+            return Cli.RunRestore();
         if (args.Any(a => Is(a, "--help") || Is(a, "-h") || Is(a, "/?")))
             return Cli.RunHelp();
 

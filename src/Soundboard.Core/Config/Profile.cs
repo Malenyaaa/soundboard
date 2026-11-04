@@ -122,6 +122,8 @@ public sealed class AppPaths
         SoundsDir = Path.Combine(dataDir, "Sounds");
         ProfileFile = Path.Combine(dataDir, "config.json");
         RecordingsDir = Path.Combine(dataDir, "Aufnahmen");
+        SnapshotFile = Path.Combine(dataDir, "audio-snapshot.json");
+        DirtyFlagFile = Path.Combine(dataDir, "running.json");
     }
 
     public static AppPaths Default { get; } = new(Path.Combine(
@@ -133,6 +135,12 @@ public sealed class AppPaths
 
     /// <summary>Test recordings (10-second WAV files).</summary>
     public string RecordingsDir { get; }
+
+    /// <summary>Saved Windows audio state (see SystemState.AudioSnapshot).</summary>
+    public string SnapshotFile { get; }
+
+    /// <summary>Exists while the app runs; left over after a crash.</summary>
+    public string DirtyFlagFile { get; }
 
     /// <summary>
     /// Copies a sound file into the sound folder (original stays) and returns the new file name.

@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
 using Soundboard.Core.Audio;
+using Soundboard.Core.Config;
+using Soundboard.Core.SystemState;
 
 namespace Soundboard.App;
 
@@ -29,6 +31,55 @@ internal static class Cli
         }
     }
 
+    /// <summary>
+    /// Puts the Windows default devices back to the saved snapshot (only those, only where
+    /// they differ). Called by the uninstaller and by hand. Prints what it did.
+    /// </summary>
+    public static int RunRestore()
+    {
+        using var console = ConsoleOutput.Open();
+        var w = console.Writer;
+        var paths = AppPaths.Default;
+        AudioSnapshot? snap;
+        try
+        {
+            snap = SnapshotStore.Load(paths.SnapshotFile);
+        }
+        catch (SnapshotException ex)
+        {
+            w.WriteLine(ex.Message);
+            return 2;
+        }
+        if (snap is null)
+        {
+            w.WriteLine("Es gibt keine Sicherung des Audio-Zustands. Es wurde nichts verändert.");
+            return 0;
+        }
+
+        try
+        {
+            using var catalog = new DeviceCatalog();
+            var before = catalog.ReadState();
+            var cmp = SnapshotService.Compare(snap, before);
+            w.Write(SnapshotService.Format(cmp));
+            if (!cmp.DefaultsChanged)
+            {
+                w.WriteLine("Die Standardgeräte sind wie gesichert. Es wurde nichts verändert.");
+                return 0;
+            }
+            w.WriteLine();
+            w.WriteLine("Standardgeräte zurückstellen:");
+            var result = SnapshotService.Restore(snap, before, new PolicyConfigWriter());
+            w.Write(SnapshotService.Format(result));
+            return result.AllGood ? 0 : 1;
+        }
+        catch (Exception ex) when (ex is COMException or InvalidOperationException or UnauthorizedAccessException)
+        {
+            w.WriteLine($"Der Audio-Zustand ließ sich nicht lesen: {ex.Message}");
+            return 1;
+        }
+    }
+
     public static int RunHelp()
     {
         using var console = ConsoleOutput.Open();
@@ -36,6 +87,7 @@ internal static class Cli
         console.Writer.WriteLine();
         console.Writer.WriteLine("  Soundboard.exe            Fenster öffnen");
         console.Writer.WriteLine("  Soundboard.exe --check    Audio-Zustand als Text ausgeben (nur lesen, ändert nichts)");
+        console.Writer.WriteLine("  Soundboard.exe --restore  Windows-Standardgeräte auf die gesicherten zurückstellen");
         console.Writer.WriteLine();
         console.Writer.WriteLine("In PowerShell auf die Ausgabe warten:  .\\Soundboard.exe --check | Out-String");
         return 0;
