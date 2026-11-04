@@ -25,6 +25,7 @@ public static class ThemeTokens
         ["StopHover"] = "#951F18",
         ["StopPressed"] = "#6E1712",
         ["OnStopBrush"] = "#FFFFFF",
+        ["StopIcon"] = "#B3261E", // the red square on the quiet "Stop" while nothing plays
         ["OkText"] = "#1E6B34",
         ["DiffText"] = "#8A4B00", // amber: differences and the drawn warning sign
         ["MeterBrush"] = "#2E7D32",
@@ -51,6 +52,7 @@ public static class ThemeTokens
         ["StopHover"] = "#B5302A",
         ["StopPressed"] = "#962620",
         ["OnStopBrush"] = "#FFFFFF",
+        ["StopIcon"] = "#F07A70",
         ["OkText"] = "#6FCF8A",
         ["DiffText"] = "#F0B060", // amber: differences and the drawn warning sign
         ["MeterBrush"] = "#5FC46A",
@@ -167,7 +169,8 @@ public static class AccentPalette
 }
 
 /// <summary>Colours of one pad in one mode.</summary>
-public sealed record PadColors(Rgb Face, Rgb Line, Rgb Text, Rgb CapBg, Rgb CapLine, Rgb Lit, Rgb LitLine, Rgb LitPlayed, Rgb LitText);
+/// <param name="Edge">The thick lower edge of the pad, like a key cap: darker than the face in both modes.</param>
+public sealed record PadColors(Rgb Face, Rgb Line, Rgb Text, Rgb CapBg, Rgb CapLine, Rgb Lit, Rgb LitLine, Rgb LitPlayed, Rgb LitText, Rgb Edge);
 
 /// <summary>
 /// Pad colours: seven calm, familiar hues (blue, orange, green, pink, teal, violet, grey). Idle the pad shows its colour dimmed,
@@ -246,7 +249,8 @@ public static class PadPalette
                 Lit: At(0.82, 0.13),
                 LitLine: At(0.92, 0.07),
                 LitPlayed: At(0.73, 0.14),
-                LitText: ink)
+                LitText: ink,
+                Edge: At(0.215, 0.045))
             : new PadColors(
                 Face: At(0.935, 0.032),
                 Line: At(0.56, 0.09),
@@ -256,6 +260,7 @@ public static class PadPalette
                 Lit: At(0.82, 0.13),
                 LitLine: At(0.48, 0.12),
                 LitPlayed: At(0.73, 0.14),
-                LitText: ink);
+                LitText: ink,
+                Edge: At(0.47, 0.10));
     }
 }

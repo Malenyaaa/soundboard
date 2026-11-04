@@ -37,36 +37,39 @@
             <Setter Property="Margin" Value="0,0,16,0" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
+        <!-- Table cells that read badly when broken (states, levels, formats): one line. -->
+        <Style x:Key="CellOneLine" TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+            <Setter Property="TextWrapping" Value="NoWrap" />
+        </Style>
         <Style x:Key="Num" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="{DynamicResource FontDisplay}" />
             <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
-        <!-- The pad itself: rubber face, pressed = sinks in a little. Lit state comes from the data template. -->
+        <!-- The pad itself: a key with a thick lower edge in a darker shade of its colour, like the
+             key caps; pressed, the face sinks onto the edge. Lit state comes from the data template. -->
         <Style x:Key="PadButton" TargetType="Button">
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
-            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="1.5" CornerRadius="10" SnapsToDevicePixels="True">
-                            <ContentPresenter Margin="12,10,12,10" />
+                        <Border x:Name="EdgeBd" Background="{Binding Pad.Edge}" CornerRadius="10" Padding="0,0,0,3.5" SnapsToDevicePixels="True">
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="1.5" CornerRadius="10" SnapsToDevicePixels="True">
+                                <ContentPresenter Margin="12,10,12,10" />
+                            </Border>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="BorderThickness" Value="2.5" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="RenderTransform">
-                                    <Setter.Value>
-                                        <ScaleTransform ScaleX="0.97" ScaleY="0.97" />
-                                    </Setter.Value>
-                                </Setter>
+                                <Setter TargetName="EdgeBd" Property="Padding" Value="0,0,0,1" />
+                                <Setter TargetName="EdgeBd" Property="Margin" Value="0,2.5,0,0" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -131,12 +134,14 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
                             <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
-                            <DockPanel Margin="0,2,0,0">
+                            <!-- Only what differs from "works" is said (no key, paused, a problem). -->
+                            <DockPanel Margin="0,2,0,0" Visibility="{Binding HotkeyStateText, Converter={StaticResource TextToVis}}">
                                 <Path x:Name="W" Style="{StaticResource WarnIcon}" Margin="0,0,6,0" Visibility="Collapsed" />
                                 <TextBlock x:Name="S" Text="{Binding HotkeyStateText}" Foreground="{DynamicResource SubTextBrush}" FontSize="13" TextWrapping="Wrap" />
                             </DockPanel>
-                            <Button Content="{Binding KeyIssueActionText}" Command="{Binding RunKeyIssueActionCommand}" FontSize="13" HorizontalAlignment="Left" Margin="0,6,0,0"
-                                    Visibility="{Binding HotkeyProblem, Converter={StaticResource BoolToVis}}" />
+                            <!-- The way out, unless it is "Choose another key" – that is the button on the right already. -->
+                            <Button x:Name="Fix" Content="{Binding KeyIssueActionText}" Command="{Binding RunKeyIssueActionCommand}" FontSize="13" HorizontalAlignment="Left" Margin="0,6,0,0"
+                                    Visibility="Collapsed" />
                         </StackPanel>
                         <Border x:Name="KeyCap" Grid.Column="1" Style="{StaticResource CapLook}" Margin="0,0,16,0">
                             <TextBlock Text="{Binding HotkeyText}" FontFamily="{DynamicResource FontPad}" FontSize="13" />
@@ -160,6 +165,13 @@
                     <Setter TargetName="W" Property="Visibility" Value="Visible" />
                     <Setter TargetName="S" Property="Foreground" Value="{DynamicResource DiffText}" />
                 </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding HotkeyProblem}" Value="True" />
+                        <Condition Binding="{Binding KeyIssueIsOtherKey}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter TargetName="Fix" Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
 
@@ -266,7 +278,8 @@
 
                 <Button x:Name="PadBtn" Style="{StaticResource PadButton}" Command="{Binding ClickCommand}"
                         Background="{Binding Pad.Face}" BorderBrush="{Binding Pad.Line}" Foreground="{Binding Pad.Text}"
-                        AutomationProperties.Name="{Binding Name}">
+                        AutomationProperties.Name="{Binding Name}" AutomationProperties.ItemStatus="{Binding PlayingStatus}"
+                        AutomationProperties.HelpText="{Binding ToolTipText}">
                     <!-- Everything inside the rim, cut to the pad's rounded shape. -->
                     <Grid Margin="-12,-10" views:RoundClip.Radius="8.5">
                         <!-- Picture: fills the pad, centred and cut (uniform to fill); a little dimmed while the pad rests. -->
@@ -320,7 +333,8 @@
                      then the cap shortens from the front ("…Shift+F12"), never the key itself. -->
                 <views:PadTopRow VerticalAlignment="Top" Margin="11,8,12,0">
                     <Grid HorizontalAlignment="Left">
-                        <Button x:Name="Cap" Style="{StaticResource KeyCap}" Command="{Binding KeyCapClickCommand}" HorizontalAlignment="Left"
+                        <!-- No own tab stop: the key is reached from the pad (right-click or Shift+F10 → "Assign key…"). -->
+                        <Button x:Name="Cap" Style="{StaticResource KeyCap}" Command="{Binding KeyCapClickCommand}" HorizontalAlignment="Left" IsTabStop="False"
                                 Background="{Binding Pad.CapBg}" BorderBrush="{Binding Pad.CapLine}" Foreground="{Binding Pad.Text}"
                                 Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}"
                                 ToolTip="{Binding HotkeyToolTip}">
@@ -331,7 +345,7 @@
                             </DockPanel>
                         </Button>
                         <!-- No key yet: a ghost cap appears on hover. -->
-                        <Button x:Name="GhostCap" Style="{StaticResource KeyCap}" Command="{Binding AssignHotkeyCommand}" HorizontalAlignment="Left"
+                        <Button x:Name="GhostCap" Style="{StaticResource KeyCap}" Command="{Binding AssignHotkeyCommand}" HorizontalAlignment="Left" IsTabStop="False"
                                 Background="Transparent" BorderBrush="{Binding Pad.Line}" Foreground="{Binding Pad.Text}" FontFamily="{DynamicResource FontText}"
                                 Content="{t:T Pad.Ghost}" ToolTip="{t:T Pad.GhostTip}" Visibility="Collapsed" />
                     </Grid>
@@ -605,7 +619,9 @@
         <Grid>
             <ScrollViewer x:Name="PadScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
                 <Grid>
-                <ItemsControl x:Name="PadList" ItemsSource="{Binding Tiles}" Margin="16,16,16,20" ItemTemplate="{StaticResource PadTemplate}" Focusable="False">
+                <!-- Tab enters the grid once (and leaves it); the arrow keys move between the pads. -->
+                <ItemsControl x:Name="PadList" ItemsSource="{Binding Tiles}" Margin="16,16,16,20" ItemTemplate="{StaticResource PadTemplate}" Focusable="False"
+                              KeyboardNavigation.TabNavigation="Once" KeyboardNavigation.DirectionalNavigation="None">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <views:PadPanel MinPadWidth="160" Gap="12" Compact="{Binding CompactPads}" />
@@ -810,8 +826,18 @@
                                                Text="{t:T Setup.NoiseCheckHint}" />
                                     <CheckBox Content="{t:T Setup.NoiseDone}" IsChecked="{Binding DiscordSettingsDone}" Margin="0,8,0,0" />
 
-                                    <Button Style="{StaticResource PrimaryButton}" Content="{t:T Setup.Finish}" Command="{Binding CloseSettingsCommand}"
-                                            HorizontalAlignment="Left" Margin="0,20,0,0" />
+                                    <!-- The last word: the whole path in one line, with the live level, and a pad to try it. -->
+                                    <Border Margin="0,24,0,0" Padding="14,12" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource LineSoft}"
+                                            Background="{DynamicResource FieldBg}" HorizontalAlignment="Left" MaxWidth="608">
+                                        <StackPanel>
+                                            <TextBlock Text="{t:T Setup.FinalLine}" Style="{StaticResource P}" FontWeight="SemiBold" />
+                                            <ProgressBar Width="280" Height="10" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}" HorizontalAlignment="Left"
+                                                         Margin="0,10,0,0" ToolTip="{t:T Status.LevelTip}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Button Style="{StaticResource PrimaryButton}" Content="{t:T Setup.Finish}" Command="{Binding FinishSetupCommand}"
+                                            HorizontalAlignment="Left" Margin="0,16,0,0" />
                                 </StackPanel>
                             </StackPanel>
 
@@ -925,7 +951,7 @@
                                 </WrapPanel>
                                 <TextBlock Text="{Binding RestoreResultText}" Style="{StaticResource P}" Margin="0,4,0,0"
                                            Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
-                                <DataGrid ItemsSource="{Binding ComparisonRows}" MaxHeight="260" Margin="0,10,0,0">
+                                <DataGrid ItemsSource="{Binding ComparisonRows}" Margin="0,10,0,0">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.What}" Binding="{Binding What}" Width="2*" />
                                         <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Saved}" Binding="{Binding Saved}" Width="2*" />
@@ -955,15 +981,21 @@
                                               Content="{Binding NotPresentText}"
                                               ToolTip="{t:T State.NotPresentTip}" />
                                 </WrapPanel>
-                                <DataGrid ItemsSource="{Binding Devices}" MaxHeight="260">
+                                <!-- No height limit: the page scrolls, not the table. The ID is in the tooltip of each row. -->
+                                <DataGrid ItemsSource="{Binding Devices}">
+                                    <DataGrid.RowStyle>
+                                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                            <Setter Property="ToolTip" Value="{Binding IdTip}" />
+                                        </Style>
+                                    </DataGrid.RowStyle>
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Flow}" Binding="{Binding Flow}" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Name}" Binding="{Binding Name}" Width="2*" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Status}" Binding="{Binding Status}" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Default}" Binding="{Binding Default}" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Volume}" Binding="{Binding Volume}" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Format}" Binding="{Binding Format}" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="ID" Binding="{Binding Id}" Width="2*" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellOneLine}" Header="{t:T Grid.Flow}" Binding="{Binding Flow}" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Name}" Binding="{Binding Name}" Width="*" MinWidth="160" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellOneLine}" Header="{t:T Grid.Status}" Binding="{Binding Status}" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Default}" Binding="{Binding Default}" Width="Auto" MaxWidth="180" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellOneLine}" Header="{t:T Grid.Volume}" Binding="{Binding Volume}" />
+                                        <DataGridTextColumn ElementStyle="{StaticResource CellOneLine}" Header="{t:T Grid.Format}" Binding="{Binding Format}" />
+
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </StackPanel>

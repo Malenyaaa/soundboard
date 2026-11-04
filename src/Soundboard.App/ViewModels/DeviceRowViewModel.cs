@@ -14,6 +14,9 @@ public sealed record DeviceRowViewModel(
     string Format,
     string Id)
 {
+    /// <summary>Tooltip of the row: the endpoint ID (too long and too technical for a column).</summary>
+    public string IdTip => L.F("Devices.IdTip", Id);
+
     public static DeviceRowViewModel From(AudioDeviceInfo d) => new(
         AudioStateText.Flow(d.Flow),
         d.Name,

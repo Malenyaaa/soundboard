@@ -22,6 +22,20 @@
             <Setter Property="Margin" Value="0,8,8,0" />
             <Setter Property="HorizontalAlignment" Value="Left" />
         </Style>
+        <!-- A path or a command on its own line: monospace, never broken inside, selectable to copy. -->
+        <Style x:Key="Code" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="FontFamily" Value="{DynamicResource FontMono}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextWrapping" Value="NoWrap" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="Background" Value="{DynamicResource FieldBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LineSoft}" />
+            <Setter Property="Padding" Value="4,1" />
+            <Setter Property="Margin" Value="0,6,0,0" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="MaxWidth" Value="700" />
+        </Style>
     </Window.Resources>
 
     <DockPanel>
@@ -49,7 +63,9 @@
 
                 <!-- 2 -->
                 <TextBlock Style="{StaticResource H}" Text="{t:T Uninstall.H2}" />
-                <TextBlock x:Name="TracesText" Style="{StaticResource P}" />
+                <TextBlock x:Name="TracesHead" Style="{StaticResource P}" />
+                <TextBox x:Name="DataPathBox" Style="{StaticResource Code}" AutomationProperties.Name="{t:T Uninstall.DataFolder}" />
+                <TextBlock x:Name="TracesText" Style="{StaticResource P}" Margin="0,6,0,0" />
                 <CheckBox x:Name="KeepSounds" Content="{t:T Uninstall.KeepSounds}" IsChecked="True" Margin="0,8,0,0" Checked="OnKeepChanged" Unchecked="OnKeepChanged" />
                 <Button x:Name="RemoveButton" Style="{StaticResource B}" Content="{t:T Uninstall.RemoveData}" Click="OnRemoveTraces" />
                 <TextBlock x:Name="RemoveText" Style="{StaticResource P}" Margin="0,6,0,0" Visibility="Collapsed" />
@@ -65,8 +81,14 @@
                     <Run Text="{t:T Uninstall.U4}" /><LineBreak />
                     <Run Text="{t:T Uninstall.U5}" />
                 </TextBlock>
-                <TextBlock Style="{StaticResource P}" Margin="0,6,0,0" Foreground="{DynamicResource SubTextBrush}"
+                <TextBlock Style="{StaticResource P}" Margin="0,10,0,0" Foreground="{DynamicResource SubTextBrush}"
                            Text="{t:T Uninstall.Advanced}" />
+                <TextBox Style="{StaticResource Code}" Text="pnputil /enum-drivers" AutomationProperties.Name="{t:T Uninstall.Command}" />
+                <TextBlock Style="{StaticResource P}" Margin="0,6,0,0" Foreground="{DynamicResource SubTextBrush}"
+                           Text="{t:T Uninstall.AdvancedDelete}" />
+                <TextBox Style="{StaticResource Code}" Text="pnputil /delete-driver oemNN.inf" AutomationProperties.Name="{t:T Uninstall.Command}" />
+                <TextBlock Style="{StaticResource P}" Margin="0,6,0,0" Foreground="{DynamicResource SubTextBrush}"
+                           Text="{t:T Uninstall.AdvancedTail}" />
                 <Button Style="{StaticResource B}" Content="{t:T Uninstall.DeviceManager}" Click="OnDeviceManager" />
 
                 <!-- 4 -->

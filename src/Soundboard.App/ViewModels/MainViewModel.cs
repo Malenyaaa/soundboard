@@ -532,6 +532,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _player.Play(tile.Clip!, tile.Volume);
         tile.PlayRequestedAt = DateTime.UtcNow;
         tile.IsPlaying = true;
+        AnyPlaying = true;
         tile.Progress = 0;
         if (!OverlayEnabled)
         {
@@ -558,6 +559,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             t.IsPlaying = false;
             t.PlayRequestedAt = default;
         }
+        AnyPlaying = false;
     }
 
     private void UpdateProgress()
@@ -577,7 +579,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             t.IsPlaying = p is not null;
             t.Progress = p ?? 0;
         }
+        bool any = Tiles.Any(t => t.IsPlaying);
+        if (any != AnyPlaying) AnyPlaying = any;
     }
+
+    /// <summary>Something plays right now: "Stop" turns red (and so says that something runs).</summary>
+    [ObservableProperty]
+    private bool _anyPlaying;
 
     /// <summary>Adds sound files (from drag &amp; drop or the file dialog). Folders are searched one level deep.</summary>
     public void AddFiles(IEnumerable<string> paths)
@@ -681,8 +689,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshHotkeyViews();
         ScheduleSave();
 
-        ShowNotice("removed", TF("Notice.PadRemoved", tile.Name), T("Action.Undo"), () =>
+        // On the undo stack: several removed pads come back one after the other (Ctrl+Z or the notice).
+        PushUndo(TF("Notice.PadRemoved", tile.Name), () =>
         {
+            if (Tiles.Any(t => ReferenceEquals(t.Config, tile.Config))) return;
             _profile.Tiles.Insert(Math.Clamp(configIndex, 0, _profile.Tiles.Count), tile.Config);
             var restored = new TileViewModel(this, tile.Config);
             Tiles.Insert(Math.Clamp(index, 0, Tiles.Count), restored);
@@ -870,8 +880,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Comparison = cmp;
         foreach (var r in cmp.Rows) ComparisonRows.Add(r);
         string when = L.DateTime(_snapshot.TakenAt);
-        SnapshotHeader = cmp.IsIdentical
-            ? L.F("State.Same", when)
+        // New cable devices after the driver setup are expected: say so instead of counting "differences".
+        bool onlyCableNew = !cmp.IsIdentical && !cmp.DefaultsChanged
+            && cmp.Rows.Where(r => r.Kind != ComparisonKind.Same).All(r => r.Kind == ComparisonKind.Added && CableDetector.IsCableName(r.What));
+        SnapshotHeader = cmp.IsIdentical ? L.F("State.Same", when)
+            : onlyCableNew ? L.F("State.OnlyCableNew", when)
             : L.Count("State.Diff", cmp.DifferenceCount, when);
         SnapshotInfo = L.Count("State.Unchanged", cmp.UnchangedDevices);
 
@@ -1515,6 +1528,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>"Finish setup": back to the pads, and the first one lights up briefly – play it to try the whole path.</summary>
+    [RelayCommand]
+    private void FinishSetup()
+    {
+        CloseSettings();
+        if (Tiles.FirstOrDefault(t => !t.IsFilteredOut) is { } first) ShowAdded([first]);
+    }
+
     [RelayCommand]
     private void GoToStep(string step)
     {
@@ -1567,7 +1588,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>Text for the exit question: what Discord gets afterwards and how the audio state looks.</summary>
+    /// <summary>Body of the exit question (the question itself is its heading): what Discord gets afterwards and how the audio state looks.</summary>
     public string ExitQuestion()
     {
         RefreshDevices();
@@ -1587,9 +1608,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             foreach (var line in cmp.DefaultChangeLines) sb.AppendLine("  " + line);
             sb.AppendLine(L.Get("Exit.NotUs"));
         }
-        sb.AppendLine();
-        sb.Append(L.Get("Exit.Question"));
-        return sb.ToString();
+        return sb.ToString().TrimEnd();
     }
 
     [RelayCommand]
@@ -1885,9 +1904,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     tile.HotkeyStateText = L.Get("Key.StateRefused");
                     break;
                 default:
-                    tile.HotkeyStateText = L.Get(b.Gesture is null ? "Key.StateNone"
-                        : HotkeysPaused ? "Key.StatePaused"
-                        : "Key.StateWorks");
+                    // A working key needs no remark; only what differs is said.
+                    tile.HotkeyStateText = b.Gesture is null ? L.Get("Key.StateNone")
+                        : HotkeysPaused ? L.Get("Key.StatePaused")
+                        : "";
                     break;
             }
             tile.SetKeyIssue(issue, action, fix);
@@ -1923,7 +1943,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             ClearNotice(noticeKey);
             f.SetProblem(null, null, null);
-            f.HotkeyStateText = L.Get(g is null ? "Key.StateNone" : HotkeysPaused ? "Key.StatePaused" : "Key.StateWorks");
+            f.HotkeyStateText = g is null ? L.Get("Key.StateNone") : HotkeysPaused ? L.Get("Key.StatePaused") : "";
         }
         if (_refusedKeys.TryGetValue(f.OwnerId, out var refused))
             f.SetProblem(refused(), L.Get("Action.OtherKey"), () => BeginKeyCapture(f));

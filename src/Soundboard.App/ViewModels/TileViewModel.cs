@@ -31,6 +31,7 @@ public sealed class PadBrushes
         LitLine = B(c.LitLine);
         LitPlayed = B(c.LitPlayed);
         LitText = B(c.LitText);
+        Edge = B(c.Edge);
         GlowColor = ThemeManager.ToColor(c.Lit);
         var sweep = new SolidColorBrush(GlowColor) { Opacity = PadImageStyle.SweepAlpha };
         sweep.Freeze();
@@ -46,6 +47,9 @@ public sealed class PadBrushes
     public Brush LitLine { get; }
     public Brush LitPlayed { get; }
     public Brush LitText { get; }
+
+    /// <summary>Thick lower edge of the pad (key cap look).</summary>
+    public Brush Edge { get; }
     public Color GlowColor { get; }
 
     /// <summary>Played part over a picture: the pad colour, see-through.</summary>
@@ -196,7 +200,11 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
 
     /// <summary>Way out for a key problem (settings list, context menu); null without one.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(KeyIssueIsOtherKey))]
     private string? _keyIssueActionText;
+
+    /// <summary>The way out is "Choose another key" – the same as "Change key…", so the list shows only one button.</summary>
+    public bool KeyIssueIsOtherKey => KeyIssueActionText == L.Get("Action.OtherKey");
 
     /// <summary>Problem of the sound file (cannot be played). Null clears it.</summary>
     public void SetIssue(Func<string>? text, Func<string>? actionText = null, Action? action = null)
@@ -284,8 +292,11 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
     private string? _errorText;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DurationText))]
+    [NotifyPropertyChangedFor(nameof(DurationText), nameof(PlayingStatus))]
     private bool _isPlaying;
+
+    /// <summary>State for screen readers: "playing" while it plays, "loading", "cannot be played"; empty at rest.</summary>
+    public string PlayingStatus => IsPlaying ? L.Get("Pad.StatusPlaying") : StatusText;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DurationText))]
@@ -359,6 +370,7 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
     public void RefreshStatus()
     {
         OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(PlayingStatus));
         OnPropertyChanged(nameof(DurationText));
         OnPropertyChanged(nameof(ToolTipText));
     }

@@ -113,14 +113,10 @@ public partial class App : Application
         if (_vm is null || _exiting) return;
         var exe = Environment.ProcessPath;
         if (exe is null) return;
-        var text = L.Get(_vm.CableRunning ? "App.UninstallAskCable" : "App.UninstallAsk")
-            + Environment.NewLine + Environment.NewLine + L.Get("App.Continue");
-        var owner = _window is { IsVisible: true } ? _window : null;
-        var title = L.Get("App.UninstallTitle");
-        var answer = owner is null
-            ? MessageBox.Show(text, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
-            : MessageBox.Show(owner, text, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
-        if (answer != MessageBoxResult.Yes) return;
+        var text = L.Get(_vm.CableRunning ? "App.UninstallAskCable" : "App.UninstallAsk");
+        if (!Views.ConfirmWindow.Ask(_window, L.Get("App.UninstallTitle"), L.Get("App.UninstallHeading"), text,
+                L.Get("App.UninstallGo"), L.Get("Exit.Keep")))
+            return;
         ExitNow();
         try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, "--uninstall") { UseShellExecute = false }); }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) { }
@@ -161,13 +157,9 @@ public partial class App : Application
     public void RequestExit()
     {
         if (_vm is null || _exiting) return;
-        var owner = _window is { IsVisible: true } ? _window : null;
-        var text = _vm.ExitQuestion();
-        var title = L.Get("App.QuitTitle");
-        var answer = owner is null
-            ? MessageBox.Show(text, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
-            : MessageBox.Show(owner, text, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
-        if (answer == MessageBoxResult.Yes) ExitNow();
+        if (Views.ConfirmWindow.Ask(_window, L.Get("App.QuitTitle"), L.Get("Exit.Question"), _vm.ExitQuestion(),
+                L.Get("Exit.Quit"), L.Get("Exit.Keep")))
+            ExitNow();
     }
 
     /// <summary>Ends without asking (after confirmation or for the uninstall guide).</summary>

@@ -62,6 +62,7 @@ public sealed class CrashCheckTests
     {
         var r = CrashCheck.Evaluate(new DirtyInfo(0, DateTime.MinValue, false), 42, () => null);
         Assert.IsNotNull(r);
-        StringAssert.Contains(string.Join("\n", r.Lines("x")), "Sicherung");
+        // Without a saved state the window says nothing about comparing (there is nothing to compare).
+        Assert.AreEqual(0, r.Lines("x").Count);
     }
 }

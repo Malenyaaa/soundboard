@@ -122,6 +122,21 @@ public partial class MainWindow
         InsertMark.Visibility = Visibility.Visible;
     }
 
+    /// <summary>The pad an arrow key leads to: left/right in order, up/down the nearest pad in the row above/below.</summary>
+    private TileViewModel? Neighbour(TileViewModel from, Key key)
+    {
+        var pads = VisiblePads();
+        int i = pads.FindIndex(p => ReferenceEquals(p.Tile, from));
+        if (i < 0) return null;
+        if (key == Key.Left) return i > 0 ? pads[i - 1].Tile : null;
+        if (key == Key.Right) return i < pads.Count - 1 ? pads[i + 1].Tile : null;
+        var box = pads[i].Box;
+        var rows = pads.Select(p => p.Box.Y).Distinct().Order().ToList();
+        int r = rows.IndexOf(box.Y) + (key == Key.Up ? -1 : 1);
+        if (r < 0 || r >= rows.Count) return null;
+        return pads.Where(p => p.Box.Y == rows[r]).OrderBy(p => Math.Abs(p.Box.CenterX - box.CenterX)).First().Tile;
+    }
+
     /// <summary>Near the top or bottom edge the list scrolls along while dragging.</summary>
     private void AutoScroll(Point inScroll)
     {

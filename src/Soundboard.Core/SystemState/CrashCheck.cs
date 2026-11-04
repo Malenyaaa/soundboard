@@ -16,8 +16,8 @@ public sealed record CrashReport(bool CableWasActive, SnapshotComparison? Compar
             lines.Add(Text.L.Get("Crash.CableIdle"));
             lines.Add(Text.L.F("Crash.Restart", discordWayBack));
         }
-        if (Comparison is null)
-            lines.Add(Text.L.Get("Crash.NoSnapshot"));
+        // Without a saved state there is nothing to compare – and nothing worth saying about it.
+        if (Comparison is null) { }
         else if (!Comparison.DefaultsChanged)
             lines.Add(Text.L.Get("Crash.DefaultsSame"));
         else

@@ -127,6 +127,14 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 return;
             }
+            // Arrow keys move the focus between the pads, like on a pad grid.
+            if (e.Key is Key.Left or Key.Right or Key.Up or Key.Down && Keyboard.Modifiers == ModifierKeys.None && !_vm.SettingsOpen
+                && Keyboard.FocusedElement is Button { DataContext: TileViewModel { IsRenaming: false } from } && Neighbour(from, e.Key) is { } to)
+            {
+                PadButton(to)?.Focus();
+                e.Handled = true;
+                return;
+            }
             // Ctrl+Left/Right moves the focused pad one place.
             if (e.Key is Key.Left or Key.Right && Keyboard.Modifiers == ModifierKeys.Control && !_vm.SettingsOpen
                 && Keyboard.FocusedElement is Button { DataContext: TileViewModel { IsRenaming: false } moving })
@@ -208,6 +216,7 @@ public partial class MainWindow : Window
 
     public void LayoutHeader(double width)
     {
+        if (width <= 0 || double.IsNaN(width)) return; // not laid out yet (e.g. started in the tray)
         // Measure the groups once, then pick the first arrangement that fits:
         // one row; monitor + search + stop over the actions; or monitor + stop over actions + search.
         var free = new Size(double.PositiveInfinity, double.PositiveInfinity);
@@ -240,7 +249,7 @@ public partial class MainWindow : Window
         {
             Place(ActionGroup, 1, 0, 4, new Thickness(0, 10, 0, 0));
             Place(SearchGroup, 2, 0, 4, new Thickness(0, 10, 0, 0));
-            SearchGroup.Width = Math.Min(searchMax * 1.5, inner);
+            SearchGroup.Width = Math.Max(searchTight, Math.Min(searchMax * 1.5, inner));
         }
         SearchGroup.HorizontalAlignment = Grid.GetRow(SearchGroup) == 2 ? HorizontalAlignment.Left : HorizontalAlignment.Right;
 

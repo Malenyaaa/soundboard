@@ -107,18 +107,19 @@ public partial class UninstallWindow : Window
         // Only an entry that starts this program file is ours; one for another copy stays.
         bool autostart = _autostart.Read().Kind == AutostartKind.ThisCopy;
         var sb = new StringBuilder();
-        if (items.Count == 0 && !autostart)
+        bool nothing = items.Count == 0 && !autostart;
+        // The folder stands on its own line (never broken inside), the list below it.
+        TracesHead.Text = L.Get(nothing ? "Uninstall.NoData" : "Uninstall.WillDelete");
+        DataPathBox.Text = _paths.DataDir;
+        DataPathBox.Visibility = nothing ? Visibility.Collapsed : Visibility.Visible;
+        if (!nothing)
         {
-            sb.Append(L.Get("Uninstall.NoData"));
-        }
-        else
-        {
-            sb.Append(L.F("Uninstall.WillDelete", _paths.DataDir));
-            foreach (var group in items.GroupBy(i => i.Description)) sb.Append(Environment.NewLine).Append("•  ").Append(group.Key);
-            if (autostart) sb.Append(Environment.NewLine).Append("•  ").Append(L.Get("Uninstall.AutostartEntry"));
+            foreach (var group in items.GroupBy(i => i.Description)) sb.Append(sb.Length == 0 ? "" : Environment.NewLine).Append("•  ").Append(group.Key);
+            if (autostart) sb.Append(sb.Length == 0 ? "" : Environment.NewLine).Append("•  ").Append(L.Get("Uninstall.AutostartEntry"));
             if (keep && (Directory.Exists(_paths.SoundsDir) || Directory.Exists(_paths.ImagesDir))) sb.Append(Environment.NewLine).Append(L.Get("Uninstall.FoldersStay"));
         }
         TracesText.Text = sb.ToString();
+        TracesText.Visibility = nothing ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void OnRemoveTraces(object sender, RoutedEventArgs e)
@@ -131,7 +132,7 @@ public partial class UninstallWindow : Window
         }
         bool keep = KeepSounds.IsChecked == true;
         var question = L.Get(keep ? "Uninstall.AskKeep" : "Uninstall.AskAll");
-        if (MessageBox.Show(this, question, L.Get("Uninstall.AskTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+        if (!ConfirmWindow.Ask(this, L.Get("Uninstall.AskTitle"), L.Get("Uninstall.AskHeading"), question, L.Get("Uninstall.Delete"), L.Get("Common.Cancel")))
             return;
 
         var removed = OwnTraces.Remove(_paths, keep);

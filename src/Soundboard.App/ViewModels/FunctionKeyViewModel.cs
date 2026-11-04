@@ -62,7 +62,11 @@ public sealed partial class FunctionKeyViewModel : ObservableObject, IKeyTarget
 
     /// <summary>Way out of a problem; null without one.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(KeyIssueIsOtherKey))]
     private string? _keyIssueActionText;
+
+    /// <summary>The way out is "Choose another key" – the same as "Change key…", so the list shows only one button.</summary>
+    public bool KeyIssueIsOtherKey => KeyIssueActionText == L.Get("Action.OtherKey");
 
     /// <summary>Sets the problem shown in the row (null clears it).</summary>
     public void SetProblem(string? text, string? actionText, Action? fix)

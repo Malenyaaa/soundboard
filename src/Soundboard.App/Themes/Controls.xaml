@@ -18,6 +18,8 @@
     <FontFamily x:Key="FontText">Segoe UI</FontFamily>
     <FontFamily x:Key="FontDisplay">Bahnschrift, Segoe UI</FontFamily>
     <FontFamily x:Key="FontPad">Bahnschrift SemiBold, Bahnschrift, Segoe UI</FontFamily>
+    <!-- Paths and commands to copy (removal guide). -->
+    <FontFamily x:Key="FontMono">Cascadia Mono, Consolas</FontFamily>
     <sys:Double x:Key="SizeText">14</sys:Double>
     <sys:Double x:Key="SizeSmall">12</sys:Double>
     <sys:Double x:Key="SizeGroup">16</sys:Double>
@@ -115,7 +117,7 @@
                     <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="1" CornerRadius="4" Padding="{TemplateBinding Padding}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <Rectangle Width="11" Height="11" RadiusX="1.5" RadiusY="1.5" Fill="{TemplateBinding Foreground}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                            <Rectangle x:Name="Square" Width="11" Height="11" RadiusX="1.5" RadiusY="1.5" Fill="{TemplateBinding Foreground}" Margin="0,0,8,0" VerticalAlignment="Center" />
                             <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="False" />
                         </StackPanel>
                     </Border>
@@ -126,6 +128,29 @@
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource StopPressed}" />
                         </Trigger>
+                        <!-- Nothing plays (main window): a quiet secondary button, only the square stays red.
+                             Red again as soon as something plays – that also says "something runs". -->
+                        <DataTrigger Binding="{Binding AnyPlaying}" Value="False">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonBg}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+                            <Setter TargetName="Square" Property="Fill" Value="{DynamicResource StopIcon}" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                            <Setter Property="FontWeight" Value="Normal" />
+                        </DataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding AnyPlaying}" Value="False" />
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonHover}" />
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding AnyPlaying}" Value="False" />
+                                <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonPressed}" />
+                        </MultiDataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

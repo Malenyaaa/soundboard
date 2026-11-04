@@ -89,7 +89,6 @@
   <data name="Crash.Headline" xml:space="preserve"><value>Das Soundboard wurde unerwartet beendet.</value></data>
   <data name="Crash.CableIdle" xml:space="preserve"><value>Discord hört dein Kabel, aber niemand füttert es – dein Mikrofon ist in Discord gerade stumm.</value></data>
   <data name="Crash.Restart" xml:space="preserve"><value>Starte das Soundboard neu, oder: {0}</value></data>
-  <data name="Crash.NoSnapshot" xml:space="preserve"><value>Eine Sicherung des Audio-Zustands gibt es nicht; verglichen wurde nichts.</value></data>
   <data name="Crash.DefaultsSame" xml:space="preserve"><value>Die Windows-Standardgeräte sind wie gesichert.</value></data>
   <data name="Crash.DefaultsChanged" xml:space="preserve"><value>Ein Windows-Standardgerät weicht von der Sicherung ab (das Soundboard hat es nicht verstellt):</value></data>
   <data name="Traces.Settings" xml:space="preserve"><value>Einstellungen</value></data>
@@ -285,7 +284,6 @@ Entf: Taste löschen</value></data>
   <data name="Key.StateRefused" xml:space="preserve"><value>von Windows abgelehnt</value></data>
   <data name="Key.StateNone" xml:space="preserve"><value>keine Taste</value></data>
   <data name="Key.StatePaused" xml:space="preserve"><value>pausiert</value></data>
-  <data name="Key.StateWorks" xml:space="preserve"><value>funktioniert</value></data>
   <data name="Key.None" xml:space="preserve"><value>keine</value></data>
   <data name="Settings.Title" xml:space="preserve"><value>Einstellungen</value></data>
   <data name="Settings.CloseTip" xml:space="preserve"><value>Zurück zu den Pads (Esc)</value></data>
@@ -450,7 +448,6 @@ Entf: Taste löschen</value></data>
   <data name="App.UninstallTitle" xml:space="preserve"><value>Alles entfernen</value></data>
   <data name="App.UninstallAsk" xml:space="preserve"><value>Die Anleitung zum Entfernen öffnet sich, und das Soundboard wird dafür beendet.</value></data>
   <data name="App.UninstallAskCable" xml:space="preserve"><value>Die Anleitung zum Entfernen öffnet sich, und das Soundboard wird dafür beendet. Discord hört danach Stille vom Kabel.</value></data>
-  <data name="App.Continue" xml:space="preserve"><value>Fortfahren?</value></data>
   <data name="App.AudioServiceDown" xml:space="preserve"><value>Der Windows-Audiodienst antwortet nicht ({0}). Starte Windows neu oder prüfe in den Diensten, ob „Windows-Audio“ läuft, und öffne das Soundboard dann noch einmal.</value></data>
   <data name="App.Unexpected" xml:space="preserve"><value>Unerwarteter Fehler: {0}. Das Programm läuft weiter; wenn etwas nicht mehr geht, bitte neu starten.</value></data>
   <data name="Tray.Open" xml:space="preserve"><value>Fenster öffnen</value></data>
@@ -477,7 +474,7 @@ Entf: Taste löschen</value></data>
   <data name="Uninstall.U3" xml:space="preserve"><value>3. Windows neu starten.</value></data>
   <data name="Uninstall.U4" xml:space="preserve"><value>4. Geräte-Manager öffnen → Ansicht → „Ausgeblendete Geräte anzeigen“. Unter „Audio, Video und Gamecontroller“ und „Audioeingänge und -ausgänge“ verbliebene VB-Audio-Einträge mit Rechtsklick → „Gerät deinstallieren“ entfernen, Haken bei „Treiber entfernen“ setzen, falls angeboten.</value></data>
   <data name="Uninstall.U5" xml:space="preserve"><value>5. Windows noch einmal neu starten.</value></data>
-  <data name="Uninstall.Advanced" xml:space="preserve"><value>Für Fortgeschrittene: Ob noch ein VB-Audio-Treiber im Treiberspeicher liegt, zeigt „pnputil /enum-drivers“ in einer Eingabeaufforderung als Administrator; entfernen mit „pnputil /delete-driver oemNN.inf“ (NN aus der Liste). Nur nötig, wenn das Setup Reste lässt.</value></data>
+  <data name="Uninstall.Advanced" xml:space="preserve"><value>Für Fortgeschrittene: Ob noch ein VB-Audio-Treiber im Treiberspeicher liegt, zeigt dieser Befehl in einer Eingabeaufforderung als Administrator:</value></data>
   <data name="Uninstall.DeviceManager" xml:space="preserve"><value>Geräte-Manager öffnen</value></data>
   <data name="Uninstall.CompareHint" xml:space="preserve"><value>Nach dem Neustart noch einmal vergleichen. Grün heißt: wie vor dem Soundboard.</value></data>
   <data name="Uninstall.Discord" xml:space="preserve"><value>Zeigt Discord noch auf das entfernte Kabel, nimmt es von selbst „Default“ – das ist dein Windows-Standardmikrofon, das das Soundboard nie verändert hat. Hattest du vorher ein bestimmtes Mikrofon gewählt: {0}</value></data>
@@ -488,7 +485,7 @@ Entf: Taste löschen</value></data>
   <data name="Uninstall.Diff.One" xml:space="preserve"><value>1 Abweichung. Neu oder fehlend ist normal, solange das Kabel noch da ist oder ein Gerät abgezogen wurde.</value></data>
   <data name="Uninstall.Diff.Other" xml:space="preserve"><value>{0} Abweichungen. Neu oder fehlend ist normal, solange das Kabel noch da ist oder ein Gerät abgezogen wurde.</value></data>
   <data name="Uninstall.NoData" xml:space="preserve"><value>Es liegen keine Daten des Soundboards (mehr) vor.</value></data>
-  <data name="Uninstall.WillDelete" xml:space="preserve"><value>Gelöscht wird im Datenordner {0}:</value></data>
+  <data name="Uninstall.WillDelete" xml:space="preserve"><value>Gelöscht wird im Datenordner:</value></data>
   <data name="Uninstall.AutostartEntry" xml:space="preserve"><value>Eintrag „mit Windows starten“</value></data>
   <data name="Uninstall.FoldersStay" xml:space="preserve"><value>Sound- und Bilder-Ordner bleiben.</value></data>
   <data name="Uninstall.StillRunning" xml:space="preserve"><value>Das Soundboard läuft noch und hält seine Dateien offen. Beende es zuerst über das Soundboard-Symbol im Infobereich → „Beenden …“, dann noch einmal klicken.</value></data>
@@ -593,4 +590,18 @@ Entf: Taste löschen</value></data>
   <data name="Notice.EvenedOut.One" xml:space="preserve"><value>Lautstärke von 1 Pad angeglichen.</value></data>
   <data name="Notice.EvenedOut.Other" xml:space="preserve"><value>Lautstärke von {0} Pads angeglichen.</value></data>
   <data name="Traces.Backups" xml:space="preserve"><value>Sicherungen vor einem Import (Ordner „Sicherungen“)</value></data>
+  <data name="Exit.Quit" xml:space="preserve"><value>Beenden</value></data>
+  <data name="Exit.Keep" xml:space="preserve"><value>Weiterlaufen lassen</value></data>
+  <data name="App.UninstallHeading" xml:space="preserve"><value>Anleitung zum Entfernen öffnen?</value></data>
+  <data name="App.UninstallGo" xml:space="preserve"><value>Beenden und Anleitung öffnen</value></data>
+  <data name="Uninstall.DataFolder" xml:space="preserve"><value>Datenordner</value></data>
+  <data name="Uninstall.Command" xml:space="preserve"><value>Befehl</value></data>
+  <data name="Uninstall.AdvancedDelete" xml:space="preserve"><value>Entfernen mit diesem (NN aus der Liste):</value></data>
+  <data name="Uninstall.AdvancedTail" xml:space="preserve"><value>Nur nötig, wenn das Setup Reste lässt.</value></data>
+  <data name="Uninstall.AskHeading" xml:space="preserve"><value>Daten des Soundboards löschen?</value></data>
+  <data name="Uninstall.Delete" xml:space="preserve"><value>Löschen</value></data>
+  <data name="State.OnlyCableNew" xml:space="preserve"><value>Audio-Zustand: Seit der Sicherung vom {0} ist nur das Kabel neu – wie erwartet.</value></data>
+  <data name="Devices.IdTip" xml:space="preserve"><value>Endpunkt-ID: {0}</value></data>
+  <data name="Setup.FinalLine" xml:space="preserve"><value>Mikrofon + Sounds → Kabel → Discord. Spiel ein Pad an, um es auszuprobieren.</value></data>
+  <data name="Pad.StatusPlaying" xml:space="preserve"><value>spielt</value></data>
 </root>
