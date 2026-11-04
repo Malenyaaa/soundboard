@@ -140,19 +140,6 @@
             </Setter>
         </Style>
 
-        <Style x:Key="WarnIcon" TargetType="Path">
-            <Setter Property="Data" Value="{StaticResource WarnGeometry}" />
-            <Setter Property="Stroke" Value="{DynamicResource NoticeText}" />
-            <Setter Property="StrokeThickness" Value="1.6" />
-            <Setter Property="StrokeLineJoin" Value="Round" />
-            <Setter Property="StrokeStartLineCap" Value="Round" />
-            <Setter Property="StrokeEndLineCap" Value="Round" />
-            <Setter Property="Width" Value="18" />
-            <Setter Property="Height" Value="17" />
-            <Setter Property="Stretch" Value="None" />
-            <Setter Property="VerticalAlignment" Value="Top" />
-        </Style>
-
         <!-- One pad. -->
         <DataTemplate x:Key="PadTemplate">
             <Grid x:Name="Root" Background="Transparent" ToolTip="{Binding ToolTipText}" MouseWheel="OnPadWheel" ToolTipService.InitialShowDelay="800">
@@ -262,7 +249,7 @@
                             Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}"
                             ToolTip="{Binding HotkeyToolTip}">
                         <DockPanel>
-                            <Path x:Name="CapWarn" Style="{StaticResource WarnIcon}" DockPanel.Dock="Left" Width="13" Height="12" Stretch="Uniform" Margin="0,0,5,0" StrokeThickness="1.4" VerticalAlignment="Center"
+                            <Path x:Name="CapWarn" Style="{StaticResource WarnIcon}" DockPanel.Dock="Left" Width="13" Height="12" Stretch="Uniform" Margin="0,0,5,0" StrokeThickness="1.5" VerticalAlignment="Center"
                                   Visibility="Collapsed" />
                             <TextBlock Text="{Binding HotkeyText}" TextTrimming="CharacterEllipsis" />
                         </DockPanel>
@@ -292,7 +279,7 @@
                     <TextBlock Text="{Binding CaptureHint}" TextWrapping="Wrap" FontSize="12" LineHeight="17" Foreground="{DynamicResource TextBrush}" />
                 </Border>
 
-                <!-- Problem of this pad: yellow box on the pad, with the way out. May grow over the row below. -->
+                <!-- Problem of this pad: a notice field on the pad, with the way out. May grow over the row below. -->
                 <Canvas Visibility="{Binding IsIssueOpen, Converter={StaticResource BoolToVis}}">
                 <Border Style="{StaticResource NoticeBox}" CornerRadius="10" Padding="10,8"
                         Width="{Binding ActualWidth, ElementName=Root}" MinHeight="{Binding ActualHeight, ElementName=Root}">
@@ -362,13 +349,10 @@
                     </MultiDataTrigger.EnterActions>
                 </MultiDataTrigger>
                 <DataTrigger Binding="{Binding HotkeyProblem}" Value="True">
-                    <Setter TargetName="Cap" Property="Background" Value="{DynamicResource NoticeBg}" />
-                    <Setter TargetName="Cap" Property="BorderBrush" Value="{DynamicResource NoticeText}" />
-                    <Setter TargetName="Cap" Property="Foreground" Value="{DynamicResource NoticeText}" />
                     <Setter TargetName="CapWarn" Property="Visibility" Value="Visible" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding IsError}" Value="True">
-                    <Setter TargetName="PadBtn" Property="BorderBrush" Value="{DynamicResource NoticeLine}" />
+                    <Setter TargetName="PadBtn" Property="BorderBrush" Value="{DynamicResource DiffText}" />
                 </DataTrigger>
                 <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
@@ -399,7 +383,7 @@
                     <Button Style="{StaticResource LinkButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="{Binding StatusCableTab}"
                             ToolTip="{Binding StatusCableTip}">
                         <StackPanel Orientation="Horizontal">
-                            <Path Style="{StaticResource WarnIcon}" Stroke="{DynamicResource DiffText}" Margin="0,0,6,0" VerticalAlignment="Center"
+                            <Path Style="{StaticResource WarnIcon}" Margin="0,0,6,0" VerticalAlignment="Center"
                                   Visibility="{Binding CableWarn, Converter={StaticResource BoolToVis}}" />
                             <TextBlock Text="{Binding StatusCable}" VerticalAlignment="Center">
                                 <TextBlock.Style>
@@ -422,7 +406,7 @@
                     <Button Style="{StaticResource LinkButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="tasten" Margin="12,0,0,0"
                             ToolTip="{t:T Status.KeysTip}">
                         <StackPanel Orientation="Horizontal">
-                            <Path Style="{StaticResource WarnIcon}" Stroke="{DynamicResource DiffText}" Margin="0,0,6,0" VerticalAlignment="Center"
+                            <Path Style="{StaticResource WarnIcon}" Margin="0,0,6,0" VerticalAlignment="Center"
                                   Visibility="{Binding HotkeyProblems, Converter={StaticResource PosToVis}}" />
                             <TextBlock Text="{Binding StatusHotkeys}" VerticalAlignment="Center" />
                         </StackPanel>
@@ -497,7 +481,7 @@
             </Grid>
         </Border>
 
-        <!-- ============================================================ the one yellow notice (not in full screen) -->
+        <!-- ============================================================ the one notice (not in full screen) -->
         <Border DockPanel.Dock="Top" Visibility="{Binding IsFullScreen, Converter={StaticResource NotBoolToVis}}">
         <Border Style="{StaticResource NoticeBox}" Margin="16,12,16,0"
                 Visibility="{Binding CurrentNotice.Text, Converter={StaticResource TextToVis}, FallbackValue=Collapsed}">
@@ -631,7 +615,7 @@
                                             </DockPanel>
                                             <TextBlock TextWrapping="Wrap" Margin="26,4,0,0" LineHeight="20">
                                                 <Run Text="{t:T Setup.NeedCable}" />
-                                                <Hyperlink Command="{Binding OpenCableWebsiteCommand}" Foreground="{DynamicResource NoticeText}">vb-cable.com</Hyperlink><Run Text="{t:T Setup.NeedCableTail}" />
+                                                <Hyperlink Command="{Binding OpenCableWebsiteCommand}" Foreground="{DynamicResource TextBrush}">vb-cable.com</Hyperlink><Run Text="{t:T Setup.NeedCableTail}" />
                                             </TextBlock>
                                             <TextBlock TextWrapping="Wrap" Margin="26,8,0,0" LineHeight="20">
                                                 <Run Text="{t:T Setup.C1}" /><LineBreak />
@@ -644,7 +628,7 @@
                                                 <Button Style="{StaticResource NoticeButton}" Content="{t:T Setup.OpenSite}" Command="{Binding OpenCableWebsiteCommand}" Margin="0,0,8,6" />
                                                 <Button Style="{StaticResource NoticeButton}" Content="{t:T Setup.SearchCable}" Command="{Binding SearchCableCommand}" Margin="0,0,8,6" />
                                             </WrapPanel>
-                                            <TextBlock Text="{Binding SnapshotHeader}" Margin="26,2,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding SnapshotHeader}" Margin="26,2,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SubTextBrush}" />
                                             <TextBlock Text="{Binding RestoreResultText}" Margin="26,4,0,0" TextWrapping="Wrap"
                                                        Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
                                         </StackPanel>
@@ -813,7 +797,7 @@
                                                             <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
                                                                 <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
                                                                 <DockPanel Margin="0,2,0,0">
-                                                                    <Path x:Name="W" Style="{StaticResource WarnIcon}" Stroke="{DynamicResource DiffText}" Margin="0,0,6,0" Visibility="Collapsed" />
+                                                                    <Path x:Name="W" Style="{StaticResource WarnIcon}" Margin="0,0,6,0" Visibility="Collapsed" />
                                                                     <TextBlock x:Name="S" Text="{Binding HotkeyStateText}" Foreground="{DynamicResource SubTextBrush}" FontSize="13" TextWrapping="Wrap" />
                                                                 </DockPanel>
                                                                 <Button Content="{Binding KeyIssueActionText}" Command="{Binding RunKeyIssueActionCommand}" FontSize="13" HorizontalAlignment="Left" Margin="0,6,0,0"
@@ -968,9 +952,12 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </Grid>
-                                <!-- Quiet line: how the colour is used if it had to be adjusted. -->
-                                <TextBlock Style="{StaticResource Sub}" Margin="0,8,0,0" MaxWidth="560" HorizontalAlignment="Left" Text="{Binding CustomAccentHint}"
-                                           Visibility="{Binding CustomAccentHint, Converter={StaticResource TextToVis}}" />
+                                <!-- Quiet line: how the colour is used if it had to be adjusted. Grey info mark, no amber. -->
+                                <DockPanel Margin="0,8,0,0" MaxWidth="560" HorizontalAlignment="Left"
+                                           Visibility="{Binding CustomAccentHint, Converter={StaticResource TextToVis}}">
+                                    <Path Style="{StaticResource InfoIcon}" Margin="0,2,8,0" />
+                                    <TextBlock Style="{StaticResource Sub}" Text="{Binding CustomAccentHint}" />
+                                </DockPanel>
 
                                 <TextBlock Text="{t:T Design.PadColours}" Style="{StaticResource H2}" />
                                 <WrapPanel>

@@ -165,7 +165,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // ---------------------------------------------------------------- notices
 
     /// <summary>
-    /// Shows a yellow notice; a notice with the same key is replaced. Only one notice is visible
+    /// Shows a notice; a notice with the same key is replaced. Only one notice is visible
     /// at a time (the newest); the others wait behind "Next". The texts are produced on demand,
     /// so a notice follows a change of the interface language.
     /// </summary>
@@ -1003,7 +1003,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ScheduleSave();
     }
 
-    /// <summary>Opens the chosen microphone. Null plus a yellow notice if that is not possible.</summary>
+    /// <summary>Opens the chosen microphone. Null plus a notice if that is not possible.</summary>
     private ICaptureInput? OpenMic(string noticeKey)
     {
         var id = _profile.MicDeviceId;

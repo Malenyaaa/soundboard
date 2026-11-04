@@ -158,31 +158,10 @@
         </Setter>
     </Style>
 
-    <!-- Button inside the yellow notice: dark ink on light yellow, framed. -->
+    <!-- Button inside a notice: the plain secondary button, only a little lower. -->
     <Style x:Key="NoticeButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Foreground" Value="{DynamicResource NoticeText}" />
-        <Setter Property="Background" Value="{DynamicResource NoticeButtonBg}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource NoticeText}" />
         <Setter Property="Padding" Value="10,4" />
         <Setter Property="MinHeight" Value="30" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="1" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" RecognizesAccessKey="False" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource NoticeButtonHover}" />
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource NoticeLine}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
 
     <!-- Square symbol button (gear). -->
@@ -765,19 +744,47 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
 
-    <!-- ================================================================ yellow notice -->
+    <!-- ================================================================ notices -->
 
-    <!-- The yellow "missing / does not work" box. Own form: drawn triangle + text, no side stripe. -->
+    <!-- The "missing / does not work" box: a field like the others. Only the drawn triangle is amber. -->
     <Style x:Key="NoticeBox" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource NoticeBg}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource NoticeLine}" />
+        <Setter Property="Background" Value="{DynamicResource FieldBg}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Padding" Value="12,8" />
-        <Setter Property="TextElement.Foreground" Value="{DynamicResource NoticeText}" />
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource TextBrush}" />
     </Style>
 
     <Geometry x:Key="WarnGeometry">M 9,1 L 17.2,16 L 0.8,16 Z M 9,6.2 L 9,10.6 M 9,13 L 9,13.2</Geometry>
+    <!-- Drawn warning triangle in amber: the one mark of a notice, a key that does not work, a difference. -->
+    <Style x:Key="WarnIcon" TargetType="Path">
+        <Setter Property="Data" Value="{StaticResource WarnGeometry}" />
+        <Setter Property="Stroke" Value="{DynamicResource DiffText}" />
+        <Setter Property="StrokeThickness" Value="1.8" />
+        <Setter Property="StrokeLineJoin" Value="Round" />
+        <Setter Property="StrokeStartLineCap" Value="Round" />
+        <Setter Property="StrokeEndLineCap" Value="Round" />
+        <Setter Property="Width" Value="18" />
+        <Setter Property="Height" Value="17" />
+        <Setter Property="Stretch" Value="None" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+
+    <!-- Drawn info mark (circle + i) for quiet hint lines; grey, never amber. -->
+    <Geometry x:Key="InfoGeometry">M 8,1 A 7,7 0 1 1 7.99,1 Z M 8,7 L 8,11.6 M 8,4.4 L 8,4.6</Geometry>
+    <Style x:Key="InfoIcon" TargetType="Path">
+        <Setter Property="Data" Value="{StaticResource InfoGeometry}" />
+        <Setter Property="Stroke" Value="{DynamicResource SubTextBrush}" />
+        <Setter Property="StrokeThickness" Value="1.4" />
+        <Setter Property="StrokeStartLineCap" Value="Round" />
+        <Setter Property="StrokeEndLineCap" Value="Round" />
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Stretch" Value="None" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+
     <!-- Four corners pointing outwards: full screen. -->
     <Geometry x:Key="FullScreenGeometry">M 1.5,6 L 1.5,1.5 L 6,1.5 M 12,1.5 L 16.5,1.5 L 16.5,6 M 16.5,12 L 16.5,16.5 L 12,16.5 M 6,16.5 L 1.5,16.5 L 1.5,12</Geometry>
     <Geometry x:Key="GearGeometry">F0 M 17.09,8.26 L 19.52,8.76 L 19.52,11.24 L 17.09,11.74 L 16.24,13.79 L 17.61,15.85 L 15.85,17.61 L 13.79,16.24 L 11.74,17.09 L 11.24,19.52 L 8.76,19.52 L 8.26,17.09 L 6.21,16.24 L 4.15,17.61 L 2.39,15.85 L 3.76,13.79 L 2.91,11.74 L 0.48,11.24 L 0.48,8.76 L 2.91,8.26 L 3.76,6.21 L 2.39,4.15 L 4.15,2.39 L 6.21,3.76 L 8.26,2.91 L 8.76,0.48 L 11.24,0.48 L 11.74,2.91 L 13.79,3.76 L 15.85,2.39 L 17.61,4.15 L 16.24,6.21 Z M 10,6.8 A 3.2,3.2 0 1 0 10,13.2 A 3.2,3.2 0 1 0 10,6.8 Z</Geometry>

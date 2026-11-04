@@ -22,14 +22,6 @@
             <Setter Property="Margin" Value="0,8,8,0" />
             <Setter Property="HorizontalAlignment" Value="Left" />
         </Style>
-        <Style x:Key="Notice" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource NoticeBg}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource NoticeLine}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="12,8" />
-            <Setter Property="Margin" Value="0,8,0,0" />
-        </Style>
     </Window.Resources>
 
     <DockPanel>
@@ -41,11 +33,11 @@
                 <TextBlock Style="{StaticResource P}" Margin="0,10,0,0"
                            Text="{t:T Uninstall.Intro}" />
 
-                <Border x:Name="RunningBox" Style="{StaticResource Notice}" Visibility="Collapsed">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource P}" Foreground="{DynamicResource NoticeText}"
-                                   Text="{t:T Uninstall.Running}" />
-                    </StackPanel>
+                <Border x:Name="RunningBox" Style="{StaticResource NoticeBox}" Margin="0,8,0,0" Visibility="Collapsed">
+                    <DockPanel>
+                        <Path Style="{StaticResource WarnIcon}" Margin="0,2,10,0" />
+                        <TextBlock Style="{StaticResource P}" Text="{t:T Uninstall.Running}" />
+                    </DockPanel>
                 </Border>
 
                 <!-- 1 -->

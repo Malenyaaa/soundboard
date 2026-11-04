@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace Soundboard.App.ViewModels;
 
 /// <summary>
-/// A yellow notice: what is missing and what to do. Optional action button. The texts are
+/// A notice: what is missing and what to do. Optional action button. The texts are
 /// produced on demand, so a notice follows a change of the interface language.
 /// </summary>
 public sealed partial class NoticeViewModel : ObservableObject

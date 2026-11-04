@@ -120,7 +120,7 @@ public sealed partial class TileViewModel : ObservableObject
 
     // ---------------------------------------------------------------- problem shown on the pad
 
-    /// <summary>Yellow box on the pad: what does not work here and the way out.</summary>
+    /// <summary>Notice box on the pad: what does not work here and the way out.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasIssueAction))]
     private string? _issueText;
@@ -206,7 +206,7 @@ public sealed partial class TileViewModel : ObservableObject
         if (HotkeyProblem && _keyIssue.Text is not null)
         {
             if (_loadIssue.Text is null) IsIssueOpen = !IsIssueOpen;
-            else RunKeyIssueAction(); // the yellow box shows the file problem; go straight to the key fix
+            else RunKeyIssueAction(); // the notice box shows the file problem; go straight to the key fix
         }
         else _owner.BeginKeyCapture(this);
     }

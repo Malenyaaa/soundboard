@@ -51,9 +51,9 @@ public sealed class DesignTests
             }
             foreach (var ground in new[] { "WindowBg", "BarBg", "FieldBg" })
                 AssertAtLeast(3.0, t["LineBrush"], t[ground], $"control line on {ground}, dark={dark}");
-            AssertAtLeast(4.5, t["NoticeText"], t["NoticeBg"], $"notice, dark={dark}");
-            AssertAtLeast(4.5, t["NoticeText"], t["NoticeButtonBg"], $"notice button, dark={dark}");
-            AssertAtLeast(4.5, t["NoticeText"], t["NoticeButtonHover"], $"notice button hover, dark={dark}");
+            // A notice is a field like the others; only its drawn warning sign is amber.
+            AssertAtLeast(3.0, t["DiffText"], t["FieldBg"], $"warning sign in a notice, dark={dark}");
+            AssertAtLeast(3.0, t["LineBrush"], t["WindowBg"], $"notice frame against the window, dark={dark}");
             AssertAtLeast(4.5, t["OnStopBrush"], t["StopBg"], $"stop, dark={dark}");
             AssertAtLeast(4.5, t["OnStopBrush"], t["StopHover"], $"stop hover, dark={dark}");
             AssertAtLeast(3.0, t["StopBg"], t["BarBg"], $"stop button against bar, dark={dark}");
@@ -124,6 +124,7 @@ public sealed class DesignTests
                 var p = PadPalette.Derive(Rgb.Parse(hex), dark);
                 AssertAtLeast(4.5, p.Text, p.Face, $"{hex} idle text dark={dark}");
                 AssertAtLeast(4.5, p.Text, p.CapBg, $"{hex} cap text dark={dark}");
+                AssertAtLeast(3.0, Rgb.Parse(t["DiffText"]), p.CapBg, $"{hex} warning sign on the cap dark={dark}");
                 AssertAtLeast(3.0, p.Line, Rgb.Parse(t["WindowBg"]), $"{hex} pad edge dark={dark}");
                 AssertAtLeast(4.5, p.LitText, p.Lit, $"{hex} lit text dark={dark}");
                 AssertAtLeast(4.5, p.LitText, p.LitPlayed, $"{hex} played text dark={dark}");

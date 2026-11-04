@@ -13,7 +13,7 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.12.3 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.13.0 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, Vollbild (F11), englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -50,7 +50,7 @@ der Knöpfe stehen hier auf Deutsch; in der englischen Oberfläche heißen sie e
    „Install Driver“.
 4. Windows neu starten, Soundboard öffnen. Es findet „CABLE Input“ und „CABLE Output“ und
    vergleicht mit der Sicherung. Hat das Setup ein Standardgerät verstellt (Windows macht
-   neue Audiotreiber manchmal zum Standard), erscheint ein gelber Hinweis; „Ansehen“ öffnet den Vergleich mit
+   neue Audiotreiber manchmal zum Standard), erscheint ein Hinweis über den Pads; „Ansehen“ öffnet den Vergleich mit
    **„Standardgerät zurückstellen“**.
 5. Prüfen: Beim Sprechen schlägt „Das sendet dein Kabel gerade“ aus. Gegenprobe ohne
    Discord: Systemsteuerung → Sound → Registerkarte „Aufnahme“ → bei „CABLE Output“
@@ -115,7 +115,7 @@ Discords Dateien.
   ist. Das Bild wird in den Bilder-Ordner kopiert (das Original bleibt) und verkleinert
   geladen, große Fotos brauchen also wenig Speicher. Ein Bild auf der freien Fläche wird kein
   Pad, sondern bekommt einen Hinweis. Lässt sich ein gewähltes oder gezogenes Bild nicht lesen
-  (kaputt, falsche Endung, WebP ohne Decoder), sagt ein gelber Hinweis warum, und das Pad
+  (kaputt, falsche Endung, WebP ohne Decoder), sagt ein Hinweis warum, und das Pad
   bleibt, wie es war. Fehlt eine Bilddatei später oder ist sie kaputt, zeigt das Pad ohne
   Warnung still seine Farbe und spielt wie gewohnt; der Verweis bleibt gespeichert, kommt die
   Datei zurück, ist auch das Bild wieder da. „Bild entfernen“ und das Ersetzen eines Bildes
@@ -127,7 +127,7 @@ Discords Dateien.
 - **Globale Tasten:** Klick auf die Tastenkappe (oder Rechtsklick → „Taste belegen …“), dann die
   Taste drücken; Enter nimmt den Vorschlag (Num 1 … Num 9, Num 0). Die Tasten wirken überall,
   auch im Spiel – das Spiel sieht sie dann nicht. **Pause** stoppt alles. Ist eine Taste doppelt
-  vergeben oder von einem anderen Programm belegt, wird ihre Kappe gelb mit Warnzeichen; ein
+  vergeben oder von einem anderen Programm belegt, trägt ihre Kappe ein Warnzeichen; ein
   Klick darauf zeigt auf dem Pad, was los ist, mit dem Ausweg („Num 3 hierher holen“, „Andere
   Taste wählen“). Numpad-Tasten liefern nur bei eingeschaltetem NumLock „Num 1“ usw.
 - **Mithören:** Schalter und Gerät, auf dem du die Sounds selbst hörst (per ID gemerkt).
@@ -148,7 +148,8 @@ Discords Dateien.
   nicht wirkt. Fehlt das Kabel ganz, steht dort fett „Kabel fehlt“, und der Klick öffnet die
   Einrichtung; ein eigener Hinweis über den Pads erscheint dafür nicht. Die
   Windows-Standardgeräte stehen hier nicht; die zeigt Windows selbst.
-- **Hinweise:** Es steht immer höchstens ein gelber Hinweis über den Pads. Gibt es mehrere,
+- **Hinweise:** Es steht immer höchstens ein Hinweis über den Pads – ein Feld wie die
+  anderen, erkennbar am bernsteinfarbenen Warnzeichen. Gibt es mehrere,
   blättert „Nächster“ weiter.
 - **Fenster schließen** lässt das Programm im Infobereich (Soundboard-Symbol: Taste mit
   Wellenform) weiterlaufen, damit Discord weiter dein Mikrofon bekommt. **Beenden** über Rechtsklick auf das Symbol; die
@@ -192,7 +193,7 @@ eigene Akzentfarbe und selbst gewählte Pad-Farben bleiben.
 auf. Ebenso blendet die Leiste im Vollbild weich (260 ms) oder sofort aus. Was per Taste
 ausgelöst wird, bewegt sich sonst nicht.
 
-Fehlt etwas (kein Mikrofon, Taste belegt), erscheint ein gelber Hinweis mit dem nächsten
+Fehlt etwas (kein Mikrofon, Taste belegt), erscheint ein Hinweis mit Warnzeichen und dem nächsten
 Schritt – bei Pads direkt auf dem Pad. Ein fehlendes Kabel zeigt nur die Statuszeile (siehe
 oben). Knöpfe werden nie ausgegraut.
 

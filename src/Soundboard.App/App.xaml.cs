@@ -167,7 +167,7 @@ public partial class App : Application
         Shutdown();
     }
 
-    /// <summary>Unexpected errors become a yellow notice instead of closing the program.</summary>
+    /// <summary>Unexpected errors become a notice instead of closing the program.</summary>
     private void OnUnhandled(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         if (MainWindow?.DataContext is MainViewModel vm)

@@ -80,7 +80,7 @@ public sealed partial class MainViewModel
     /// <summary>
     /// Gives a pad a picture: checks and decodes it first (nothing is copied if it cannot be shown),
     /// then copies it into the picture folder. The original stays where it is. Never throws:
-    /// every problem ends in a yellow notice with a way out.
+    /// every problem ends in a notice with a way out.
     /// </summary>
     public async Task AssignImageAsync(TileViewModel tile, string source)
     {
