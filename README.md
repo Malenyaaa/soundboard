@@ -16,7 +16,8 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.9.0 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe).
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
-Kabel und Discord steht aus. Der Installer ist **noch ungetestet** (siehe unten).
+Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
+**noch ungetestet** (siehe unten).
 
 ## So funktioniert es
 
@@ -213,18 +214,21 @@ dotnet publish src/Soundboard.App -c Release -r win-x64 --self-contained -p:Publ
 
 Ergebnis: `publish\Soundboard.exe` (portable, eine Datei, keine .NET-Installation nötig).
 
-## Installer (noch ungetestet)
+## Installer (gebaut, Installation noch ungetestet)
 
 `installer/soundboard.iss` ist ein Skript für [Inno Setup 6](https://jrsoftware.org/isinfo.php):
 Installation nur für den eigenen Benutzer nach `%LOCALAPPDATA%\Programs\Soundboard`, ohne
 Adminrechte, Startmenü-Eintrag, „Mit Windows starten“ als abwählbare Option. Beim
 Deinstallieren startet die Anleitung `--uninstall`; bei stiller Deinstallation nur
-`--restore`. Das Skript ist **noch nie kompiliert oder ausprobiert worden**. Bauen nach dem
-Publish:
+`--restore`. Das Skript kompiliert mit Inno Setup 6.7 ohne Warnungen; Installieren und
+Deinstallieren sind **noch nicht ausprobiert**. Bauen nach dem Publish:
 
 ```powershell
 iscc installer\soundboard.iss
 ```
+
+Ergebnis: `publish\installer\Soundboard-Setup-<Version>.exe`. Inno Setup lässt sich ohne
+Adminrechte installieren: `winget install JRSoftware.InnoSetup --scope user --custom /CURRENTUSER`.
 
 Die portable EXE bleibt der zweite Download.
 
