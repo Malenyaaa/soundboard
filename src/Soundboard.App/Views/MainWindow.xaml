@@ -465,7 +465,56 @@
                                 <Button Content="Weiter zu Schritt 2" Style="{StaticResource PlainButton}" Command="{Binding GoToStepCommand}" CommandParameter="2"
                                         HorizontalAlignment="Left" Margin="0,16,0,0" />
                             </StackPanel>
-<!--STEP23-->
+                            <!-- Step 2: Discord -->
+                            <StackPanel Visibility="{Binding IsSetupStep2, Converter={StaticResource BoolToVis}}">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
+                                           Text="Discord merkt sich sein Mikrofon selbst. Du stellst dort einmal auf das Kabel um; Windows bleibt dabei unverändert." />
+                                <TextBlock TextWrapping="Wrap" LineHeight="22">
+                                    <Run Text="1. In Discord unten links auf das Zahnrad (Benutzereinstellungen) → „Sprache &amp; Video“." /><LineBreak />
+                                    <Run Text="2. Eingabegerät: „CABLE Output (VB-Audio Virtual Cable)“ wählen." /><LineBreak />
+                                    <Run Text="3. Ausgabegerät nicht ändern – dort bleibt dein Kopfhörer oder Lautsprecher." /><LineBreak />
+                                    <Run Text="4. Mit dem Mikrofontest in Discord prüfen: sprechen und einen Sound abspielen." />
+                                </TextBlock>
+
+                                <TextBlock Text="Welches Mikrofon war in Discord vorher gewählt?" FontWeight="SemiBold" Margin="0,16,0,4" />
+                                <TextBox Text="{Binding DiscordPreviousMic, UpdateSourceTrigger=PropertyChanged}" MaxWidth="420" HorizontalAlignment="Left" MinWidth="320"
+                                         ToolTip="Steht dort „Default“, trag „Default“ ein." />
+                                <TextBlock TextWrapping="Wrap" Margin="0,4,0,0" Foreground="{DynamicResource SubTextBrush}"
+                                           Text="Schreib es ab, bevor du umstellst. Entfernst du das Kabel später, wählst du in Discord wieder dieses Gerät – das Soundboard zeigt dir den Namen dann an." />
+
+                                <TextBlock Text="Das sendet dein Kabel gerade" FontWeight="SemiBold" Margin="0,16,0,4" />
+                                <StackPanel Orientation="Horizontal">
+                                    <ProgressBar Width="280" Height="12" Minimum="0" Maximum="1" Value="{Binding MixLevel, Mode=OneWay}"
+                                                 Foreground="{DynamicResource MeterBrush}" Background="{DynamicResource TrackBg}" BorderThickness="0" VerticalAlignment="Center" />
+                                    <Button Content="Testton senden" Style="{StaticResource PlainButton}" Margin="12,0,0,0" Command="{Binding PlayTestToneCommand}"
+                                            ToolTip="Schickt eine Sekunde lang einen Ton ins Kabel. Discord zeigt ihn beim Mikrofontest an." />
+                                </StackPanel>
+                                <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource SubTextBrush}"
+                                           Text="Sprich: Der Balken schlägt aus, und in Discord bewegt sich die Anzeige beim Mikrofontest." />
+
+                                <Button Content="Weiter zu Schritt 3" Style="{StaticResource PlainButton}" Command="{Binding GoToStepCommand}" CommandParameter="3"
+                                        HorizontalAlignment="Left" Margin="0,16,0,0" />
+                            </StackPanel>
+
+                            <!-- Step 3: noise suppression -->
+                            <StackPanel Visibility="{Binding IsSetupStep3, Converter={StaticResource BoolToVis}}">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
+                                           Text="Discords Rauschunterdrückung hält Soundboard-Sounds für Störgeräusche und dämpft sie. Stell in Discord unter „Sprache &amp; Video“ Folgendes ein:" />
+                                <TextBlock TextWrapping="Wrap" LineHeight="22">
+                                    <Run Text="1. Rauschunterdrückung: „Keine“ (oder „Standard“)." /><LineBreak />
+                                    <Run Text="2. Echounterdrückung: aus." /><LineBreak />
+                                    <Run Text="3. Automatische Verstärkung (Lautstärkeregelung): aus." />
+                                </TextBlock>
+                                <TextBlock Text="Push-to-Talk" FontWeight="SemiBold" Margin="0,16,0,4" />
+                                <TextBlock TextWrapping="Wrap"
+                                           Text="Discord behandelt das Kabel wie ein Mikrofon: Mit Push-to-Talk hören die anderen Sounds nur, solange du die Taste hältst. Angenehmer ist „Sprachaktivierung“ – oder du legst in Discord unter „Tastenbelegung“ eine zweite Push-to-Talk-Taste an und hältst sie beim Sound gedrückt." />
+                                <TextBlock TextWrapping="Wrap" Margin="0,12,0,0" Foreground="{DynamicResource SubTextBrush}"
+                                           Text="Das Soundboard kann diese Discord-Einstellungen weder prüfen noch ändern. Hak ab, wenn du sie eingestellt hast." />
+                                <CheckBox Content="In Discord eingestellt" IsChecked="{Binding DiscordSettingsDone}" Margin="0,8,0,0" />
+
+                                <Button Content="Einrichtung abschließen" Style="{StaticResource PlainButton}" Command="{Binding CloseSetupCommand}"
+                                        HorizontalAlignment="Left" Margin="0,16,0,0" />
+                            </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
                 </DockPanel>

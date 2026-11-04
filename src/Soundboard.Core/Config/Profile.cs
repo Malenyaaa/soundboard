@@ -62,6 +62,15 @@ public sealed class Profile
     /// <summary>The setup panel was shown once (first start).</summary>
     public bool SetupSeen { get; set; }
 
+    /// <summary>Microphone that was chosen in Discord before the cable (free text, for the way back).</summary>
+    public string? DiscordPreviousMic { get; set; }
+
+    /// <summary>The user confirmed the Discord voice settings (noise suppression etc.).</summary>
+    public bool DiscordSettingsDone { get; set; }
+
+    /// <summary>The hint "closing keeps the app in the tray" was shown once.</summary>
+    public bool TrayHintShown { get; set; }
+
     /// <summary>Global hotkey for "stop all" as token text; null = none.</summary>
     public string? StopAllHotkey { get; set; } = "Pause";
 

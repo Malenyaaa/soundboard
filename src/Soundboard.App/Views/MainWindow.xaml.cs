@@ -32,6 +32,19 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e) => _vm.Dispose();
 
+    /// <summary>Closing the window keeps the app running in the tray (the microphone path must go on).</summary>
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        if (Application.Current is App app && !app.IsExiting)
+        {
+            e.Cancel = true;
+            _vm.CancelKeyCapture();
+            Hide();
+            app.OnHiddenToTray();
+        }
+    }
+
     /// <summary>While a tile waits for its hotkey, the next key press goes to it.</summary>
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {

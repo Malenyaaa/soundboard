@@ -1312,6 +1312,77 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (int.TryParse(step, out int n) && n is >= 1 and <= 3) SetupStep = n;
     }
 
+    /// <summary>Setup step 2: which microphone Discord used before (free text).</summary>
+    public string DiscordPreviousMic
+    {
+        get => _profile.DiscordPreviousMic ?? "";
+        set
+        {
+            var v = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            if (v == _profile.DiscordPreviousMic) return;
+            _profile.DiscordPreviousMic = v;
+            ScheduleSave();
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>Setup step 3: the user confirmed the Discord voice settings.</summary>
+    public bool DiscordSettingsDone
+    {
+        get => _profile.DiscordSettingsDone;
+        set
+        {
+            if (value == _profile.DiscordSettingsDone) return;
+            _profile.DiscordSettingsDone = value;
+            ScheduleSave();
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>Text for "the app is gone, what now in Discord" (exit dialog, watcher, uninstall).</summary>
+    public static string DiscordWayBack(string? previousMic) =>
+        string.IsNullOrWhiteSpace(previousMic)
+            ? "In Discord unter Einstellungen → Sprache & Video beim Eingabegerät wieder dein Mikrofon wählen (oder „Default“)."
+            : $"In Discord unter Einstellungen → Sprache & Video beim Eingabegerät wieder „{previousMic}“ wählen.";
+
+    public string? PreviousDiscordMic => _profile.DiscordPreviousMic;
+
+    public bool TrayHintShown
+    {
+        get => _profile.TrayHintShown;
+        set
+        {
+            if (value == _profile.TrayHintShown) return;
+            _profile.TrayHintShown = value;
+            ScheduleSave();
+        }
+    }
+
+    /// <summary>Text for the exit question: what Discord gets afterwards and how the audio state looks.</summary>
+    public string ExitQuestion()
+    {
+        RefreshDevices();
+        var sb = new System.Text.StringBuilder();
+        if (CableRunning)
+        {
+            sb.AppendLine("Discord hört danach Stille vom Kabel: Dein Mikrofon ist in Discord stumm, bis du das Soundboard wieder startest.");
+            sb.AppendLine(DiscordWayBack(_profile.DiscordPreviousMic));
+            sb.AppendLine();
+        }
+        var cmp = Comparison;
+        if (cmp is null) sb.AppendLine("Audio-Zustand: keine Sicherung vorhanden.");
+        else if (!cmp.DefaultsChanged) sb.AppendLine("Audio-Zustand: Die Windows-Standardgeräte sind wie gesichert.");
+        else
+        {
+            sb.AppendLine("Audio-Zustand: Ein Windows-Standardgerät weicht von der Sicherung ab:");
+            foreach (var line in cmp.DefaultChangeLines) sb.AppendLine("  " + line);
+            sb.AppendLine("Das Soundboard hat das nicht verstellt. Zurückstellen: im Fenster „Wie vorher“ oder später Soundboard.exe --restore.");
+        }
+        sb.AppendLine();
+        sb.Append("Soundboard jetzt beenden?");
+        return sb.ToString();
+    }
+
     [RelayCommand]
     private void SearchCable()
     {
