@@ -9,6 +9,7 @@
         FontFamily="{DynamicResource FontText}" FontSize="{DynamicResource SizeText}"
         TextOptions.TextFormattingMode="Display"
         AllowDrop="True" DragOver="OnDragOver" DragLeave="OnDragLeave" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown"
+        PreviewMouseMove="OnWindowMouseMove" PreviewMouseLeftButtonUp="OnWindowMouseUp"
         SizeChanged="OnSizeChanged" Closed="OnClosed">
 
     <!--
@@ -197,7 +198,8 @@
 
         <!-- One pad. -->
         <DataTemplate x:Key="PadTemplate">
-            <Grid x:Name="Root" Background="Transparent" ToolTip="{Binding ToolTipText}" MouseWheel="OnPadWheel" ToolTipService.InitialShowDelay="800">
+            <Grid x:Name="Root" Background="Transparent" ToolTip="{Binding ToolTipText}" MouseWheel="OnPadWheel" ToolTipService.InitialShowDelay="800"
+                  PreviewMouseLeftButtonDown="OnPadMouseDown">
                 <Grid.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="{t:T Pad.AssignKey}" Command="{Binding AssignHotkeyCommand}" />
@@ -574,6 +576,7 @@
         <!-- ============================================================ pads, empty state, settings -->
         <Grid>
             <ScrollViewer x:Name="PadScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                <Grid>
                 <ItemsControl x:Name="PadList" ItemsSource="{Binding Tiles}" Margin="16,16,16,20" ItemTemplate="{StaticResource PadTemplate}" Focusable="False">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -590,6 +593,11 @@
                         </Style>
                     </ItemsControl.ItemContainerStyle>
                 </ItemsControl>
+                <!-- While a pad is dragged: the insert mark between the pads. -->
+                <Canvas x:Name="DragLayer" IsHitTestVisible="False">
+                    <Rectangle x:Name="InsertMark" Width="4" RadiusX="2" RadiusY="2" Fill="{DynamicResource AccentBrush}" Visibility="Collapsed" />
+                </Canvas>
+                </Grid>
             </ScrollViewer>
 
             <!-- Empty: an inviting drop pad -->

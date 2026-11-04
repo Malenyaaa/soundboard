@@ -96,8 +96,31 @@ public partial class MainWindow : Window
     {
         // A numpad key in this session: the keyboard has a numpad, so it may be suggested.
         if (HotkeyGesture.IsNumpadKey(KeyInterop.VirtualKeyFromKey(e.Key == Key.System ? e.SystemKey : e.Key))) _vm.NumpadSeen = true;
+        if (_dragging && e.Key == Key.Escape)
+        {
+            EndDrag(drop: false);
+            e.Handled = true;
+            return;
+        }
         if (_vm.Capturing is null)
         {
+            // Ctrl+Z: take back the newest step (removed or moved pad …), except inside a text field.
+            if (e.Key == Key.Z && Keyboard.Modifiers == ModifierKeys.Control && Keyboard.FocusedElement is not TextBox)
+            {
+                _vm.UndoLastCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+            // Ctrl+Left/Right moves the focused pad one place.
+            if (e.Key is Key.Left or Key.Right && Keyboard.Modifiers == ModifierKeys.Control && !_vm.SettingsOpen
+                && Keyboard.FocusedElement is Button { DataContext: TileViewModel { IsRenaming: false } moving })
+            {
+                int at = _vm.Tiles.IndexOf(moving);
+                _vm.MoveTile(moving, at + (e.Key == Key.Left ? -1 : 1));
+                FocusPad(moving);
+                e.Handled = true;
+                return;
+            }
             // F2 renames, Delete removes the focused pad (with "Undo").
             if (e.Key is Key.F2 or Key.Delete && Keyboard.Modifiers == ModifierKeys.None && !_vm.SettingsOpen
                 && Keyboard.FocusedElement is Button { DataContext: TileViewModel { IsRenaming: false } tile })

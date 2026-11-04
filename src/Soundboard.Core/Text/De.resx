@@ -529,4 +529,8 @@ Entf: Taste löschen</value></data>
   <data name="Status.MicMuted" xml:space="preserve"><value>Mikrofon: stumm</value></data>
   <data name="Status.MicMutedTip" xml:space="preserve"><value>Klicken schaltet das Mikrofon wieder ein. Die Sounds gehen weiter aufs Kabel.</value></data>
   <data name="Notice.FunctionKeyTaken" xml:space="preserve"><value>Die Taste {0} für „{1}“ ist von einem anderen Programm belegt und wirkt deshalb nicht.</value></data>
+  <data name="Notice.PadMoved" xml:space="preserve"><value>„{0}“ verschoben.</value></data>
+  <data name="Notice.UndoMore.One" xml:space="preserve"><value>{1} Danach lässt sich noch ein Schritt zurücknehmen.</value></data>
+  <data name="Notice.UndoMore.Other" xml:space="preserve"><value>{1} Danach lassen sich noch {0} Schritte zurücknehmen.</value></data>
+  <data name="Notice.NothingToUndo" xml:space="preserve"><value>Nichts zum Rückgängigmachen.</value></data>
 </root>

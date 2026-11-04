@@ -529,4 +529,8 @@ Delete: remove key</value></data>
   <data name="Status.MicMuted" xml:space="preserve"><value>Microphone: muted</value></data>
   <data name="Status.MicMutedTip" xml:space="preserve"><value>Click to switch the microphone on again. The sounds still go to the cable.</value></data>
   <data name="Notice.FunctionKeyTaken" xml:space="preserve"><value>The key {0} for “{1}” is taken by another program, so it does nothing.</value></data>
+  <data name="Notice.PadMoved" xml:space="preserve"><value>“{0}” moved.</value></data>
+  <data name="Notice.UndoMore.One" xml:space="preserve"><value>{1} One more step can be undone after this.</value></data>
+  <data name="Notice.UndoMore.Other" xml:space="preserve"><value>{1} {0} more steps can be undone after this.</value></data>
+  <data name="Notice.NothingToUndo" xml:space="preserve"><value>Nothing to undo.</value></data>
 </root>
