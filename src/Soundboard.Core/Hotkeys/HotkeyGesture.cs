@@ -107,8 +107,26 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
     {
         for (int i = 1; i <= 9; i++) yield return new HotkeyGesture(HotkeyModifiers.None, VkNumPad0 + i);
         yield return new HotkeyGesture(HotkeyModifiers.None, VkNumPad0);
-        for (int i = 1; i <= 9; i++) yield return new HotkeyGesture(HotkeyModifiers.Ctrl | HotkeyModifiers.Alt, VkNumPad0 + i);
     }
+
+    /// <summary>
+    /// Keys offered for a new pad, in order. The numpad only when one was seen (a laptop without
+    /// numpad would get keys it cannot press); always Ctrl+Alt+1 … 0, then Ctrl+Alt+Shift+1 … 0,
+    /// which every keyboard has.
+    /// </summary>
+    public static IEnumerable<HotkeyGesture> Suggestions(bool numpadSeen)
+    {
+        if (numpadSeen)
+            foreach (var g in NumpadSuggestions()) yield return g;
+        foreach (var mods in new[] { HotkeyModifiers.Ctrl | HotkeyModifiers.Alt, HotkeyModifiers.Ctrl | HotkeyModifiers.Alt | HotkeyModifiers.Shift })
+        {
+            for (int i = 1; i <= 9; i++) yield return new HotkeyGesture(mods, 0x30 + i);
+            yield return new HotkeyGesture(mods, 0x30);
+        }
+    }
+
+    /// <summary>A key of the numeric keypad (digits and arithmetic keys, as sent with Num Lock on).</summary>
+    public static bool IsNumpadKey(int vk) => vk is >= VkNumPad0 and <= 0x6F;
 
     private static Dictionary<int, (string, string)> BuildNames()
     {

@@ -94,6 +94,8 @@ public partial class MainWindow : Window
     /// </summary>
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
+        // A numpad key in this session: the keyboard has a numpad, so it may be suggested.
+        if (HotkeyGesture.IsNumpadKey(KeyInterop.VirtualKeyFromKey(e.Key == Key.System ? e.SystemKey : e.Key))) _vm.NumpadSeen = true;
         if (_vm.Capturing is null)
         {
             if (e.Key == Key.Escape && Keyboard.FocusedElement is not TextBox { DataContext: TileViewModel { IsRenaming: true } }

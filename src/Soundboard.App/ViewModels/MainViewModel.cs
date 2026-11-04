@@ -1587,6 +1587,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnHotkey(string owner)
     {
+        if (_hotkeys.Get(owner)?.Gesture is { } pressed && HotkeyGesture.IsNumpadKey(pressed.VirtualKey)) NumpadSeen = true;
         if (owner == StopAllOwner)
         {
             StopAll();
@@ -1596,9 +1597,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (tile is not null) OnTileClicked(tile);
     }
 
-    /// <summary>Next free numpad key (Num 1 … Num 9, Num 0, then Ctrl+Alt+Num …).</summary>
+    /// <summary>
+    /// A key of the numeric keypad was pressed in this session: the keyboard has one, so the
+    /// numpad may be suggested. Not stored – another keyboard may be plugged in next time.
+    /// </summary>
+    public bool NumpadSeen { get; set; }
+
+    /// <summary>Next free key: Num 1 … Num 0 (only with a numpad seen), then Ctrl+Alt+1 … 0, then Ctrl+Alt+Shift+1 … 0.</summary>
     public HotkeyGesture? SuggestHotkey(TileViewModel forTile) =>
-        HotkeyGesture.NumpadSuggestions().Cast<HotkeyGesture?>()
+        HotkeyGesture.Suggestions(NumpadSeen).Cast<HotkeyGesture?>()
             .FirstOrDefault(g => _hotkeys.FindOwner(g!.Value, forTile.OwnerId) is null);
 
     private HotkeyGesture? SuggestFor(IKeyTarget target) => target switch
