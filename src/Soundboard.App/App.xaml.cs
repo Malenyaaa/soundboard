@@ -11,6 +11,7 @@ internal enum StartMode
 {
     Main,
     Watch,
+    Uninstall,
 }
 
 public partial class App : Application
@@ -42,6 +43,9 @@ public partial class App : Application
             case StartMode.Watch:
                 Watcher.Run(this, WatchPid);
                 break;
+            case StartMode.Uninstall:
+                StartUninstall();
+                break;
             default:
                 StartMain();
                 break;
@@ -57,6 +61,50 @@ public partial class App : Application
         Instance?.ListenForShow(() => Dispatcher.BeginInvoke(ShowMain));
         Watcher.StartFor(Environment.ProcessId);
         if (!StartInTray) _window.Show();
+    }
+
+    private void StartUninstall()
+    {
+        var window = new Views.UninstallWindow(
+            Core.Config.AppPaths.Default,
+            ReadStateSafe,
+            new Core.SystemState.PolicyConfigWriter(),
+            SingleInstance.IsRunning);
+        window.Closed += (_, _) => Shutdown();
+        MainWindow = window;
+        window.Show();
+    }
+
+    private static Core.Audio.AudioStateReport ReadStateSafe()
+    {
+        try
+        {
+            using var catalog = new Core.Audio.DeviceCatalog();
+            return catalog.ReadState();
+        }
+        catch (System.Runtime.InteropServices.COMException)
+        {
+            return new Core.Audio.AudioStateReport(DateTime.Now, [], []);
+        }
+    }
+
+    /// <summary>"Alles entfernen" from the tray: open the removal guide and end this copy.</summary>
+    public void RequestUninstall()
+    {
+        if (_vm is null || _exiting) return;
+        var exe = Environment.ProcessPath;
+        if (exe is null) return;
+        var text = "Die Anleitung zum Entfernen öffnet sich, und das Soundboard wird dafür beendet."
+            + (_vm.CableRunning ? " Discord hört danach Stille vom Kabel." : "")
+            + Environment.NewLine + Environment.NewLine + "Fortfahren?";
+        var owner = _window is { IsVisible: true } ? _window : null;
+        var answer = owner is null
+            ? MessageBox.Show(text, "Alles entfernen", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
+            : MessageBox.Show(owner, text, "Alles entfernen", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+        if (answer != MessageBoxResult.Yes) return;
+        ExitNow();
+        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, "--uninstall") { UseShellExecute = false }); }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) { }
     }
 
     /// <summary>Brings the main window back (tray click, second start).</summary>

@@ -31,6 +31,7 @@ public sealed class TrayIcon : IDisposable
         menu.Items.Add(_pauseItem);
         menu.Items.Add(new Separator());
         menu.Items.Add(Item("Einrichtung", () => { app.ShowMain(); vm.OpenSetupCommand.Execute(null); }));
+        menu.Items.Add(Item("Alles entfernen …", app.RequestUninstall));
         menu.Items.Add(new Separator());
         menu.Items.Add(Item("Beenden …", app.RequestExit));
 

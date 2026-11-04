@@ -15,6 +15,12 @@ internal static class Program
         if (args.Any(a => Is(a, "--help") || Is(a, "-h") || Is(a, "/?")))
             return Cli.RunHelp();
 
+        if (args.Any(a => Is(a, "--uninstall")))
+        {
+            App.Mode = StartMode.Uninstall;
+            return RunApp();
+        }
+
         int watch = Array.FindIndex(args, a => Is(a, "--watch"));
         if (watch >= 0)
         {

@@ -185,7 +185,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (MonitorEnabled && _sink is null) EnsureMonitor();
         else UpdateMonitorStatus();
         if (_mixPurpose == MixPurpose.None) EnsureCable();
-        else if (_mixPurpose == MixPurpose.Cable && !Cable.IsReady) StopMix();
+        else if (_mixPurpose == MixPurpose.Cable && !Cable.IsReady) EnsureCable(); // stops and says why
         UpdateCableStatus();
     }
 
