@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Soundboard.Core.Audio;
 using Soundboard.Core.Config;
+using Soundboard.App.Themes;
 
 namespace Soundboard.App.ViewModels;
 
@@ -25,7 +26,7 @@ public sealed partial class TileViewModel : ObservableObject
         Config = config;
         Name = config.Name;
         VolumePercent = Math.Round(Math.Clamp(config.Volume, 0f, 1f) * 100);
-        Background = ToBrush(config.Color);
+        Background = ThemeManager.TileBrush(config.Color);
     }
 
     public TileConfig Config { get; }
@@ -39,7 +40,32 @@ public sealed partial class TileViewModel : ObservableObject
     /// <summary>When play was requested; bridges the few ms until the audio thread picks it up.</summary>
     public DateTime PlayRequestedAt { get; set; }
 
-    public Brush Background { get; }
+    public Brush Background { get; private set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasHotkey), nameof(HotkeyLabel))]
+    private string? _hotkeyText;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HotkeyLabel))]
+    private bool _hotkeyProblem;
+
+    [ObservableProperty]
+    private bool _isCapturingKey;
+
+    [ObservableProperty]
+    private string _captureHint = "";
+
+    public bool HasHotkey => HotkeyText is not null;
+
+    /// <summary>Key shown on the tile; a warning sign when the key does not work.</summary>
+    public string HotkeyLabel => HotkeyText is null ? "" : HotkeyProblem ? "⚠ " + HotkeyText : HotkeyText;
+
+    public void RefreshTheme()
+    {
+        Background = ThemeManager.TileBrush(Config.Color);
+        OnPropertyChanged(nameof(Background));
+    }
 
     [ObservableProperty]
     private string _name;
@@ -82,7 +108,11 @@ public sealed partial class TileViewModel : ObservableObject
 
     public string ToolTipText => State == TileState.Error && ErrorText is not null
         ? ErrorText
-        : "Klick: abspielen · nochmal klicken: stoppen · Rechtsklick: umbenennen, entfernen";
+        : HotkeyText is null
+            ? "Klick: abspielen, nochmal klicken: stoppen. Rechtsklick: Taste belegen, umbenennen, entfernen"
+            : HotkeyProblem
+                ? $"Die Taste {HotkeyText} funktioniert gerade nicht – der gelbe Hinweis oben sagt, warum. Klick: abspielen, nochmal klicken: stoppen."
+                : $"Klick oder {HotkeyText}: abspielen, nochmal: stoppen. Rechtsklick: Taste ändern, umbenennen, entfernen";
 
     public void RefreshStatus()
     {
@@ -102,11 +132,21 @@ public sealed partial class TileViewModel : ObservableObject
 
     partial void OnStateChanged(TileState value) => OnPropertyChanged(nameof(ToolTipText));
 
+    partial void OnHotkeyTextChanged(string? value) => OnPropertyChanged(nameof(ToolTipText));
+
+    partial void OnHotkeyProblemChanged(bool value) => OnPropertyChanged(nameof(ToolTipText));
+
     [RelayCommand]
     private void Click() => _owner.OnTileClicked(this);
 
     [RelayCommand]
     private void Rename() => IsRenaming = true;
+
+    [RelayCommand]
+    private void AssignHotkey() => _owner.BeginKeyCapture(this);
+
+    [RelayCommand]
+    private void ClearHotkey() => _owner.SetTileHotkey(this, null);
 
     [RelayCommand]
     private void Remove() => _owner.RemoveTile(this);
@@ -118,18 +158,4 @@ public sealed partial class TileViewModel : ObservableObject
         d.TotalMinutes >= 1
             ? $"{(int)d.TotalMinutes}:{d.Seconds:00} min"
             : d.TotalSeconds.ToString("0.0", CultureInfo.GetCultureInfo("de-DE")) + " s";
-
-    private static Brush ToBrush(string hex)
-    {
-        try
-        {
-            var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
-            brush.Freeze();
-            return brush;
-        }
-        catch (FormatException)
-        {
-            return Brushes.LightSteelBlue;
-        }
-    }
 }

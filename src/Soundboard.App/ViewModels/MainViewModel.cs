@@ -9,6 +9,8 @@ using Microsoft.Win32;
 using Soundboard.Core.Audio;
 using Soundboard.Core.Audio.Sinks;
 using Soundboard.Core.Config;
+using Soundboard.Core.Hotkeys;
+using Soundboard.App.Themes;
 
 namespace Soundboard.App.ViewModels;
 
@@ -25,26 +27,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private readonly AppPaths _paths;
     private readonly Profile _profile;
-    private readonly DeviceCatalog _catalog = new();
+    private readonly IAudioSystem _audio;
+    private readonly HotkeyService _hotkeys;
+    private readonly AppServices _services;
     private readonly Dispatcher _dispatcher;
     private readonly DispatcherTimer _progressTimer;
     private readonly DispatcherTimer _saveTimer;
     private readonly DispatcherTimer _deviceTimer;
     private readonly SoundBank _bank;
     private SoundPlayer _player;
-    private WasapiSink? _sink;
+    private IAudioOutput? _sink;
     private AudioStateReport _state;
     private bool _syncingSelection;
     private bool _disposed;
     private bool _initialized;
 
-    public MainViewModel() : this(AppPaths.Default)
+    public MainViewModel(AppServices services)
     {
-    }
-
-    public MainViewModel(AppPaths paths)
-    {
-        _paths = paths;
+        _services = services;
+        _paths = services.Paths;
+        _audio = services.Audio;
         _dispatcher = Dispatcher.CurrentDispatcher;
 
         var loaded = ProfileStore.Load(_paths.ProfileFile);
@@ -58,9 +60,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _deviceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
         _deviceTimer.Tick += (_, _) => { _deviceTimer.Stop(); OnDevicesChanged(); };
 
-        _state = _catalog.ReadState();
-        _catalog.DevicesChanged += (_, _) => _dispatcher.BeginInvoke(() => { _deviceTimer.Stop(); _deviceTimer.Start(); });
-        _catalog.StartWatching();
+        _state = _audio.ReadState();
+        _audio.DevicesChanged += (_, _) => _dispatcher.BeginInvoke(() => { _deviceTimer.Stop(); _deviceTimer.Start(); });
+        _audio.StartWatching();
 
         // Monitor device: chosen by ID. First start: the current default playback device,
         // only read from Windows and remembered by its ID.
@@ -91,6 +93,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Tiles.Add(tile);
             _ = LoadTileAsync(tile);
         }
+
+        _hotkeys = new HotkeyService(services.Hotkeys);
+        services.Hotkeys.Pressed += id => _hotkeys.HandleHotkey(id);
+        _hotkeys.Triggered += (_, owner) => OnHotkey(owner);
+        ApplyAllHotkeys();
+
+        ThemeManager.Changed += (_, _) => { foreach (var t in Tiles) t.RefreshTheme(); };
 
         _initialized = true;
         EnsureMonitor();
@@ -155,7 +164,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void RefreshDevices()
     {
-        _state = _catalog.ReadState();
+        _state = _audio.ReadState();
         RefreshDeviceViews();
     }
 
@@ -258,8 +267,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private TargetFormat? ReadMonitorFormat()
     {
         if (_profile.MonitorDeviceId is null) return null;
-        using var dev = _catalog.OpenActive(_profile.MonitorDeviceId);
-        var mix = dev is null ? null : DeviceCatalog.ReadMixFormat(dev);
+        var mix = _audio.ReadMixFormat(_profile.MonitorDeviceId);
         return mix is null ? null : new TargetFormat(mix.SampleRate, mix.Channels);
     }
 
@@ -289,19 +297,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var device = _catalog.OpenActive(id);
-        if (device is null)
-        {
-            var name = _profile.MonitorDeviceName ?? "Das gewählte Gerät";
-            ShowNotice("monitor", $"Das Mithörgerät „{name}“ ist nicht angeschlossen oder in Windows deaktiviert. Schließe es an – das Mithören startet dann von selbst – oder wähle oben bei „Mithören auf“ ein anderes Gerät.");
-            UpdateMonitorStatus();
-            return;
-        }
-
-        WasapiSink? sink = null;
+        IAudioOutput? sink = null;
         try
         {
-            sink = new WasapiSink(device);
+            sink = _audio.OpenOutput(id, 30);
+            if (sink is null)
+            {
+                var name = _profile.MonitorDeviceName ?? "Das gewählte Gerät";
+                ShowNotice("monitor", $"Das Mithörgerät „{name}“ ist nicht angeschlossen oder in Windows deaktiviert. Schließe es an – das Mithören startet dann von selbst – oder wähle oben bei „Mithören auf“ ein anderes Gerät.");
+                UpdateMonitorStatus();
+                return;
+            }
             if (sink.SourceFormat != _player.Format) SwitchFormat(sink.SourceFormat);
             _player.Reset();
             sink.Stopped += OnSinkStopped;
@@ -317,7 +323,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (COMException ex)
         {
-            if (sink is not null) sink.Dispose(); else device.Dispose();
+            sink?.Dispose();
             ShowNotice("monitor", $"Das Mithörgerät antwortet nicht ({ex.Message}). Wähle oben ein anderes Gerät oder versuche es erneut.", "Erneut versuchen", EnsureMonitor);
         }
         UpdateMonitorStatus();
@@ -565,6 +571,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _profile.Tiles.Remove(tile.Config);
         _bank.Remove(tile.Config.Id);
         ClearNotice("load-" + tile.Config.Id);
+        _hotkeys.Remove(tile.Config.Id.ToString());
+        ClearNotice("hotkey-" + tile.Config.Id);
+        RefreshHotkeyViews();
         ScheduleSave();
 
         ShowNotice("removed", $"Kachel „{tile.Name}“ entfernt. Die Datei bleibt im Sound-Ordner.", "Rückgängig", () =>
@@ -573,6 +582,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var restored = new TileViewModel(this, tile.Config);
             Tiles.Insert(Math.Clamp(index, 0, Tiles.Count), restored);
             _ = LoadTileAsync(restored);
+            _hotkeys.Set(restored.Config.Id.ToString(), HotkeyGesture.Parse(restored.Config.Hotkey));
+            RefreshHotkeyViews();
             ScheduleSave();
         });
     }
@@ -589,6 +600,188 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         Directory.CreateDirectory(_paths.SoundsDir);
         Process.Start("explorer.exe", $"\"{_paths.SoundsDir}\"");
+    }
+
+    // ---------------------------------------------------------------- hotkeys
+
+    private const string StopAllOwner = "stop-all";
+
+    [ObservableProperty]
+    private bool _hotkeysPaused;
+
+    [ObservableProperty]
+    private string _statusHotkeys = "";
+
+    /// <summary>Tile currently waiting for a key press, or null.</summary>
+    public TileViewModel? CapturingTile { get; private set; }
+
+    public string StopAllToolTip => HotkeyGesture.Parse(_profile.StopAllHotkey) is { } g
+        ? $"Stoppt alle laufenden Sounds sofort. Taste: {g.Display} – wirkt überall, auch wenn ein Spiel im Vordergrund ist."
+        : "Stoppt alle laufenden Sounds sofort.";
+
+    partial void OnHotkeysPausedChanged(bool value)
+    {
+        _hotkeys.Paused = value;
+        RefreshHotkeyViews();
+    }
+
+    private void ApplyAllHotkeys()
+    {
+        var list = new List<(string, HotkeyGesture?)> { (StopAllOwner, HotkeyGesture.Parse(_profile.StopAllHotkey)) };
+        foreach (var t in Tiles) list.Add((t.Config.Id.ToString(), HotkeyGesture.Parse(t.Config.Hotkey)));
+        _hotkeys.SetAll(list);
+        RefreshHotkeyViews();
+    }
+
+    private void OnHotkey(string owner)
+    {
+        if (owner == StopAllOwner)
+        {
+            StopAll();
+            return;
+        }
+        var tile = Tiles.FirstOrDefault(t => t.Config.Id.ToString() == owner);
+        if (tile is not null) OnTileClicked(tile);
+    }
+
+    /// <summary>Next free numpad key (Num 1 … Num 9, Num 0, then Strg+Alt+Num …).</summary>
+    public HotkeyGesture? SuggestHotkey(TileViewModel forTile) =>
+        HotkeyGesture.NumpadSuggestions().Cast<HotkeyGesture?>()
+            .FirstOrDefault(g => _hotkeys.FindOwner(g!.Value, forTile.Config.Id.ToString()) is null);
+
+    public void BeginKeyCapture(TileViewModel tile)
+    {
+        if (CapturingTile is not null) CapturingTile.IsCapturingKey = false;
+        CapturingTile = tile;
+        var suggestion = SuggestHotkey(tile);
+        tile.CaptureHint = suggestion is null
+            ? "Taste drücken … Esc: abbrechen, Entf: Taste entfernen"
+            : $"Taste drücken … Enter: {suggestion.Value.Display} nehmen, Esc: abbrechen, Entf: entfernen";
+        // Registered keys never reach the window; release them while waiting for a key.
+        _hotkeys.Paused = true;
+        tile.IsCapturingKey = true;
+    }
+
+    public void CancelKeyCapture()
+    {
+        if (CapturingTile is null) return;
+        CapturingTile.IsCapturingKey = false;
+        CapturingTile = null;
+        _hotkeys.Paused = HotkeysPaused;
+        RefreshHotkeyViews();
+    }
+
+    /// <summary>
+    /// A key arrived while a tile waits for one. Returns true if it was consumed.
+    /// Enter takes the suggestion, Esc cancels, Delete/Backspace removes the key.
+    /// </summary>
+    public bool OnCapturedKey(int vk, HotkeyModifiers mods)
+    {
+        var tile = CapturingTile;
+        if (tile is null) return false;
+        if (vk == 0x1B) // Esc
+        {
+            CancelKeyCapture();
+            return true;
+        }
+        if (vk is 0x2E or 0x08) // Delete, Backspace
+        {
+            CancelKeyCapture();
+            SetTileHotkey(tile, null);
+            return true;
+        }
+        if (vk == 0x0D) // Enter: take the suggestion
+        {
+            var s = SuggestHotkey(tile);
+            CancelKeyCapture();
+            if (s is not null) SetTileHotkey(tile, s);
+            return true;
+        }
+        if (!HotkeyGesture.IsUsableKey(vk)) return true; // wait for the real key (modifier alone)
+        CancelKeyCapture();
+        SetTileHotkey(tile, new HotkeyGesture(mods, vk));
+        return true;
+    }
+
+    public void SetTileHotkey(TileViewModel tile, HotkeyGesture? gesture)
+    {
+        if (gesture is { } g && g == HotkeyGesture.Parse(_profile.StopAllHotkey))
+        {
+            ShowNotice("hotkey-" + tile.Config.Id, $"{g.Display} ist schon „Alles stoppen“. Wähle für „{tile.Name}“ eine andere Taste (Rechtsklick → „Taste belegen …“).",
+                "Andere Taste wählen", () => BeginKeyCapture(tile));
+            return;
+        }
+        tile.Config.Hotkey = gesture?.ToToken();
+        _hotkeys.Set(tile.Config.Id.ToString(), gesture);
+        ScheduleSave();
+        RefreshHotkeyViews();
+    }
+
+    /// <summary>Gives the key to <paramref name="tile"/> and removes it from the tile that had it.</summary>
+    private void MoveHotkeyTo(TileViewModel tile, string fromOwner)
+    {
+        var from = Tiles.FirstOrDefault(t => t.Config.Id.ToString() == fromOwner);
+        if (from is not null)
+        {
+            from.Config.Hotkey = null;
+            _hotkeys.Set(fromOwner, null);
+        }
+        _hotkeys.Set(tile.Config.Id.ToString(), HotkeyGesture.Parse(tile.Config.Hotkey));
+        ScheduleSave();
+        RefreshHotkeyViews();
+    }
+
+    /// <summary>Updates tile labels and the yellow notices for conflicts.</summary>
+    private void RefreshHotkeyViews()
+    {
+        int active = 0, problems = 0;
+        foreach (var b in _hotkeys.Bindings)
+        {
+            if (b.State == HotkeyState.Active) active++;
+            string key = "hotkey-" + b.Owner;
+            if (b.Owner == StopAllOwner)
+            {
+                if (b.State is HotkeyState.TakenByOtherProgram or HotkeyState.Failed)
+                {
+                    problems++;
+                    ShowNotice(key, $"Die Taste {b.Gesture?.Display} für „Alles stoppen“ ist schon von einem anderen Programm belegt. Der Knopf „Alles stoppen“ funktioniert weiter; die Taste nicht, solange das andere Programm läuft.");
+                }
+                else ClearNotice(key);
+                continue;
+            }
+
+            var tile = Tiles.FirstOrDefault(t => t.Config.Id.ToString() == b.Owner);
+            if (tile is null) continue;
+            tile.HotkeyText = b.Gesture?.Display;
+            tile.HotkeyProblem = b.State is HotkeyState.Duplicate or HotkeyState.TakenByOtherProgram or HotkeyState.Failed;
+            switch (b.State)
+            {
+                case HotkeyState.Duplicate:
+                    problems++;
+                    var first = Tiles.FirstOrDefault(t => t.Config.Id.ToString() == b.DuplicateOf);
+                    var firstName = first?.Name ?? "eine andere Kachel";
+                    ShowNotice(key, $"{b.Gesture?.Display} gehört schon zu „{firstName}“. „{tile.Name}“ reagiert deshalb nicht auf diese Taste.",
+                        $"{b.Gesture?.Display} zu „{tile.Name}“ verschieben", () => MoveHotkeyTo(tile, b.DuplicateOf!));
+                    break;
+                case HotkeyState.TakenByOtherProgram:
+                    problems++;
+                    ShowNotice(key, $"{b.Gesture?.Display} ist schon von einem anderen Programm belegt. „{tile.Name}“ reagiert nicht darauf. Wähle eine andere Taste oder beende das andere Programm.",
+                        "Andere Taste wählen", () => BeginKeyCapture(tile));
+                    break;
+                case HotkeyState.Failed:
+                    problems++;
+                    ShowNotice(key, $"Windows hat die Taste {b.Gesture?.Display} für „{tile.Name}“ nicht angenommen. Wähle eine andere Taste.",
+                        "Andere Taste wählen", () => BeginKeyCapture(tile));
+                    break;
+                default:
+                    ClearNotice(key);
+                    break;
+            }
+        }
+
+        StatusHotkeys = HotkeysPaused ? "Hotkeys: pausiert"
+            : problems > 0 ? $"Hotkeys: {active} aktiv, {problems} gestört"
+            : $"Hotkeys: {active} aktiv";
     }
 
     // ---------------------------------------------------------------- saving
@@ -622,6 +815,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _deviceTimer.Stop();
         if (_saveTimer.IsEnabled) SaveNow();
         StopSink();
-        _catalog.Dispose();
+        _hotkeys.Dispose();
+        _services.Hotkeys.Dispose();
+        _audio.Dispose();
     }
 }

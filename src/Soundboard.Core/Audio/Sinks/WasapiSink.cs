@@ -8,7 +8,7 @@ namespace Soundboard.Core.Audio.Sinks;
 /// Renders a float stream to one endpoint, opened by ID. WASAPI shared mode, event driven,
 /// in the endpoint's own mix format — the device is never reconfigured.
 /// </summary>
-public sealed class WasapiSink : IDisposable
+public sealed class WasapiSink : IAudioOutput
 {
     private readonly MMDevice _device;
     private WasapiOut? _out;

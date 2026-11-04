@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Soundboard.App.ViewModels;
+using Soundboard.Core.Hotkeys;
 
 namespace Soundboard.App.Views;
 
@@ -30,6 +31,27 @@ public partial class MainWindow : Window
     }
 
     private void OnClosed(object? sender, EventArgs e) => _vm.Dispose();
+
+    /// <summary>While a tile waits for its hotkey, the next key press goes to it.</summary>
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (_vm.CapturingTile is null) return;
+        var key = e.Key == Key.System ? e.SystemKey : e.Key;
+        int vk = KeyInterop.VirtualKeyFromKey(key);
+        var m = Keyboard.Modifiers;
+        var mods = HotkeyModifiers.None;
+        if (m.HasFlag(ModifierKeys.Control)) mods |= HotkeyModifiers.Ctrl;
+        if (m.HasFlag(ModifierKeys.Alt)) mods |= HotkeyModifiers.Alt;
+        if (m.HasFlag(ModifierKeys.Shift)) mods |= HotkeyModifiers.Shift;
+        if (m.HasFlag(ModifierKeys.Windows)) mods |= HotkeyModifiers.Win;
+        if (_vm.OnCapturedKey(vk, mods)) e.Handled = true;
+    }
+
+    protected override void OnDeactivated(EventArgs e)
+    {
+        base.OnDeactivated(e);
+        _vm.CancelKeyCapture();
+    }
 
     // ---- inline rename on a tile
 

@@ -18,6 +18,9 @@ public sealed class TileConfig
 
     /// <summary>Background colour as #RRGGBB.</summary>
     public string Color { get; set; } = "#DDE7F5";
+
+    /// <summary>Global hotkey as token text (e.g. "NumPad1"); null = none.</summary>
+    public string? Hotkey { get; set; }
 }
 
 /// <summary>User settings: tiles and the chosen monitor device. Stored as JSON.</summary>
@@ -37,6 +40,9 @@ public sealed class Profile
     public float MasterVolume { get; set; } = 0.8f;
 
     public OverlapMode Overlap { get; set; } = OverlapMode.StopPrevious;
+
+    /// <summary>Global hotkey for "stop all" as token text; null = none.</summary>
+    public string? StopAllHotkey { get; set; } = "Pause";
 
     public List<TileConfig> Tiles { get; set; } = [];
 }

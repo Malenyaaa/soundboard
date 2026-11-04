@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Soundboard"
         Width="1000" Height="700" MinWidth="560" MinHeight="420"
-        Background="#F6F7F9"
-        AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop"
+        Background="{DynamicResource WindowBg}" Foreground="{DynamicResource TextBrush}"
+        AllowDrop="True" DragOver="OnDragOver" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown"
         Closed="OnClosed">
 
     <Window.Resources>
@@ -25,13 +25,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#14000000" />
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverOverlay}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#2A000000" />
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PressedOverlay}" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#1F5FA8" />
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -40,8 +40,8 @@
         </Style>
 
         <Style x:Key="StopButton" TargetType="Button">
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="Background" Value="#B3261E" />
+            <Setter Property="Foreground" Value="{DynamicResource OnStopBrush}" />
+            <Setter Property="Background" Value="{DynamicResource StopBg}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Padding" Value="16,8" />
@@ -55,13 +55,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#951F18" />
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource StopHover}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#6E1712" />
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource StopPressed}" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFD54F" />
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource StopFocus}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -78,13 +78,15 @@
 
     <DockPanel>
         <!-- Status line -->
-        <Border DockPanel.Dock="Bottom" Background="#ECEEF2" BorderBrush="#D5D9E0" BorderThickness="0,1,0,0" Padding="12,5">
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource StatusBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="12,5">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Content="Sound-Ordner öffnen" Style="{StaticResource PlainButton}" Margin="8,0,0,0"
                         Command="{Binding OpenSoundsFolderCommand}" ToolTip="{Binding SoundsDir}" />
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{Binding StatusMonitor}" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{Binding StatusDefaults}" Foreground="#4A5260" TextTrimming="CharacterEllipsis" />
+                    <TextBlock TextTrimming="CharacterEllipsis">
+                        <Run Text="{Binding StatusMonitor, Mode=OneWay}" /><Run Text="   ·   " /><Run Text="{Binding StatusHotkeys, Mode=OneWay}" />
+                    </TextBlock>
+                    <TextBlock Text="{Binding StatusDefaults}" Foreground="{DynamicResource SubTextBrush}" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -97,12 +99,12 @@
                     <CheckBox VerticalAlignment="Center" Margin="0,0,12,0" IsChecked="{Binding ShowNotPresent}"
                               Content="{Binding NotPresentCount}" ContentStringFormat="Auch nicht mehr vorhandene Geräte zeigen ({0})"
                               ToolTip="Windows merkt sich früher benutzte Geräte. Sie sind ausgeblendet, damit die Liste übersichtlich bleibt." />
-                    <TextBlock VerticalAlignment="Center" Foreground="#4A5260" TextWrapping="Wrap"
+                    <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource SubTextBrush}" TextWrapping="Wrap"
                                Text="Die Liste aktualisiert sich auch von selbst, wenn ein Gerät dazukommt oder wegfällt." />
                 </StackPanel>
                 <DataGrid ItemsSource="{Binding Devices}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="230"
                           HeadersVisibility="Column" GridLinesVisibility="Horizontal" CanUserAddRows="False"
-                          SelectionUnit="FullRow" HorizontalGridLinesBrush="#E3E6EB" Background="White">
+                          SelectionUnit="FullRow" HorizontalGridLinesBrush="{DynamicResource GridLine}" Background="{DynamicResource SurfaceBg}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Richtung" Binding="{Binding Richtung}" />
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" />
@@ -117,10 +119,10 @@
         </Expander>
 
         <!-- Header: playback controls -->
-        <Border DockPanel.Dock="Top" Background="White" BorderBrush="#D5D9E0" BorderThickness="0,0,0,1" Padding="12,10">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceBg}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1" Padding="12,10">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Style="{StaticResource StopButton}" Content="■  Alles stoppen"
-                        Command="{Binding StopAllCommand}" ToolTip="Stoppt alle laufenden Sounds sofort." VerticalAlignment="Center" />
+                        Command="{Binding StopAllCommand}" ToolTip="{Binding StopAllToolTip}" VerticalAlignment="Center" />
                 <WrapPanel VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Margin="0,4,20,4">
                         <CheckBox Content="Mithören auf" IsChecked="{Binding MonitorEnabled}" VerticalAlignment="Center"
@@ -136,6 +138,8 @@
                                 ToolTip="Gesamtlautstärke aller Sounds in diesem Programm (nicht die Windows-Lautstärke)." />
                         <TextBlock Text="{Binding MasterVolumePercent, StringFormat={}{0:0} %}" Width="40" VerticalAlignment="Center" />
                     </StackPanel>
+                    <CheckBox Content="Hotkeys pausieren" IsChecked="{Binding HotkeysPaused}" VerticalAlignment="Center" Margin="0,4,20,4"
+                              ToolTip="Gibt alle Tasten frei, z. B. wenn du im Spiel chattest. Nochmal klicken: Tasten wieder aktiv." />
                     <CheckBox Content="Sounds überlagern" IsChecked="{Binding OverlayEnabled}" VerticalAlignment="Center" Margin="0,4,20,4"
                               ToolTip="Aus: ein neuer Sound stoppt den laufenden. An: mehrere Sounds spielen gleichzeitig." />
                     <Button Content="Sounds hinzufügen …" Style="{StaticResource PlainButton}" Command="{Binding AddFilesDialogCommand}"
@@ -148,15 +152,15 @@
         <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Notices}" Margin="12,0,12,0">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border Background="#FFF4C2" BorderBrush="#D9A800" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,8,0,0">
+                    <Border Background="{DynamicResource NoticeBg}" BorderBrush="{DynamicResource NoticeLine}" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,8,0,0">
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="Schließen" Style="{StaticResource PlainButton}" Margin="8,0,0,0"
                                     Command="{Binding CloseCommand}" VerticalAlignment="Center" />
                             <Button DockPanel.Dock="Right" Content="{Binding ActionText}" Style="{StaticResource PlainButton}" Margin="8,0,0,0"
                                     Command="{Binding RunActionCommand}" VerticalAlignment="Center"
                                     Visibility="{Binding HasAction, Converter={StaticResource BoolToVis}}" />
-                            <TextBlock DockPanel.Dock="Left" Text="⚠" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="#7A5A00" />
-                            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="#3D2E00" />
+                            <TextBlock DockPanel.Dock="Left" Text="⚠" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource NoticeText}" />
+                            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource NoticeText}" />
                         </DockPanel>
                     </Border>
                 </DataTemplate>
@@ -175,9 +179,13 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border x:Name="Tile" Width="176" Margin="6" CornerRadius="6" Background="{Binding Background}"
-                                    BorderBrush="#C3C9D3" BorderThickness="1" ToolTip="{Binding ToolTipText}">
+                                    BorderBrush="{DynamicResource TileLine}" BorderThickness="1" ToolTip="{Binding ToolTipText}">
                                 <Border.ContextMenu>
                                     <ContextMenu>
+                                        <MenuItem Header="Taste belegen …" Command="{Binding AssignHotkeyCommand}" />
+                                        <MenuItem Header="Taste entfernen" Command="{Binding ClearHotkeyCommand}"
+                                                  Visibility="{Binding HasHotkey, Converter={StaticResource BoolToVis}}" />
+                                        <Separator />
                                         <MenuItem Header="Umbenennen" Command="{Binding RenameCommand}" />
                                         <MenuItem Header="Im Sound-Ordner zeigen" Command="{Binding ShowInFolderCommand}" />
                                         <Separator />
@@ -189,22 +197,32 @@
                                              Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}"
                                              KeyDown="OnRenameKeyDown" LostKeyboardFocus="OnRenameLostFocus"
                                              IsVisibleChanged="OnRenameVisibleChanged" />
-                                    <Button Style="{StaticResource TileButton}" Command="{Binding ClickCommand}" Height="88">
-                                        <DockPanel>
-                                            <DockPanel DockPanel.Dock="Bottom">
-                                                <TextBlock DockPanel.Dock="Right" Text="{Binding PlayGlyph}" FontSize="14" Foreground="#1A1A1A" />
-                                                <TextBlock Text="{Binding StatusText}" Foreground="#3A4250" FontSize="12" />
+                                    <Grid>
+                                        <Button Style="{StaticResource TileButton}" Command="{Binding ClickCommand}" Height="88">
+                                            <DockPanel>
+                                                <DockPanel DockPanel.Dock="Bottom">
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding PlayGlyph}" FontSize="14" Foreground="{DynamicResource TileText}" />
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding HotkeyLabel}" Margin="0,0,10,0" FontSize="12" FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TileText}" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource TileSubText}" FontSize="12" />
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" Foreground="{DynamicResource TileText}"
+                                                           TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
                                             </DockPanel>
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" Foreground="#1A1A1A"
-                                                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
-                                        </DockPanel>
-                                    </Button>
+                                        </Button>
+                                        <Border Background="{DynamicResource SurfaceBg}" BorderBrush="{DynamicResource SignalBrush}" BorderThickness="2"
+                                                CornerRadius="6,6,0,0" Padding="10,6"
+                                                Visibility="{Binding IsCapturingKey, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="{Binding CaptureHint}" TextWrapping="Wrap" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextBrush}" FontSize="12" />
+                                        </Border>
+                                    </Grid>
                                     <ProgressBar Height="5" Minimum="0" Maximum="1" Value="{Binding Progress}"
-                                                 Foreground="#1F5FA8" Background="#20000000" BorderThickness="0" />
+                                                 Foreground="{DynamicResource SignalBrush}" Background="{DynamicResource TrackBg}" BorderThickness="0" />
                                     <DockPanel Margin="8,4,8,6">
-                                        <TextBlock DockPanel.Dock="Left" Text="Lautst." VerticalAlignment="Center" FontSize="11" Foreground="#3A4250" />
+                                        <TextBlock DockPanel.Dock="Left" Text="Lautst." VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TileSubText}" />
                                         <TextBlock DockPanel.Dock="Right" Text="{Binding VolumePercent, StringFormat={}{0:0} %}" Width="36"
-                                                   TextAlignment="Right" VerticalAlignment="Center" FontSize="11" Foreground="#3A4250" />
+                                                   TextAlignment="Right" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TileSubText}" />
                                         <Slider Minimum="0" Maximum="100" Value="{Binding VolumePercent}" Margin="4,0" VerticalAlignment="Center"
                                                 SmallChange="1" LargeChange="10" IsMoveToPointEnabled="True"
                                                 ToolTip="Lautstärke dieses Sounds" />
@@ -213,11 +231,11 @@
                             </Border>
                             <DataTemplate.Triggers>
                                 <DataTrigger Binding="{Binding IsPlaying}" Value="True">
-                                    <Setter TargetName="Tile" Property="BorderBrush" Value="#1F5FA8" />
+                                    <Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource SignalBrush}" />
                                     <Setter TargetName="Tile" Property="BorderThickness" Value="2" />
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding IsError}" Value="True">
-                                    <Setter TargetName="Tile" Property="BorderBrush" Value="#D9A800" />
+                                    <Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource NoticeLine}" />
                                     <Setter TargetName="Tile" Property="BorderThickness" Value="2" />
                                 </DataTrigger>
                             </DataTemplate.Triggers>
@@ -227,7 +245,7 @@
             </ScrollViewer>
 
             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
-                       Margin="24" FontSize="15" Foreground="#4A5260" IsHitTestVisible="False"
+                       Margin="24" FontSize="15" Foreground="{DynamicResource SubTextBrush}" IsHitTestVisible="False"
                        Visibility="{Binding HasNoTiles, Converter={StaticResource BoolToVis}}">
                 <Run Text="Noch keine Sounds." FontWeight="SemiBold" />
                 <LineBreak />

@@ -1,0 +1,31 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Dark mode: derived from the light colours (same hues, dark ground), not inverted. -->
+    <SolidColorBrush x:Key="WindowBg" Color="#16191D" />
+    <SolidColorBrush x:Key="SurfaceBg" Color="#1E2227" />
+    <SolidColorBrush x:Key="StatusBg" Color="#1B1F23" />
+    <SolidColorBrush x:Key="LineBrush" Color="#5A636F" />
+    <SolidColorBrush x:Key="TextBrush" Color="#F1F3F6" />
+    <SolidColorBrush x:Key="SubTextBrush" Color="#AEB6C2" />
+    <SolidColorBrush x:Key="SignalBrush" Color="#5B9BE6" />
+    <SolidColorBrush x:Key="OnSignalBrush" Color="#111314" />
+    <SolidColorBrush x:Key="FocusBrush" Color="#7DB2F0" />
+    <SolidColorBrush x:Key="HoverOverlay" Color="#1FFFFFFF" />
+    <SolidColorBrush x:Key="PressedOverlay" Color="#33FFFFFF" />
+    <SolidColorBrush x:Key="NoticeBg" Color="#E8CF55" />
+    <SolidColorBrush x:Key="NoticeLine" Color="#C9A400" />
+    <SolidColorBrush x:Key="NoticeText" Color="#111314" />
+    <SolidColorBrush x:Key="StopBg" Color="#C0322A" />
+    <SolidColorBrush x:Key="StopHover" Color="#A82A23" />
+    <SolidColorBrush x:Key="StopPressed" Color="#8A221C" />
+    <SolidColorBrush x:Key="StopFocus" Color="#FFD54F" />
+    <SolidColorBrush x:Key="OnStopBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="TileLine" Color="#5A636F" />
+    <SolidColorBrush x:Key="TileText" Color="#F1F3F6" />
+    <SolidColorBrush x:Key="TileSubText" Color="#C3CAD4" />
+    <SolidColorBrush x:Key="TrackBg" Color="#33FFFFFF" />
+    <SolidColorBrush x:Key="GridLine" Color="#2C3238" />
+    <SolidColorBrush x:Key="OkText" Color="#6FCF8A" />
+    <SolidColorBrush x:Key="DiffText" Color="#F0B060" />
+    <SolidColorBrush x:Key="MeterBrush" Color="#5FC46A" />
+</ResourceDictionary>

@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Threading;
+using Soundboard.App.Themes;
 using Soundboard.App.ViewModels;
 
 namespace Soundboard.App;
@@ -14,7 +15,9 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        var window = new Views.MainWindow(new MainViewModel());
+        ThemeManager.FollowWindows(this);
+        var window = new Views.MainWindow(new MainViewModel(AppServices.CreateReal()));
+        window.Closed += (_, _) => Shutdown();
         MainWindow = window;
         window.Show();
     }
