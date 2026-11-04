@@ -13,10 +13,13 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.13.4 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.0 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
+Neu in 0.14: Suche über den Pads, Pads per Ziehen sortieren, Farbe je Pad, frei belegbare
+Stopp-Taste, „Mikrofon stumm“ als Taste, Profil als ZIP exportieren/importieren, Lautstärke
+angleichen, mehrstufiges Rückgängig.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -86,26 +89,51 @@ Discords Dateien.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ (●) Mithören [Kopfhörer  v]  ◁) ━━━●── 80 %  [Sounds hinzufügen …] [⛶] [⚙]      [■ Stop] │
+│ (●) Mithören [Kopfhörer v] ◁) ━━●── 80 % [Sounds hinzufügen …] [⚙] [Pads suchen …] [■ Stop] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ ⚠ Ein Windows-Standardgerät weicht von der Sicherung ab …   [Ansehen] [Schließen] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
-│ ┌Num 1───1,2 s┐ ┌Num 2──■ 3,5 s┐ ┌Num 3───6,0 s┐ ┌⚠ Num 3─1,8 s┐ ┌────────12,4 s┐ │
+│ ┌Num 1───1,2 s┐ ┌Num 2─■ −2,0 s┐ ┌Num 3───6,0 s┐ ┌⚠ Num 3─1,8 s┐ ┌────────12,4 s┐ │
 │ │             │ │▓▓▓▓▓ leuchtet│ │             │ │             │ │              │ │
 │ │ Airhorn     │ │Trommelwirbel │ │ Applaus 85 %│ │ Ba-dum-tss  │ │ Grillen      │ │
-│ └─────────────┘ └──────────────┘ └─────────────┘ └─────────────┘ └──────────────┘ │
+│ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁▁┘ │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Kabel: sendet ▬▬▭   Mikrofon: an   Tasten: 6 aktiv                  Sound-Ordner │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Pads:** Jeder Sound ist ein Pad. Klick spielt ab, nochmal klicken stoppt. Ein spielendes
+Ist das Fenster schmaler, rücken Lautstärke, „Sounds hinzufügen …“ und die Suche in eine
+zweite (bei 560 px Deutsch auch dritte) Zeile; Mithören und Stop bleiben oben.
+
+- **Pads:** Jeder Sound ist ein Pad – eine Taste mit dicker Unterkante, gedrückt sinkt sie ein.
+  Klick spielt ab, nochmal klicken stoppt. Ein spielendes
   Pad leuchtet in seiner Farbe auf; der dunklere Teil wandert von links nach rechts und zeigt,
-  wie weit der Sound ist. Oben links steht die Taste als Tastenkappe, oben rechts die Länge.
+  wie weit der Sound ist. Oben links steht die Taste als Tastenkappe, oben rechts die Länge,
+  während des Abspielens die Restzeit („−2,1 s“). Ist eine Taste zu lang für das Pad, weicht
+  zuerst die Länge; reicht es dann noch nicht, fallen die Umschalttasten von vorne weg
+  („…Umschalt+F12“) – die Taste selbst wird nie gekürzt, die volle Belegung steht im Tooltip.
   Eine Lautstärke unter 100 % steht unten rechts.
-- **Rechtsklick auf ein Pad:** Taste belegen oder entfernen, Lautstärke (Regler), umbenennen,
-  Bild wählen oder entfernen, Bilder-Ordner öffnen, im Sound-Ordner zeigen, Pad entfernen (mit „Rückgängig“).
+- **Rechtsklick auf ein Pad:** Taste belegen oder entfernen, Lautstärke (Regler), „Lautstärke
+  angleichen“ / „Alle Pads angleichen“, umbenennen (F2), „Farbe ▸“ (automatisch nach
+  Reihenfolge oder eine der sieben Pad-Farben), „Bild ▸“ (wählen, entfernen, Bilder-Ordner
+  öffnen), im Sound-Ordner zeigen, Pad entfernen (Entf, mit „Rückgängig“).
   **Strg + Mausrad** über einem Pad ändert seine Lautstärke in 5-%-Schritten.
+- **Tastatur im Pad-Raster:** Tab springt einmal ins Raster, die Pfeiltasten wandern zwischen
+  den Pads, Leertaste/Enter spielt, F2 benennt um, Entf entfernt, Umschalt+F10 öffnet das
+  Rechtsklick-Menü. Bildschirmleser hören „spielt“ als Zustand.
+- **Sortieren:** Ein Pad mit der Maus auf eine andere Stelle ziehen (das Ziehen beginnt erst
+  nach ein paar Pixeln, ein Klick bleibt ein Klick); ein Balken zeigt die Einfügestelle, Esc
+  bricht ab. Mit der Tastatur verschiebt **Strg + Pfeil links/rechts** das fokussierte Pad.
+  Automatische Farben folgen dem Platz.
+- **Suche:** Das Feld „Pads suchen“ steht immer in der Kopfzeile; **Strg+F** springt hinein,
+  Esc leert es. Gesucht wird in Name und Taste („air“, „num 3“), jedes Wort muss passen. Ohne
+  Treffer steht dort ein Satz mit „Suche leeren“.
+- **Rückgängig:** Entfernen, Verschieben, Angleichen und Importieren landen auf einem Stapel.
+  Der Hinweis nennt den neuesten Schritt und wie viele danach noch zurückgehen; **Strg+Z**
+  oder „Rückgängig“ nimmt einen nach dem anderen zurück.
+- **Lautstärke angleichen:** misst die dekodierten Sounds (Spitze und RMS ohne Stille) und
+  stellt die Pad-Lautstärke so, dass laute Pads so laut klingen wie das mittlere. Leisere
+  bleiben auf 100 %, die Dateien bleiben unverändert.
 - **Bild als Hintergrund:** Rechtsklick → „Bild wählen …“ oder eine Bilddatei direkt **auf ein
   Pad** ziehen (PNG, JPG, GIF – davon das erste Bild –, BMP, WebP, sofern Windows WebP lesen
   kann). Das Bild füllt das Pad, wird mittig zugeschnitten und ist im Ruhezustand leicht
@@ -122,22 +150,36 @@ Discords Dateien.
   lassen sich rückgängig machen. Rechtsklick → „Bilder-Ordner öffnen“ zeigt den Ordner mit den
   Pad-Bildern im Explorer (das Bild des Pads ist markiert, falls vorhanden).
 - **Sounds hinzufügen:** MP3, WAV, OGG oder FLAC ins Fenster ziehen oder „Sounds hinzufügen …“.
-  Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt. Ohne Sounds zeigt das
+  Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt. Danach rollt das
+  Fenster zum ersten neuen Pad, die neuen Pads tragen kurz einen Ring. Ohne Sounds zeigt das
   Fenster eine Ablagefläche mit demselben Knopf.
 - **Globale Tasten:** Klick auf die Tastenkappe (oder Rechtsklick → „Taste belegen …“), dann die
-  Taste drücken; Enter nimmt den Vorschlag (Num 1 … Num 9, Num 0). Die Tasten wirken überall,
-  auch im Spiel – das Spiel sieht sie dann nicht. **Pause** stoppt alles. Ist eine Taste doppelt
+  Taste drücken; Enter nimmt den angezeigten Vorschlag. Vorgeschlagen werden Strg+Alt+1 … 0,
+  danach Strg+Alt+Umschalt+1 … 0 – Num 1 … Num 0 nur, wenn in dieser Sitzung schon eine
+  Numpad-Taste gedrückt wurde (ein Laptop ohne Numpad bekommt sonst Tasten, die es nicht gibt).
+  Die Tasten wirken überall,
+  auch im Spiel – das Spiel sieht sie dann nicht. Ist eine Taste doppelt
   vergeben oder von einem anderen Programm belegt, trägt ihre Kappe ein Warnzeichen; ein
   Klick darauf zeigt auf dem Pad, was los ist, mit dem Ausweg („Num 3 hierher holen“, „Andere
   Taste wählen“). Numpad-Tasten liefern nur bei eingeschaltetem NumLock „Num 1“ usw.
+  Bewirkt eine globale Taste nichts (Sound lädt noch, Datei fehlt, kein Ziel), während das
+  Fenster nicht vorn ist, meldet das Infobereich-Symbol es als stille Windows-Benachrichtigung
+  – je Grund höchstens alle 10 Sekunden.
+- **Stopp-Taste und „Mikrofon stumm“:** stehen als erste Zeilen im Reiter „Tasten“, gebaut wie
+  die Pad-Zeilen. Stopp ist zu Beginn **Pause**, lässt sich ändern oder mit Entf löschen.
+  „Mikrofon stumm“ (Standard: keine Taste) schaltet die Stimme im Mix aus und wieder ein; die
+  Sounds gehen weiter aufs Kabel. Diese beiden Tasten teilt das Programm mit niemandem.
 - **Mithören:** Schalter und Gerät, auf dem du die Sounds selbst hörst (per ID gemerkt).
-- **Stop:** der einzige rote Knopf; stoppt alle laufenden Sounds.
+- **Stop:** stoppt alle laufenden Sounds. Solange nichts spielt, ist er ein ruhiger Knopf mit
+  rotem Quadrat; rot wird er, sobald etwas spielt.
 - **Regler** (Lautstärke aller Sounds, Mikro-Lautstärke, Pad-Lautstärke im Rechtsklick-Menü):
   Ein Klick auf eine Stelle der Leiste setzt den Wert dort, und ohne loszulassen lässt sich
   gleich weiterziehen. Mit der Tastatur: Pfeiltasten (1 %), Bild auf/ab (10 %).
 - **Statuszeile:** Kabel (mit Pegel), Mikrofon, Tasten – ein Klick öffnet die passende
-  Einstellungsseite. Ein Warnzeichen erscheint, wenn das Kabel nicht sendet oder eine Taste
-  nicht wirkt. Fehlt das Kabel ganz, steht dort fett „Kabel fehlt“, und der Klick öffnet die
+  Einstellungsseite. Ein Warnzeichen erscheint, wenn das Kabel nicht sendet, eine Taste
+  nicht wirkt oder das Mikrofon stumm ist („Mikrofon: stumm“ – ein Klick schaltet es wieder
+  ein; im Infobereich-Menü gibt es denselben Schalter zum Abhaken). Nach einem Neustart ist
+  das Mikrofon immer an. Fehlt das Kabel ganz, steht dort fett „Kabel fehlt“, und der Klick öffnet die
   Einrichtung; ein eigener Hinweis über den Pads erscheint dafür nicht. Die
   Windows-Standardgeräte stehen hier nicht; die zeigt Windows selbst.
 - **Hinweise:** Es steht immer höchstens ein Hinweis über den Pads – ein Feld wie die
@@ -145,8 +187,8 @@ Discords Dateien.
   blättert „Nächster“ weiter.
 - **Fenster schließen** lässt das Programm im Infobereich (Soundboard-Symbol: Taste mit
   Wellenform) weiterlaufen, damit Discord weiter dein Mikrofon bekommt. **Beenden** über Rechtsklick auf das Symbol; die
-  Rückfrage sagt, dass Discord dann Stille vom Kabel hört, und zeigt den Vergleich mit der
-  Sicherung.
+  Rückfrage im Stil der App ([Beenden] / [Weiterlaufen lassen]) sagt, dass Discord dann Stille
+  vom Kabel hört, und zeigt den Vergleich mit der Sicherung.
 - **Mit Windows starten:** Schalter „Mit Windows starten (nur im Infobereich)“ unter
   „Darstellung“ → „Start“, für die portable EXE genauso wie für die installierte. Er setzt den
   Wert `Soundboard` unter `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` auf
@@ -170,9 +212,19 @@ Die Einstellungen legen sich über die Pads; Kopfzeile und „Stop“ bleiben. E
 |---|---|
 | Einrichtung | die drei Schritte: Kabel, Discord, Rauschunterdrückung (siehe oben) |
 | Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
-| Tasten | Tasten pausieren; alle Pads mit Taste und Zustand, Ausweg bei Konflikten; Sounds überlagern (aus: ein neuer Sound stoppt den laufenden) |
-| Audio-Zustand | Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken; „Standardgerät zurückstellen“, „Audio-Zustand jetzt sichern“, „Neu vergleichen“; darunter die Audiogeräte in Windows (nur angezeigt) |
-| Darstellung | Sprache (English, Deutsch); hell oder dunkel (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); weiches Aufleuchten an/aus; mit Windows starten (nur im Infobereich) |
+| Tasten | Tasten pausieren; „Alle Sounds stoppen“, „Mikrofon stumm“ und alle Pads mit Taste, nur Abweichungen stehen dabei, Ausweg bei Konflikten; Sounds überlagern (aus: ein neuer Sound stoppt den laufenden); „Dieselbe Taste, während der Sound läuft“: Stoppen oder Von vorn spielen |
+| Audio-Zustand | Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken (ist nur das Kabel neu, steht das so da); „Standardgerät zurückstellen“, „Audio-Zustand jetzt sichern“, „Neu vergleichen“; darunter die Audiogeräte in Windows (nur angezeigt, die Endpunkt-ID im Tooltip der Zeile) |
+| Darstellung | Sprache (English, Deutsch); hell oder dunkel (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); Pad-Größe (groß, kompakt); weiches Aufleuchten an/aus; Profil exportieren/importieren; mit Windows starten (nur im Infobereich) |
+
+**Profil:** „Profil exportieren …“ speichert alle Pads mit ihren Sounds und Bildern als eine
+ZIP-Datei (`config.json`, `Sounds\`, `Bilder\`); Geräte-IDs, Gerätenamen und das notierte
+Discord-Mikrofon bleiben draußen. „Profil importieren …“ zeigt zuerst, wie viele Pads in der
+Datei stecken, dann „Zu den vorhandenen hinzufügen“, „Ersetzen“ oder „Abbrechen“; „Lautstärke
+der neuen Pads angleichen“ ist vorgewählt. Vor dem Import sichert das Programm die jetzigen
+Pads als ZIP in `Sicherungen\`, „Rückgängig“ holt sie zurück. Aus der Datei werden nur
+`config.json`, `Sounds\<Name>` und `Bilder\<Name>` gelesen; Namen mit Ordnern oder „..“
+werden verworfen. Belegte Tasten bleiben, wo sie sind – ein importiertes Pad gibt eine schon
+vergebene Taste ab.
 
 **Akzentfarbe:** sechs vertraute Farben (Blau, Petrol, Grün, Orange, Pink, Violett) oder eine
 eigene. „Eigene“ öffnet einen Farbwähler: links eine Fläche für Sättigung (nach rechts) und
@@ -185,7 +237,9 @@ aufgehellt werden, sagt eine leise Zeile unter dem Farbwähler, zu welchem Wert.
 Windows-Akzentfarbe wird nicht benutzt.
 
 **Pad-Farben:** neue Pads bekommen der Reihe nach Blau, Orange, Grün, Pink, Petrol, Violett und
-Grau. Profile aus Version 0.10 werden beim ersten Start umgestellt: Die alten Farben nach Sanzo
+Grau („automatisch“: die Farbe folgt dem Platz, auch nach Verschieben und Entfernen). Rechtsklick
+→ „Farbe ▸“ gibt einem Pad eine feste Farbe. Profile bis Version 0.13 werden umgestellt, ohne
+dass sich eine Farbe ändert: Pads, deren Farbe nicht zu ihrem Platz passt, gelten als gewählt. Profile aus Version 0.10 werden beim ersten Start umgestellt: Die alten Farben nach Sanzo
 Wada wandern auf die nächste neue (Pfauenblau → Petrol, Olympiablau → Blau, Blauviolett →
 Violett, Purpur → Pink, Olivgelb und Grün → Grün, Schiefer → Blau bzw. bei Pads Grau); eine
 eigene Akzentfarbe und selbst gewählte Pad-Farben bleiben.
@@ -239,7 +293,9 @@ Rechtsklick auf das Soundboard-Symbol im Infobereich → **„Alles entfernen �
 1. **Audio-Zustand prüfen**, bei Abweichung „Standardgerät zurückstellen“.
 2. **Eigene Daten löschen** – erst nach Rückfrage; „Sounds behalten“ ist vorausgewählt und
    behält auch die Pad-Bilder. Entfernt werden Einstellungen, Sicherungen, Test-Aufnahmen und
-   der Autostart-Eintrag, falls er diese EXE startet (einer für eine andere Kopie bleibt); ohne Häkchen auch Sound- und Bilder-Ordner.
+   die Sicherungen vor Importen und der Autostart-Eintrag, falls er diese EXE startet (einer für
+   eine andere Kopie bleibt); ohne Häkchen auch Sound- und Bilder-Ordner. Datenordner und
+   `pnputil`-Befehle stehen im Fenster auf eigener Zeile zum Kopieren.
 3. **Kabel entfernen** – das Soundboard deinstalliert keinen Treiber. Weg: VB-CABLE-Setup als
    Administrator → „Remove Driver“ → Neustart → Geräte-Manager, „Ausgeblendete Geräte
    anzeigen“, verbliebene VB-Audio-Einträge entfernen → zweiter Neustart. Bei Resten im
@@ -262,6 +318,7 @@ Alles liegt unter `%LOCALAPPDATA%\Soundboard\`:
 | `Sounds\` | die hereingezogenen Sounds (Kopien) |
 | `Bilder\` | die Pad-Bilder (Kopien); ein entferntes oder ersetztes Bild wird beim Beenden gelöscht, sofern es kein Pad mehr nutzt. Andere Dateien im Ordner bleiben unberührt |
 | `Aufnahmen\` | 10-Sekunden-Testaufnahmen |
+| `Sicherungen\` | ZIP der Pads vor jedem Import (`vor-import-<Datum>.zip`) |
 | `audio-snapshot.json` | gesicherter Windows-Audio-Zustand (beim ersten Start automatisch) |
 | `audio-snapshot.vorher.json` | die Sicherung davor |
 | `running.json` | Merker „läuft gerade“; bleibt er nach dem Ende liegen, war es ein Absturz |
