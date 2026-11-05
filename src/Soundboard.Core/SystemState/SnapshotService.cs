@@ -225,6 +225,67 @@ public static class SnapshotService
         return new RestoreResult { Steps = steps };
     }
 
+    /// <summary>
+    /// Windows (often the VB-CABLE setup) made the cable a default device although a real device
+    /// was saved for that role: puts the saved device back, for exactly those roles, and only if
+    /// it is there, active and not a cable itself. Roles whose saved default was the cable, roles
+    /// that are not the cable now, and roles <paramref name="allowed"/> refuses are left alone.
+    /// Steps are listed only for the roles that were looked at.
+    /// </summary>
+    public static RestoreResult ResetCableDefaults(AudioSnapshot snap, AudioStateReport now, IDefaultEndpointWriter writer,
+        Func<DeviceFlow, DeviceRoleKind, bool>? allowed = null)
+    {
+        var steps = new List<RestoreStep>();
+        foreach (var flow in new[] { DeviceFlow.Render, DeviceFlow.Capture })
+        {
+            foreach (var role in new[] { DeviceRoleKind.Console, DeviceRoleKind.Multimedia, DeviceRoleKind.Communications })
+            {
+                var cur = now.GetDefault(flow, role);
+                if (cur?.Id is null || !CableDetector.IsCableName(cur.Name ?? now.FindById(cur.Id)?.Name)) continue;
+                var saved = snap.GetDefault(flow, role);
+                if (saved?.Id is null || CableDetector.IsCableName(saved.Name)) continue;
+                if (string.Equals(saved.Id, cur.Id, StringComparison.OrdinalIgnoreCase)) continue;
+                if (allowed is not null && !allowed(flow, role)) continue;
+                var target = now.FindById(saved.Id);
+                if (target is null || target.Status != DeviceStatus.Active || target.Flow != flow || CableDetector.IsCableName(target.Name))
+                {
+                    steps.Add(new RestoreStep(flow, role, saved.Name, RestoreOutcome.SkippedNotAvailable, null));
+                    continue;
+                }
+                try
+                {
+                    writer.SetDefaultEndpoint(target.Id, role);
+                    steps.Add(new RestoreStep(flow, role, target.Name, RestoreOutcome.Restored, null));
+                }
+                catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or InvalidCastException
+                                               or UnauthorizedAccessException or InvalidOperationException
+                                               or TypeLoadException or NotSupportedException)
+                {
+                    steps.Add(new RestoreStep(flow, role, target.Name, RestoreOutcome.Failed, ex.Message));
+                }
+            }
+        }
+        return new RestoreResult { Steps = steps };
+    }
+
+    /// <summary>
+    /// <paramref name="now"/> with the defaults that <paramref name="result"/> set back, so the
+    /// interface need not wait for the next device read to stop warning about the cable.
+    /// </summary>
+    public static AudioStateReport WithRestoredDefaults(AudioStateReport now, RestoreResult result, AudioSnapshot snap)
+    {
+        var restored = result.Steps.Where(s => s.Outcome == RestoreOutcome.Restored).ToList();
+        if (restored.Count == 0) return now;
+        var defaults = now.Defaults.Select(d =>
+        {
+            if (!restored.Any(s => s.Flow == d.Flow && s.Role == d.Role)) return d;
+            var saved = snap.GetDefault(d.Flow, d.Role);
+            var dev = now.FindById(saved?.Id);
+            return d with { Id = dev?.Id ?? saved?.Id, Name = dev?.Name ?? saved?.Name };
+        }).ToList();
+        return now with { Defaults = defaults };
+    }
+
     /// <summary>Plain-text report for the console (--restore, --uninstall).</summary>
     public static string Format(SnapshotComparison cmp)
     {

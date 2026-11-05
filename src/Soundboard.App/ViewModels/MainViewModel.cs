@@ -936,6 +936,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void CompareNow()
     {
         if (!_stateReady) return;
+        ResetCableDefaultsIfNeeded();
+        CableResetText = _cableResetAt is { } resetAt ? L.F("State.CableReset", L.DateTimeSeconds(resetAt)) : "";
         SaveInBackgroundIfUseful();
         UpdateAudioHealth();
         ComparisonRows.Clear();
@@ -970,6 +972,47 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : L.F("State.Advice", changes);
         UpdateProblemHint(cmp.DefaultsChanged);
         UpdateCableCompare();
+    }
+
+    /// <summary>How often each default role was set back from the cable in this run (also failed tries).</summary>
+    private readonly Dictionary<(DeviceFlow, DeviceRoleKind), int> _cableResets = [];
+
+    /// <summary>
+    /// At most this many silent resets per role and run. If something keeps making the cable the
+    /// default (another program, or the user on purpose), the app stops fighting it; the "!" and
+    /// "Save current state as normal" remain.
+    /// </summary>
+    private const int MaxCableResets = 2;
+
+    /// <summary>When the cable was last set back from being a default (null: not in this run).</summary>
+    private DateTime? _cableResetAt;
+
+    /// <summary>Quiet line in the Audio state tab after the cable was set back; empty otherwise.</summary>
+    [ObservableProperty]
+    private string _cableResetText = "";
+
+    /// <summary>
+    /// A quiet message for when the window is behind (title, text). The app turns it into a silent
+    /// Windows notification; in front, the Audio state tab says it.
+    /// </summary>
+    public event Action<string, string>? QuietInfo;
+
+    /// <summary>
+    /// Windows made the cable a default device (often the driver setup does), and a real, working
+    /// device was saved for that role: set it back at once, without asking. A saved device that is
+    /// not there leaves things as they are – the "!" says what does not work.
+    /// </summary>
+    private void ResetCableDefaultsIfNeeded()
+    {
+        if (_snapshot is null || _state.Devices.Count == 0) return;
+        var result = SnapshotService.ResetCableDefaults(_snapshot, _state, _services.Policy,
+            (flow, role) => _cableResets.GetValueOrDefault((flow, role)) < MaxCableResets);
+        foreach (var s in result.Steps.Where(s => s.Outcome is RestoreOutcome.Restored or RestoreOutcome.Failed))
+            _cableResets[(s.Flow, s.Role)] = _cableResets.GetValueOrDefault((s.Flow, s.Role)) + 1;
+        if (result.RestoredCount == 0) return;
+        _state = SnapshotService.WithRestoredDefaults(_state, result, _snapshot);
+        _cableResetAt = DateTime.Now;
+        QuietInfo?.Invoke(L.Get("State.CableResetTitle"), L.Get("State.CableResetShort"));
     }
 
     private void UpdateProblemHint(bool defaultsChanged)
@@ -1052,6 +1095,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void CompareAgain()
     {
+        _cableResets.Clear(); // "Compare again" may try the silent reset once more
         RefreshDevices();
         RestoreResultText = Comparison is null ? "" : L.Get(Comparison.IsIdentical ? "State.ComparedSame" : "State.ComparedDiff");
     }

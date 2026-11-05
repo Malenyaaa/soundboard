@@ -979,6 +979,9 @@
                                     </StackPanel>
                                 </Border>
                                 <TextBlock Text="{Binding SnapshotHeader}" FontSize="{DynamicResource SizeGroup}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <!-- Windows had made the cable a default; the app set the saved device back. Quiet, no warning. -->
+                                <TextBlock Text="{Binding CableResetText}" Style="{StaticResource Sub}" Margin="0,6,0,0"
+                                           Visibility="{Binding CableResetText, Converter={StaticResource TextToVis}}" />
                                 <TextBlock Style="{StaticResource P}" Margin="0,8,0,0" Text="{Binding SnapshotAdvice}"
                                            Visibility="{Binding SnapshotAdvice, Converter={StaticResource TextToVis}}" />
                                 <WrapPanel Margin="0,12,0,0">

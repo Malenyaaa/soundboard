@@ -612,4 +612,7 @@ Delete: remove key</value></data>
   <data name="State.AdviceProblem" xml:space="preserve"><value>Different from the saved state: {0}.</value></data>
   <data name="State.HintRestore" xml:space="preserve"><value>“Restore default device” below sets the default devices back to the saved ones.</value></data>
   <data name="State.HintVolume" xml:space="preserve"><value>Mute and volume are set in Windows itself: speaker icon in the taskbar.</value></data>
+  <data name="State.CableReset" xml:space="preserve"><value>Windows had made the cable a default device – set back to your device ({0}).</value></data>
+  <data name="State.CableResetTitle" xml:space="preserve"><value>Default device set back</value></data>
+  <data name="State.CableResetShort" xml:space="preserve"><value>Windows had made the cable a default device. The soundboard set your device back.</value></data>
 </root>

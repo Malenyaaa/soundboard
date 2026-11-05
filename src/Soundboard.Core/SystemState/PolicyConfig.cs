@@ -6,8 +6,9 @@ namespace Soundboard.Core.SystemState;
 /// <summary>
 /// Sets a Windows default audio endpoint through the undocumented IPolicyConfig interface
 /// (the same COM object the Windows sound control panel uses). The app uses this for one
-/// thing only: putting the default devices back to the IDs saved in a snapshot, when the
-/// user asks for it. It is never used to make anything else a default.
+/// thing only: putting the default devices back to the IDs saved in a snapshot – on request,
+/// or by itself when Windows made the virtual cable a default. It is never used to make
+/// anything else a default.
 /// </summary>
 public sealed class PolicyConfigWriter : IDefaultEndpointWriter
 {

@@ -6,9 +6,10 @@ Discord schicken.
 
 Grundsatz: **Die Windows-Soundeinstellungen werden nicht verändert.** Das Programm liest
 Standardgeräte nur, öffnet Geräte ausschließlich per Endpunkt-ID im Shared Mode (nie
-exklusiv) und stellt weder Lautstärken noch Formate um. Die einzige Ausnahme ist der Knopf
-„Standardgerät zurückstellen“ (bzw. `--restore`): Er stellt auf ausdrücklichen Wunsch die
-Windows-Standardgeräte auf die vorher gesicherten zurück – nur diese, nie das Kabel. Das
+exklusiv) und stellt weder Lautstärken noch Formate um. Die einzige Ausnahme sind die
+Windows-Standardgeräte, und nur zurück: Hat Windows das Kabel zum Standardgerät gemacht, stellt das
+Soundboard still das gesicherte Gerät zurück; sonst auf Wunsch der Knopf „Standardgerät
+zurückstellen“ (bzw. `--restore`) – nur auf die gesicherten Geräte, nie auf das Kabel. Das
 ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
@@ -67,8 +68,13 @@ wenn Geräte dazukommen, etwa das Kabel); dafür muss man nichts tun.
    „Install Driver“.
 3. Windows neu starten, Soundboard öffnen. Es findet „CABLE Input“ und „CABLE Output“ und
    vergleicht mit der Sicherung. Hat das Setup das Kabel zum Standardgerät gemacht (Windows macht
-   neue Audiotreiber manchmal zum Standard), steht unten in der Statuszeile **„Audio“ mit
-   Warnzeichen**; ein Klick öffnet den Reiter „Audio-Zustand“ mit **„Standardgerät zurückstellen“**.
+   neue Audiotreiber manchmal zum Standard), stellt das Soundboard **sofort und ohne Rückfrage** das
+   gesicherte Gerät zurück – je Rolle (Konsole, Multimedia, Kommunikation), für Wiedergabe und
+   Aufnahme, nur wenn das gesicherte Gerät angeschlossen und aktiv ist. Im Reiter „Audio-Zustand“
+   steht danach leise „Windows hatte das Kabel zum Standardgerät gemacht – auf dein Gerät
+   zurückgestellt“; ist das Fenster gerade nicht vorn, kommt dazu eine stille Windows-Benachrichtigung.
+   Fehlt das gesicherte Gerät, wird nichts umgestellt, und unten in der Statuszeile steht **„Audio“
+   mit Warnzeichen**; ein Klick öffnet den Reiter mit **„Standardgerät zurückstellen“**.
 4. Prüfen: Beim Sprechen schlägt „Das sendet dein Kabel gerade“ aus. Gegenprobe ohne
    Discord: Systemsteuerung → Sound → Registerkarte „Aufnahme“ → bei „CABLE Output“
    bewegt sich die Anzeige. „Testton senden“ schickt eine Sekunde 440 Hz nur ins Kabel.
@@ -204,6 +210,11 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   Standardmikrofon geworden; das Standard-Wiedergabegerät ist stumm oder auf 0 %. Der Tooltip
   nennt den Grund, ein Klick öffnet „Audio-Zustand“. Ein anderes, funktionierendes Standardgerät
   (z. B. selbst auf Kopfhörer umgestellt) ist kein Problem und steht nur leise im Reiter.
+  Ist das Kabel Standardgerät geworden und das gesicherte Gerät da, stellt das Soundboard es still
+  zurück (siehe Einrichtung); höchstens zweimal je Rolle und Lauf – macht etwas das Kabel immer
+  wieder zum Standard (ein anderes Programm oder du selbst mit Absicht), hört es auf, dagegen
+  anzukämpfen, und es bleibt beim Warnzeichen. Wer das Kabel bewusst als Standard will, sichert den
+  Zustand mit „Jetzigen Zustand als normal sichern“; dann bleibt es so.
   Hintergrund: Virtuelle Audio-Software kann Windows-Standardgeräte übernehmen; läuft sie nicht,
   ist kein Ton da. Stumm und Lautstärke melden keine Geräte-Ereignisse; das Soundboard liest sie
   neu, wenn sein Fenster nach vorn kommt.

@@ -76,6 +76,7 @@ public partial class App : Application
         MainWindow = _window;
         _tray = new TrayIcon(this, _vm);
         _vm.KeyWithoutEffect += OnKeyWithoutEffect;
+        _vm.QuietInfo += OnQuietInfo;
         Instance?.ListenForShow(() => Dispatcher.BeginInvoke(ShowMain));
         Watcher.StartFor(Environment.ProcessId);
         if (!StartInTray) _window.Show();
@@ -143,6 +144,16 @@ public partial class App : Application
         if (_window is { IsVisible: true, IsActive: true }) return;
         if (!_keyHints.ShouldShow(reason, DateTime.UtcNow)) return;
         _tray?.ShowHint(L.Get("Hint.Title"), text);
+    }
+
+    /// <summary>
+    /// Something the app did by itself (e.g. set a default device back). In front, the settings say
+    /// it; behind other windows a silent Windows notification does.
+    /// </summary>
+    private void OnQuietInfo(string title, string text)
+    {
+        if (_window is { IsVisible: true, IsActive: true }) return;
+        _tray?.ShowHint(title, text);
     }
 
     /// <summary>The window was closed with X: keep running in the tray, say so once.</summary>

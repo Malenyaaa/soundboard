@@ -612,4 +612,7 @@ Entf: Taste löschen</value></data>
   <data name="State.AdviceProblem" xml:space="preserve"><value>Anders als gesichert: {0}.</value></data>
   <data name="State.HintRestore" xml:space="preserve"><value>„Standardgerät zurückstellen“ unten stellt die Standardgeräte auf die gesicherten zurück.</value></data>
   <data name="State.HintVolume" xml:space="preserve"><value>Stumm und Lautstärke stellst du in Windows selbst ein: Lautsprecher-Symbol in der Taskleiste.</value></data>
+  <data name="State.CableReset" xml:space="preserve"><value>Windows hatte das Kabel zum Standardgerät gemacht – auf dein Gerät zurückgestellt ({0}).</value></data>
+  <data name="State.CableResetTitle" xml:space="preserve"><value>Standardgerät zurückgestellt</value></data>
+  <data name="State.CableResetShort" xml:space="preserve"><value>Windows hatte das Kabel zum Standardgerät gemacht. Das Soundboard hat dein Gerät zurückgestellt.</value></data>
 </root>
