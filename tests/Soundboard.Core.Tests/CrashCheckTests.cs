@@ -66,12 +66,14 @@ public sealed class CrashCheckTests
             var formats = new FakeFormats();
             formats.Add("cin", "CABLE Input (VB-Audio Virtual Cable)", Audio.DeviceFlow.Render, 44100);
             var app = new SystemChanges(journal, reg, formats);
-            app.ApplyDucking(new ChangeOwner(42, DateTime.Now));
+            var crashed = new ChangeOwner(42, DateTime.Now);
+            app.ApplyDucking(crashed);
             app.EnsureCableFormat(new Audio.CableInfo(
                 new Audio.AudioDeviceInfo("cin", "CABLE Input (VB-Audio Virtual Cable)", Audio.DeviceFlow.Render, Audio.DeviceStatus.Active, [], 1f, false, null), null));
             // Another run is alive and has its own (none here); the crashed one was 42.
             var watcher = new SystemChanges(new ChangeJournal(journal.Path), reg, formats);
-            var undone = watcher.UndoSession(42);
+            Assert.AreEqual(0, watcher.UndoSession(crashed with { StartedAt = crashed.StartedAt.AddMinutes(-5) }).Steps.Count, "same ID, other start: another run");
+            var undone = watcher.UndoSession(crashed);
             Assert.AreEqual(1, undone.RestoredCount);
             Assert.IsNull(reg.Value, "ducking value deleted again (it was missing before)");
             Assert.AreEqual(48000, formats.RateOf("cin"), "the cable format stays until removal");

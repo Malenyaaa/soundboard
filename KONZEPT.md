@@ -1,6 +1,6 @@
 # Soundboard für Windows 11 — Konzept
 
-Stand: 03.11.2026 · Autorin: Malenya · Status: Konzept, kein Code · Fassung 2 (Kabel-Weg)
+Stand: 05.11.2026 · Autorin: Malenya · Status: Konzept, kein Code · Fassung 2 (Kabel-Weg)
 
 ## 0. Kurzfassung
 
@@ -279,7 +279,13 @@ wiederverwendete ID nicht verwechselt wird), Zeit, „erledigt“-Merker und der
 - Scheitert eine Rückstellung, bleibt der Eintrag stehen und wird beim nächsten Anlass wieder
   versucht. Ein unlesbares Journal wird beiseitegelegt (`changes.defekt-<Zeit>.json`), nie
   überschrieben; der Rückbau löscht `changes.json` nicht, solange etwas darin steht.
-- Zugriff von App, Wächter, `--restore` und Rückbau unter einer benannten Sperre (Mutex).
+- Zugriff von App, Wächter, `--restore` und Rückbau unter einer benannten Sperre (Mutex); ohne Sperre
+  (Zeitüberschreitung 10 s) wird nichts geändert. Schreiben mit Durchschreiben auf die Platte.
+- Der Wächter erkennt seinen Prozess an ID **und** Startzeit (`--watch <pid> <ticks>`).
+- `--restore` und `--uninstall` schalten zusätzlich die Schalter im Profil aus, damit ein späterer
+  Start nichts wieder umstellt.
+- Die automatische Standardgeräte-Rückstellung (2.3) greift nur bei genau „CABLE Input“ (Wiedergabe)
+  bzw. „CABLE Output“ (Aufnahme), nicht bei Voicemeeter oder anderen VB-Audio-Geräten.
 
 **Ducking** (`HKCU\Software\Microsoft\Multimedia\Audio`, DWORD `UserDuckingPreference`: 0 alle
 anderen stumm, 1 um 80 % (Standard, auch wenn der Wert fehlt), 2 um 50 %, 3 nichts unternehmen):
@@ -296,9 +302,9 @@ Am echten Rechner prüfen; falls nötig, dokumentieren „wirkt für neue Anrufe
 `SetDeviceFormat(id, Geräteformat, Mixformat)` schreiben — dieselbe Schnittstelle wie die
 Systemsteuerung, der reine Property-Store-Weg (`PKEY_AudioEngine_DeviceFormat`
 {f19f064d-082c-4e27-bc73-6882a1bb8e4c},0) würde das Mix-Format nicht mitziehen. Das alte Format
-steht als Bytes im Journal. Vor jedem Schreiben (hin und zurück) müssen Name und Richtung, wie
-Windows sie gerade meldet, „CABLE Input“/Wiedergabe bzw. „CABLE Output“/Aufnahme sein — nie ein
-echtes Gerät. Danach wird das Kabel neu geöffnet; bei 48 kHz entfällt das Resampling. Fehlschlag →
+steht als Bytes im Journal. Vor dem Umstellen müssen Name und Richtung, wie Windows sie gerade meldet, „CABLE Input“/Wiedergabe
+bzw. „CABLE Output“/Aufnahme sein — nie ein echtes Gerät. Zurück geht es über die gespeicherte ID und
+Richtung (auch nach Umbenennen), nur solange Rate, Kanäle und Bittiefe noch die gesetzten sind. Danach wird das Kabel neu geöffnet; bei 48 kHz entfällt das Resampling. Fehlschlag →
 still weiter mit Resampling, Vermerk unter dem Schalter. **Nicht beim normalen Beenden zurück:**
 Das Kabel gehört nur dem Soundboard, sein Format wirkt auf kein anderes Programm, und jedes
 Umstellen setzt beide Endpunkte neu auf — Discords Eingang würde bei jedem Start und Ende kurz

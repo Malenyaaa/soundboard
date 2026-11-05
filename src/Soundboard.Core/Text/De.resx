@@ -448,7 +448,6 @@ Entf: Taste löschen</value></data>
   <data name="Watch.Restart" xml:space="preserve"><value>Soundboard neu starten</value></data>
   <data name="Watch.StartFailed" xml:space="preserve"><value>Das Soundboard ließ sich nicht starten ({0}). Starte es bitte von Hand.</value></data>
   <data name="Uninstall.Title" xml:space="preserve"><value>Soundboard entfernen</value></data>
-  <data name="Uninstall.Intro" xml:space="preserve"><value>Diese Anleitung führt durch den Rückbau: Audio-Zustand prüfen, die eigenen Daten des Soundboards löschen und das virtuelle Kabel entfernen. Nichts davon passiert still – jeder Schritt startet erst auf deinen Klick.</value></data>
   <data name="Uninstall.Running" xml:space="preserve"><value>Das Soundboard läuft noch. Beende es zuerst: Rechtsklick auf das Soundboard-Symbol im Infobereich → „Beenden …“. Diese Anleitung merkt es von selbst.</value></data>
   <data name="Uninstall.H1" xml:space="preserve"><value>1. Audio-Zustand prüfen</value></data>
   <data name="Uninstall.H2" xml:space="preserve"><value>2. Eigene Daten des Soundboards löschen</value></data>
@@ -485,12 +484,9 @@ Entf: Taste löschen</value></data>
   <data name="Uninstall.AutostartRemoved" xml:space="preserve"><value>Der Eintrag „mit Windows starten“ ist entfernt.</value></data>
   <data name="Uninstall.AutostartFailed" xml:space="preserve"><value>Der Eintrag „mit Windows starten“ ließ sich nicht entfernen ({0}).</value></data>
   <data name="Uninstall.NotDeleted" xml:space="preserve"><value>Nicht gelöscht: {0} ({1}) – bitte von Hand löschen.</value></data>
-  <data name="Cli.NoSnapshot" xml:space="preserve"><value>Es gibt keine Sicherung des Audio-Zustands. Es wurde nichts verändert.</value></data>
-  <data name="Cli.AlreadySame" xml:space="preserve"><value>Die Standardgeräte sind wie gesichert. Es wurde nichts verändert.</value></data>
   <data name="Cli.Restoring" xml:space="preserve"><value>Standardgeräte zurückstellen:</value></data>
   <data name="Cli.HelpOpen" xml:space="preserve"><value>Fenster öffnen</value></data>
   <data name="Cli.HelpCheck" xml:space="preserve"><value>Audio-Zustand als Text ausgeben (nur lesen, ändert nichts)</value></data>
-  <data name="Cli.HelpRestore" xml:space="preserve"><value>Windows-Standardgeräte auf die gesicherten zurückstellen</value></data>
   <data name="Cli.HelpUninstall" xml:space="preserve"><value>Anleitung zum Entfernen (Daten löschen, Kabel entfernen, vergleichen)</value></data>
   <data name="Cli.HelpTray" xml:space="preserve"><value>ohne Fenster starten (nur Symbol im Infobereich)</value></data>
   <data name="Cli.HelpWait" xml:space="preserve"><value>In PowerShell auf die Ausgabe warten:</value></data>
@@ -637,7 +633,6 @@ Entf: Taste löschen</value></data>
   <data name="Changes.UndoAllTip" xml:space="preserve"><value>Stellt alle hier genannten Einstellungen jetzt zurück und schaltet die Schalter aus, die sie gesetzt haben.</value></data>
   <data name="Cli.Changes" xml:space="preserve"><value>Vom Soundboard geänderte Windows-Einstellungen:</value></data>
   <data name="Uninstall.ChangesUndone" xml:space="preserve"><value>Die Windows-Einstellungen, die das Soundboard geändert hatte, sind zurückgestellt:</value></data>
-  <data name="Traces.ChangesBroken" xml:space="preserve"><value>Liste der Änderungen (unlesbar oder Zwischenkopie)</value></data>
   <data name="Cable.At48Switch" xml:space="preserve"><value>Kabel auf 48 kHz stellen</value></data>
   <data name="Cable.At48Hint" xml:space="preserve"><value>Dieselbe Rate wie Discord und die meisten Mikrofone, dann muss nichts umgerechnet werden. Geändert wird nur das Kabel; es geht beim Entfernen des Soundboards zurück.</value></data>
   <data name="Cable.Format48" xml:space="preserve"><value>Das Kabel läuft mit 48 kHz – es muss nichts umgerechnet werden.</value></data>
@@ -649,4 +644,11 @@ Entf: Taste löschen</value></data>
   <data name="Changes.FormatNotActive" xml:space="preserve"><value>Das Gerät ist gerade deaktiviert oder nicht angeschlossen.</value></data>
   <data name="Changes.Intro" xml:space="preserve"><value>Windows-Einstellungen, die das Soundboard zur Erleichterung geändert hat, jeweils mit dem Wert davor. Die Anruf-Einstellung geht beim Beenden zurück, auch nach einem Absturz; das Kabel-Format beim Entfernen des Soundboards.</value></data>
   <data name="Crash.Restored" xml:space="preserve"><value>Die Windows-Einstellungen, die das Soundboard geändert hatte, sind schon zurückgestellt.</value></data>
+  <data name="Uninstall.Intro" xml:space="preserve"><value>Diese Anleitung führt durch den Rückbau: Audio-Zustand prüfen, die eigenen Daten des Soundboards löschen und das virtuelle Kabel entfernen. Windows-Einstellungen, die das Soundboard geändert hat, gehen sofort zurück; jeder andere Schritt startet erst auf deinen Klick.</value></data>
+  <data name="Cli.NoSnapshot" xml:space="preserve"><value>Es gibt keine Sicherung des Audio-Zustands. Die Standardgeräte wurden nicht verändert.</value></data>
+  <data name="Cli.AlreadySame" xml:space="preserve"><value>Die Standardgeräte sind wie gesichert. Sie wurden nicht verändert.</value></data>
+  <data name="Cli.HelpRestore" xml:space="preserve"><value>Änderungen des Soundboards an Windows und die Standardgeräte zurückstellen</value></data>
+  <data name="Traces.ChangesBroken" xml:space="preserve"><value>Liste der Änderungen (Zwischenkopie)</value></data>
+  <data name="Changes.JournalBusy" xml:space="preserve"><value>Die Liste der Änderungen ist gerade von einem anderen Soundboard-Prozess belegt; es wurde nichts geändert. Gleich noch einmal versuchen.</value></data>
+  <data name="Changes.FormatOtherDevice" xml:space="preserve"><value>Das Gerät mit dieser ID ist nicht mehr der Kabel-Endpunkt von vorher.</value></data>
 </root>

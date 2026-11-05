@@ -126,7 +126,7 @@ public sealed class CableFormatTests
     {
         // A cable record that points at a real device (wrong name, or Windows says another name).
         var fake = new CableInfo(Dev(Spk, "Speakers", DeviceFlow.Render), Dev(COut, "CABLE Output (VB-Audio Virtual Cable)", DeviceFlow.Capture));
-        _changes.EnsureCableFormat(fake);
+        Assert.AreEqual(ApplyOutcome.Skipped, _changes.EnsureCableFormat(fake).Steps[0].Outcome);
         var disguised = new CableInfo(Dev(Spk, "CABLE Input (VB-Audio Virtual Cable)", DeviceFlow.Render), null);
         var r = _changes.EnsureCableFormat(disguised);
         Assert.AreEqual(ApplyOutcome.Skipped, r.Steps[0].Outcome);
@@ -138,14 +138,37 @@ public sealed class CableFormatTests
     }
 
     [TestMethod]
-    public void Undo_never_writes_to_a_device_that_is_no_longer_the_cable()
+    public void Undo_never_writes_to_an_endpoint_of_another_direction_and_keeps_the_entry()
     {
         _changes.EnsureCableFormat(Cable);
         _formats.Writes.Clear();
         var d = _formats.Devices[CIn];
-        _formats.Devices[CIn] = (d.Who with { Name = "Speakers" }, d.Formats);
-        _changes.UndoAll();
+        _formats.Devices[CIn] = (d.Who with { Flow = DeviceFlow.Capture }, d.Formats);
+        var r = _changes.UndoAll();
         Assert.IsFalse(_formats.Writes.Contains(CIn));
+        Assert.AreEqual(UndoOutcome.Failed, r.Steps.Single(s => s.Entry.DeviceId == CIn).Outcome);
+        Assert.IsTrue(_journal.Read().Any(e => e.DeviceId == CIn));
+    }
+
+    [TestMethod]
+    public void A_renamed_cable_is_still_put_back_by_its_id()
+    {
+        _changes.EnsureCableFormat(Cable);
+        var d = _formats.Devices[CIn];
+        _formats.Devices[CIn] = (d.Who with { Name = "Discord Mic (VB-Audio Virtual Cable)" }, d.Formats);
+        _changes.UndoAll();
+        Assert.AreEqual(44100, _formats.RateOf(CIn));
+    }
+
+    [TestMethod]
+    public void A_format_changed_by_hand_at_48k_is_left_alone()
+    {
+        _changes.EnsureCableFormat(Cable);
+        var d = _formats.Devices[CIn];
+        _formats.Devices[CIn] = (d.Who, new EndpointFormats(FakeFormats.Format(48000, 16, 2), FakeFormats.Format(48000, 32, 2)));
+        var r = _changes.UndoAll();
+        Assert.AreEqual(UndoOutcome.LeftAsIs, r.Steps.Single(s => s.Entry.DeviceId == CIn).Outcome);
+        Assert.AreEqual(16, WaveFormatBytes.Bits(_formats.Devices[CIn].Formats.Device));
     }
 
     [TestMethod]
@@ -176,7 +199,7 @@ public sealed class CableFormatTests
     public void The_cable_format_survives_exit_and_crash_handling()
     {
         _changes.EnsureCableFormat(Cable);
-        _changes.UndoSession(Environment.ProcessId);
+        _changes.UndoSession(new ChangeOwner(Environment.ProcessId, DateTime.Now));
         _changes.UndoOrphanedSession(_ => false);
         Assert.AreEqual(48000, _formats.RateOf(CIn));
         Assert.AreEqual(2, _journal.Read().Count);

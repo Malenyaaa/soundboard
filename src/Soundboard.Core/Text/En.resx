@@ -448,7 +448,6 @@ Delete: remove key</value></data>
   <data name="Watch.Restart" xml:space="preserve"><value>Restart soundboard</value></data>
   <data name="Watch.StartFailed" xml:space="preserve"><value>The soundboard could not be started ({0}). Please start it by hand.</value></data>
   <data name="Uninstall.Title" xml:space="preserve"><value>Remove soundboard</value></data>
-  <data name="Uninstall.Intro" xml:space="preserve"><value>This guide walks you through the removal: check the audio state, delete the soundboard’s own data and remove the virtual cable. Nothing happens silently – each step starts only when you click.</value></data>
   <data name="Uninstall.Running" xml:space="preserve"><value>The soundboard is still running. Quit it first: right-click the Soundboard icon in the notification area → “Quit…”. This guide notices it by itself.</value></data>
   <data name="Uninstall.H1" xml:space="preserve"><value>1. Check the audio state</value></data>
   <data name="Uninstall.H2" xml:space="preserve"><value>2. Delete the soundboard’s own data</value></data>
@@ -485,12 +484,9 @@ Delete: remove key</value></data>
   <data name="Uninstall.AutostartRemoved" xml:space="preserve"><value>The “Start with Windows” entry is removed.</value></data>
   <data name="Uninstall.AutostartFailed" xml:space="preserve"><value>The “Start with Windows” entry could not be removed ({0}).</value></data>
   <data name="Uninstall.NotDeleted" xml:space="preserve"><value>Not deleted: {0} ({1}) – please delete it by hand.</value></data>
-  <data name="Cli.NoSnapshot" xml:space="preserve"><value>There is no saved audio state. Nothing was changed.</value></data>
-  <data name="Cli.AlreadySame" xml:space="preserve"><value>The default devices are as saved. Nothing was changed.</value></data>
   <data name="Cli.Restoring" xml:space="preserve"><value>Setting the default devices back:</value></data>
   <data name="Cli.HelpOpen" xml:space="preserve"><value>open the window</value></data>
   <data name="Cli.HelpCheck" xml:space="preserve"><value>print the audio state as text (read only, changes nothing)</value></data>
-  <data name="Cli.HelpRestore" xml:space="preserve"><value>set the Windows default devices back to the saved ones</value></data>
   <data name="Cli.HelpUninstall" xml:space="preserve"><value>removal guide (delete data, remove the cable, compare)</value></data>
   <data name="Cli.HelpTray" xml:space="preserve"><value>start without a window (only the icon in the notification area)</value></data>
   <data name="Cli.HelpWait" xml:space="preserve"><value>To wait for the output in PowerShell:</value></data>
@@ -637,7 +633,6 @@ Delete: remove key</value></data>
   <data name="Changes.UndoAllTip" xml:space="preserve"><value>Puts every setting listed here back now and turns off the switches that made them.</value></data>
   <data name="Cli.Changes" xml:space="preserve"><value>Windows settings changed by the soundboard:</value></data>
   <data name="Uninstall.ChangesUndone" xml:space="preserve"><value>The Windows settings the soundboard had changed are put back:</value></data>
-  <data name="Traces.ChangesBroken" xml:space="preserve"><value>List of changes (unreadable or temporary copy)</value></data>
   <data name="Cable.At48Switch" xml:space="preserve"><value>Set the cable to 48 kHz</value></data>
   <data name="Cable.At48Hint" xml:space="preserve"><value>Same rate as Discord and most microphones, so nothing needs converting. Only the cable is changed; it goes back when the soundboard is removed.</value></data>
   <data name="Cable.Format48" xml:space="preserve"><value>The cable runs at 48 kHz – nothing needs converting.</value></data>
@@ -649,4 +644,11 @@ Delete: remove key</value></data>
   <data name="Changes.FormatNotActive" xml:space="preserve"><value>The device is disabled or unplugged right now.</value></data>
   <data name="Changes.Intro" xml:space="preserve"><value>Windows settings the soundboard changed to make things easier, each with the value before. The call setting goes back when the soundboard ends, also after a crash; the cable format when the soundboard is removed.</value></data>
   <data name="Crash.Restored" xml:space="preserve"><value>The Windows settings the soundboard had changed are already put back.</value></data>
+  <data name="Uninstall.Intro" xml:space="preserve"><value>This guide walks you through the removal: check the audio state, delete the soundboard’s own data and remove the virtual cable. Windows settings the soundboard changed go back at once; every other step starts only when you click.</value></data>
+  <data name="Cli.NoSnapshot" xml:space="preserve"><value>There is no saved audio state. The default devices were not changed.</value></data>
+  <data name="Cli.AlreadySame" xml:space="preserve"><value>The default devices are as saved. They were not changed.</value></data>
+  <data name="Cli.HelpRestore" xml:space="preserve"><value>put back what the soundboard changed in Windows, and the default devices</value></data>
+  <data name="Traces.ChangesBroken" xml:space="preserve"><value>List of changes (temporary copy)</value></data>
+  <data name="Changes.JournalBusy" xml:space="preserve"><value>The list of changes is in use by another soundboard process; nothing was changed. Try again in a moment.</value></data>
+  <data name="Changes.FormatOtherDevice" xml:space="preserve"><value>The device with this ID is no longer the cable endpoint it was.</value></data>
 </root>

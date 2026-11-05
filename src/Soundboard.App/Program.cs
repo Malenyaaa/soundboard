@@ -30,6 +30,8 @@ internal static class Program
                 return 2;
             App.Mode = StartMode.Watch;
             App.WatchPid = pid;
+            if (watch + 2 < args.Length && long.TryParse(args[watch + 2], NumberStyles.None, CultureInfo.InvariantCulture, out long ticks))
+                App.WatchStartTicks = ticks;
             return RunApp();
         }
 

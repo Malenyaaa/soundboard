@@ -54,6 +54,7 @@ internal static class Cli
     /// <summary>Puts back every Windows setting in the change journal and prints what happened.</summary>
     private static int RestoreChanges(TextWriter w, AppPaths paths)
     {
+        TurnOffChangeSwitches(paths);
         var changes = Changes(paths);
         if (changes.List().Count == 0) return 0;
         var result = changes.UndoAll();
@@ -61,6 +62,23 @@ internal static class Cli
         foreach (var line in SystemChanges.Format(result).Split(Environment.NewLine)) w.WriteLine("  " + line);
         w.WriteLine();
         return result.AllDone ? 0 : 1;
+    }
+
+    /// <summary>
+    /// After --restore or removal: the switches that make changes go off in the saved settings, so
+    /// the next start (e.g. by autostart) does not change Windows again. Like "Undo all changes".
+    /// </summary>
+    public static void TurnOffChangeSwitches(AppPaths paths)
+    {
+        if (!File.Exists(paths.ProfileFile)) return;
+        var loaded = ProfileStore.Load(paths.ProfileFile);
+        if (loaded.Problem is not null) return; // unreadable settings are not overwritten
+        var p = loaded.Profile;
+        if (!p.KeepFullVolumeInCalls && !p.CableAt48k) return;
+        p.KeepFullVolumeInCalls = false;
+        p.CableAt48k = false;
+        try { ProfileStore.Save(paths.ProfileFile, p); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
     }
 
     /// <summary>The change journal with the real Windows behind it (used by --restore, the watcher and the removal guide).</summary>

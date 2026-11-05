@@ -241,7 +241,8 @@ public static class SnapshotService
             foreach (var role in new[] { DeviceRoleKind.Console, DeviceRoleKind.Multimedia, DeviceRoleKind.Communications })
             {
                 var cur = now.GetDefault(flow, role);
-                if (cur?.Id is null || !CableDetector.IsCableName(cur.Name ?? now.FindById(cur.Id)?.Name)) continue;
+                // Exactly VB-CABLE's own endpoint in this direction – not Voicemeeter or other VB-Audio devices someone may choose on purpose.
+                if (cur?.Id is null || !SystemChanges.IsCableEndpoint(cur.Name ?? now.FindById(cur.Id)?.Name, flow)) continue;
                 var saved = snap.GetDefault(flow, role);
                 if (saved?.Id is null || CableDetector.IsCableName(saved.Name)) continue;
                 if (string.Equals(saved.Id, cur.Id, StringComparison.OrdinalIgnoreCase)) continue;

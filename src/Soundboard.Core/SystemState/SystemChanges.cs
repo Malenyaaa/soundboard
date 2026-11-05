@@ -72,9 +72,6 @@ public sealed partial class SystemChanges
     /// <summary>Windows "Communications" tab: 0 mute all other sounds, 1 reduce by 80 % (default), 2 reduce by 50 %, 3 do nothing.</summary>
     public const int DuckingDoNothing = 3;
 
-    /// <summary>What Windows uses when the value is missing.</summary>
-    public const int DuckingWindowsDefault = 1;
-
     private readonly ChangeJournal _journal;
     private readonly IUserRegistry _registry;
 
@@ -160,9 +157,13 @@ public sealed partial class SystemChanges
 
     // ---------------------------------------------------------------- putting back
 
-    /// <summary>Session changes of the given run (exit, watcher).</summary>
-    public UndoResult UndoSession(int processId) =>
-        Undo(e => e.Scope == ChangeScope.Session && e.Owner?.ProcessId == processId);
+    /// <summary>
+    /// Session changes of the given run (exit, watcher): same process ID and, so that a reused ID is
+    /// not mistaken for it, the same start time (within 2 s).
+    /// </summary>
+    public UndoResult UndoSession(ChangeOwner owner) =>
+        Undo(e => e.Scope == ChangeScope.Session && e.Owner is { } o && o.ProcessId == owner.ProcessId
+                  && Math.Abs((o.StartedAt - owner.StartedAt).TotalSeconds) <= 2);
 
     /// <summary>
     /// Session changes whose run is over (at start: left by a crash without watcher, power loss).

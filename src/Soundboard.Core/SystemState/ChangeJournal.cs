@@ -66,6 +66,9 @@ public sealed class ChangeEntry
 
     public string? DeviceName { get; set; }
 
+    /// <summary>Direction of the cable endpoint (playback "CABLE Input", recording "CABLE Output").</summary>
+    public Audio.DeviceFlow? Flow { get; set; }
+
     /// <summary>The endpoint's device format before (WAVEFORMATEX bytes, base64).</summary>
     public string? OldDeviceFormat { get; set; }
 
@@ -93,6 +96,11 @@ public sealed class ChangeJournal
 
     private readonly string _mutexName;
 
+    /// <summary>How long to wait for another process holding the journal; then the operation fails (and changes nothing).</summary>
+    internal TimeSpan LockTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
+    internal string MutexName => _mutexName;
+
     public ChangeJournal(string path)
     {
         Path = path;
@@ -119,8 +127,10 @@ public sealed class ChangeJournal
         bool owned = false;
         try
         {
-            try { owned = mutex.WaitOne(TimeSpan.FromSeconds(10)); }
+            try { owned = mutex.WaitOne(LockTimeout); }
             catch (AbandonedMutexException) { owned = true; } // the other process died holding it; the file is still consistent (atomic writes)
+            // Never read-modify-write without the lock: another process could lose an entry (and its old value).
+            if (!owned) throw new IOException(Text.L.Get("Changes.JournalBusy"));
             var list = Load();
             var result = action(list);
             if (save) Save(list);
@@ -157,7 +167,8 @@ public sealed class ChangeJournal
         }
         catch (JsonException)
         {
-            // Keep the broken file for a look by hand; the old values in it are not lost.
+            // Keep the broken file for a look by hand (the removal guide does not delete it); the old
+            // values in it are not lost, but they are no longer put back by themselves.
             var aside = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Path)!,
                 $"changes.defekt-{DateTime.Now:yyyyMMdd-HHmmss}.json");
             File.Move(Path, aside, overwrite: true);
@@ -175,7 +186,13 @@ public sealed class ChangeJournal
         }
         Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path)!);
         var tmp = Path + ".tmp";
-        File.WriteAllText(tmp, JsonSerializer.Serialize(list, Options));
+        // Written through to the disk before the move: after a power loss the journal is the old or the new one, not empty.
+        using (var fs = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough))
+        {
+            var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(list, Options));
+            fs.Write(bytes);
+            fs.Flush(flushToDisk: true);
+        }
         File.Move(tmp, Path, overwrite: true);
     }
 }

@@ -18,7 +18,7 @@ Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.6 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.15.0 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -38,6 +38,11 @@ und beim Zurückholen des Fensters. Das Zahnrad dreht sich bei jedem Darüberfah
 nicht mehr nur beim ersten Mal. In 0.14.6: Das Zahnrad dreht beim Verlassen wieder zurück; sind die
 Einstellungen offen, schließt ein Klick aufs Zahnrad sie. Das Zahnrad öffnet immer auf „Mikrofon & Kabel“,
 jetzt der erste Reiter. Der Strich unter dem offenen Reiter gleitet beim Wechsel zum neuen Reiter.
+In 0.15: Das Soundboard darf Windows-Einstellungen ändern, wenn es die Bedienung einfacher macht, und
+stellt sie zuverlässig zurück (Änderungs-Journal, siehe „Was das Soundboard an Windows ändert“): Hat
+Windows das Kabel zum Standardgerät gemacht, stellt es still das gesicherte Gerät zurück; das
+Windows-Ducking ist aus, solange es läuft; das Kabel läuft mit 48 kHz; der Wächter stellt nach einem
+Absturz still zurück und zeigt ein Fenster nur noch, wenn das Kabel lief.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -322,7 +327,9 @@ Standardformat beider Kabel-Endpunkte (Wiedergabe „CABLE Input“, Aufnahme �
 dieselbe Windows-Schnittstelle wie die Systemsteuerung (`IPolicyConfig::SetDeviceFormat`, Geräte-
 und Mix-Format) auf 48 000 Hz, nur die Rate, Kanäle und Bittiefe bleiben. Vor dem Schreiben prüft
 es Name und Richtung des Endpunkts so, wie Windows sie gerade meldet: **Echte Geräte werden nie
-umformatiert.** Danach öffnet es das Kabel neu; läuft es mit 48 kHz, rechnet es nichts mehr um.
+umformatiert.** Zurückgestellt wird über die gespeicherte Endpunkt-ID und Richtung (IDs sind
+eindeutig; so klappt es auch, wenn das Kabel inzwischen umbenannt wurde), und nur, solange Rate, Kanäle
+und Bittiefe noch die vom Soundboard gesetzten sind. Danach öffnet es das Kabel neu; läuft es mit 48 kHz, rechnet es nichts mehr um.
 Geht es nicht (Windows lehnt ab oder bleibt bei der alten Rate), läuft es still mit Umrechnung
 weiter, und unter dem Schalter steht, warum. Das Format bleibt beim Beenden stehen: Das Kabel gehört
 nur dem Soundboard, für andere Programme ändert sich nichts, und ein Umstellen bei jedem Start und
@@ -337,15 +344,26 @@ einem echten Gerät geprüft).
 jeder Änderung: Eintrag schreiben → Windows ändern → Eintrag als erledigt markieren;
 Zurückstellen entfernt ihn. Das Zurückstellen ist idempotent (zweimal ist wie einmal), und ein
 Eintrag, dessen Rückstellung scheitert, bleibt für den nächsten Versuch stehen. App, Wächter,
-`--restore` und Rückbau greifen über eine gemeinsame Sperre zu. Ein unlesbares Journal wird als
-`changes.defekt-<Zeit>.json` beiseitegelegt, nie überschrieben. Im Reiter „Audio-Zustand“ zeigt
+`--restore` und Rückbau greifen über eine gemeinsame Sperre zu; ist sie nach 10 Sekunden nicht frei,
+wird nichts geändert und der Eintrag bleibt. Geschrieben wird mit Durchschreiben auf die Platte, dann
+umbenannt, damit nach einem Stromausfall das alte oder das neue Journal da ist, nicht ein leeres. Ein
+trotzdem unlesbares Journal wird als `changes.defekt-<Zeit>.json` beiseitegelegt, nie überschrieben
+und vom Rückbau nicht gelöscht; seine alten Werte stellt das Soundboard dann aber nicht mehr von selbst
+zurück (von Hand über Sound → Kommunikation bzw. die Kabel-Eigenschaften). `--restore` und der
+Rückbau schalten außerdem die beiden Schalter in den Einstellungen aus, damit ein späterer Start (etwa
+per Autostart) nichts wieder umstellt. Der Wächter erkennt seinen Prozess an ID und Startzeit, damit
+eine wiederverwendete Prozess-ID nicht die Änderungen eines neuen Laufs zurückstellt. Im Reiter „Audio-Zustand“ zeigt
 **„Vom Soundboard geändert“** die Liste („Andere Töne bei Anrufen: volle Lautstärke, vorher um
 80 % leiser“) mit **„Alle Änderungen zurücknehmen“**: stellt alles sofort zurück und schaltet
 die Schalter aus, die es gesetzt haben.
 
 **Restrisiko:** Stromausfall oder hartes Ausschalten, und danach wird das Soundboard nie wieder
 gestartet: Dann bleibt das Ducking auf „nichts unternehmen“, bis `Soundboard.exe --restore`
-läuft oder das Soundboard deinstalliert wird (der Deinstaller ruft das auf).
+läuft oder das Soundboard deinstalliert wird (der Deinstaller ruft das auf). Bricht ein anderes Programm das
+Abmelden ab, ist das Ducking schon zurückgestellt, das Soundboard läuft aber weiter; der Schalter
+wirkt dann erst wieder nach Aus- und Einschalten oder beim nächsten Start. Ist ein Eintrag geschrieben,
+aber Windows noch nicht geändert, und stellt jemand danach selbst „nichts unternehmen“ ein, schreibt
+das Zurückstellen den alten Wert über diese Wahl (selten, hingenommen).
 
 ## Sprache
 
@@ -419,7 +437,7 @@ Alles liegt unter `%LOCALAPPDATA%\Soundboard\`:
 | `audio-snapshot.json` | gesicherter Windows-Audio-Zustand (automatisch: beim ersten Start und wenn Geräte dazukommen oder wegfallen, solange die Standardgeräte wie gesichert sind und alles geht) |
 | `audio-snapshot.vorher.json` | die Sicherung davor |
 | `running.json` | Merker „läuft gerade“; bleibt er nach dem Ende liegen, war es ein Absturz |
-| `changes.json` | Änderungs-Journal: was das Soundboard an Windows geändert hat, mit dem alten Wert (beim Kabel-Format das alte Geräte- und Mix-Format als Bytes); existiert nur, solange etwas geändert ist. Wird beim Rückbau nicht gelöscht, solange etwas darin steht |
+| `changes.json` (ggf. `changes.defekt-*.json`) | Änderungs-Journal: was das Soundboard an Windows geändert hat, mit dem alten Wert (beim Kabel-Format das alte Geräte- und Mix-Format als Bytes); existiert nur, solange etwas geändert ist. Wird beim Rückbau nicht gelöscht, solange etwas darin steht |
 
 ## Bauen
 

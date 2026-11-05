@@ -73,7 +73,8 @@ public sealed class SystemChangesTests
         bool checkedAhead = false;
         _reg.BeforeWrite = () =>
         {
-            // A fresh reader (as the watcher would be) sees the entry already.
+            // A second journal object on the same file sees the entry already (same thread: this checks the
+            // order of writing, not the lock between processes – that has its own test).
             var e = new ChangeJournal(_journal.Path).Read().Single();
             Assert.AreEqual(1, e.OldValue);
             Assert.IsFalse(e.Applied);
@@ -93,7 +94,7 @@ public sealed class SystemChangesTests
     {
         _reg.Set(2);
         _changes.ApplyDucking(Me);
-        var r = _changes.UndoSession(Me.ProcessId);
+        var r = _changes.UndoSession(Me);
         Assert.AreEqual(1, r.RestoredCount);
         Assert.AreEqual(2, _reg.Value);
         Assert.AreEqual(0, _journal.Read().Count);
@@ -171,7 +172,7 @@ public sealed class SystemChangesTests
         // Entry written ahead, then the process died before the registry write.
         _reg.Set(1);
         _journal.Put(new ChangeEntry { Key = SystemChanges.DuckingKey, Kind = ChangeKind.Ducking, Scope = ChangeScope.Session, Owner = Me, OldValue = 1, NewValue = 3, Applied = false });
-        var r = _changes.UndoSession(Me.ProcessId);
+        var r = _changes.UndoSession(Me);
         Assert.AreEqual(UndoOutcome.LeftAsIs, r.Steps.Single().Outcome);
         Assert.AreEqual(1, _reg.Value);
         Assert.AreEqual(0, _reg.Writes);
@@ -190,7 +191,7 @@ public sealed class SystemChangesTests
         var e = _journal.Read().Single();
         Assert.AreEqual(1, e.OldValue);
         Assert.AreEqual(Me, e.Owner);
-        _changes.UndoSession(Me.ProcessId);
+        _changes.UndoSession(Me);
         Assert.AreEqual(1, _reg.Value);
     }
 
@@ -199,7 +200,7 @@ public sealed class SystemChangesTests
     {
         _reg.Set(1);
         _changes.ApplyDucking(Me);
-        Assert.AreEqual(0, _changes.UndoSession(9999).Steps.Count);
+        Assert.AreEqual(0, _changes.UndoSession(Me with { ProcessId = 9999 }).Steps.Count);
         Assert.AreEqual(3, _reg.Value);
     }
 
@@ -236,6 +237,59 @@ public sealed class SystemChangesTests
         Assert.AreEqual(0, _journal.Read().Count);
         Assert.IsNotNull(_journal.SetAsideFile);
         Assert.AreEqual("{ broken", File.ReadAllText(_journal.SetAsideFile!));
+    }
+
+    [TestMethod]
+    public void Crash_after_the_change_but_before_marking_it_is_put_back()
+    {
+        // Entry written ahead, registry changed, then the process died before "applied" was saved.
+        _reg.Set(1);
+        _reg.Set(3);
+        _journal.Put(new ChangeEntry { Key = SystemChanges.DuckingKey, Kind = ChangeKind.Ducking, Scope = ChangeScope.Session, Owner = Me, OldValue = 1, NewValue = 3, Applied = false });
+        Assert.AreEqual(1, _changes.UndoOrphanedSession(_ => false).RestoredCount);
+        Assert.AreEqual(1, _reg.Value);
+    }
+
+    [TestMethod]
+    public void Same_process_id_with_another_start_time_is_another_run()
+    {
+        _reg.Set(1);
+        _changes.ApplyDucking(Me);
+        Assert.AreEqual(0, _changes.UndoSession(Me with { StartedAt = Me.StartedAt.AddHours(1) }).Steps.Count);
+        Assert.AreEqual(3, _reg.Value);
+    }
+
+    [TestMethod]
+    public void A_journal_held_by_another_process_is_not_touched_without_the_lock()
+    {
+        _reg.Set(1);
+        _changes.ApplyDucking(Me);
+        _journal.LockTimeout = TimeSpan.FromMilliseconds(100);
+        using var held = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        var other = new Thread(() =>
+        {
+            using var m = new Mutex(false, _journal.MutexName);
+            m.WaitOne();
+            held.Set();
+            release.Wait();
+            m.ReleaseMutex();
+        });
+        other.Start();
+        held.Wait();
+        try
+        {
+            var r = _changes.UndoAll();
+            Assert.IsFalse(r.AllDone);
+            Assert.AreEqual(3, _reg.Value, "nothing changed without the lock");
+        }
+        finally
+        {
+            release.Set();
+            other.Join();
+        }
+        Assert.AreEqual(1, _journal.Read().Count, "the entry is still there");
+        Assert.AreEqual(1, _changes.UndoAll().RestoredCount);
     }
 
     [TestMethod]

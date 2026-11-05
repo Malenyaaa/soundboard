@@ -104,6 +104,8 @@ public sealed partial class MainViewModel
     [RelayCommand]
     private void UndoAllChanges()
     {
+        // The cable stream would break when its format changes under it: stop it first, it reopens afterwards.
+        if (_mixPurpose == MixPurpose.Cable && _changes.List().Any(e => e.Kind == ChangeKind.CableFormat)) StopMix();
         var result = _changes.UndoAll();
         _changesReady = false; // the switches below only follow; the journal is already done
         KeepFullVolumeInCalls = false;
@@ -147,6 +149,7 @@ public sealed partial class MainViewModel
         ChangesResultText = "";
         if (!value)
         {
+            if (_mixPurpose == MixPurpose.Cable && _changes.List().Any(e => e.Kind == ChangeKind.CableFormat)) StopMix();
             bool restored = false;
             foreach (var e in _changes.List().Where(e => e.Kind == ChangeKind.CableFormat))
                 restored |= _changes.UndoKey(e.Key).RestoredCount > 0;
@@ -173,6 +176,8 @@ public sealed partial class MainViewModel
             _cableFormat = _changes.EnsureCableFormat(Cable);
             RefreshChanges();
             UpdateCableFormatText();
+            // Windows raises no device event for a format change: read again for the device list.
+            if (_cableFormat.Changed) ReadDevicesInBackground(views: true);
             return _cableFormat.Changed;
         }
         if (!CableAt48k || _cableFormat is null)
@@ -203,8 +208,10 @@ public sealed partial class MainViewModel
         {
             if (Cable.IsReady) _cableFormat = _changes.ReadCableFormat(Cable);
             UpdateCableFormatText();
+            if (_mixPurpose == MixPurpose.None) EnsureCable(); // stopped above for nothing: open again
             return;
         }
+        ReadDevicesInBackground(views: true);
         if (_mixPurpose == MixPurpose.Cable) StopMix();
         if (_mixPurpose == MixPurpose.None) OpenCableSoon(withMic: true);
         else UpdateCableFormatText();
@@ -235,6 +242,6 @@ public sealed partial class MainViewModel
     public void UndoSessionChanges()
     {
         if (!_changesReady) return;
-        _changes.UndoSession(Environment.ProcessId);
+        _changes.UndoSession(_owner);
     }
 }

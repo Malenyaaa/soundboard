@@ -29,6 +29,9 @@ public partial class App : Application
 
     internal static StartMode Mode { get; set; } = StartMode.Main;
     internal static int WatchPid { get; set; }
+
+    /// <summary>Start time of the watched process (local ticks), so a reused process ID is not mistaken for it; 0 when not given.</summary>
+    internal static long WatchStartTicks { get; set; }
     internal static bool StartInTray { get; set; }
     internal static SingleInstance? Instance { get; set; }
 
@@ -46,7 +49,7 @@ public partial class App : Application
         switch (Mode)
         {
             case StartMode.Watch:
-                Watcher.Run(this, WatchPid);
+                Watcher.Run(this, WatchPid, WatchStartTicks);
                 break;
             case StartMode.Uninstall:
                 StartUninstall();
@@ -78,7 +81,7 @@ public partial class App : Application
         _vm.KeyWithoutEffect += OnKeyWithoutEffect;
         _vm.QuietInfo += OnQuietInfo;
         Instance?.ListenForShow(() => Dispatcher.BeginInvoke(ShowMain));
-        Watcher.StartFor(Environment.ProcessId);
+        Watcher.StartForThisProcess();
         if (!StartInTray) _window.Show();
     }
 

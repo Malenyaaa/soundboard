@@ -23,6 +23,7 @@ public partial class UninstallWindow : Window
 {
 
     private readonly AppPaths _paths;
+    private SystemChanges? _changes;
     private readonly Func<AudioStateReport> _readState;
     private readonly IDefaultEndpointWriter _writer;
     private readonly Func<bool> _isRunning;
@@ -66,6 +67,8 @@ public partial class UninstallWindow : Window
     /// </summary>
     private void UndoChanges(SystemChanges changes)
     {
+        _changes = changes;
+        Cli.TurnOffChangeSwitches(_paths); // a later start (autostart) must not change Windows again
         if (changes.List().Count == 0) return;
         ChangesText.Text = L.Get("Uninstall.ChangesUndone") + Environment.NewLine + SystemChanges.Format(changes.UndoAll());
         ChangesText.Visibility = Visibility.Visible;
@@ -147,6 +150,12 @@ public partial class UninstallWindow : Window
         if (!ConfirmWindow.Ask(this, L.Get("Uninstall.AskTitle"), L.Get("Uninstall.AskHeading"), question, L.Get("Uninstall.Delete"), L.Get("Common.Cancel")))
             return;
 
+        // Whatever the soundboard changed since this guide opened (it may have been running) goes back too.
+        if (_changes is not null && _changes.List().Count > 0)
+        {
+            ChangesText.Text = L.Get("Uninstall.ChangesUndone") + Environment.NewLine + SystemChanges.Format(_changes.UndoAll());
+            ChangesText.Visibility = Visibility.Visible;
+        }
         var removed = OwnTraces.Remove(_paths, keep);
         var sb = new StringBuilder();
         int ok = removed.Count(r => r.Removed);

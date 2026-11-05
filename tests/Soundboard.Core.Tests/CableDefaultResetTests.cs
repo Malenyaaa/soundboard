@@ -86,6 +86,21 @@ public sealed class CableDefaultResetTests
     }
 
     [TestMethod]
+    public void Other_vb_audio_devices_chosen_on_purpose_are_left_alone()
+    {
+        var now = State(Spk, Mic);
+        var vm = new AudioDeviceInfo("vm", "Voicemeeter Input (VB-Audio VoiceMeeter VAIO)", DeviceFlow.Render, DeviceStatus.Active, [], 1f, false, null);
+        now = now with
+        {
+            Devices = [.. now.Devices, vm],
+            Defaults = [.. now.Defaults.Select(d => d.Flow == DeviceFlow.Render ? d with { Id = "vm", Name = vm.Name } : d)],
+        };
+        var w = new FakeWriter();
+        Assert.AreEqual(0, SnapshotService.ResetCableDefaults(Saved, now, w).Steps.Count);
+        Assert.AreEqual(0, w.Calls.Count);
+    }
+
+    [TestMethod]
     public void Roles_refused_by_the_caller_are_skipped()
     {
         var w = new FakeWriter();

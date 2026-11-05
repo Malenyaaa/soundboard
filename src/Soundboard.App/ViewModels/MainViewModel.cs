@@ -2166,6 +2166,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        // Windows settings changed for this run go back first, before anything else can fail: if
+        // putting back fails, the entries stay in the journal and the watcher or the next start tries again.
+        UndoSessionChanges();
         L.Changed -= OnLanguageChanged;
         _progressTimer.Stop();
         _deviceTimer.Stop();
@@ -2175,9 +2178,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StopMix();
         StopSink();
         _hotkeys.Dispose();
-        // Windows settings changed for this run go back before the running flag goes: if putting
-        // back fails, the entries stay in the journal and the next start tries again.
-        UndoSessionChanges();
         if (_services.UseDirtyFlag) _dirty.Delete();
         _services.Hotkeys.Dispose();
         _audio.Dispose();

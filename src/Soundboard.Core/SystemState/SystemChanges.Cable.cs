@@ -106,6 +106,7 @@ public sealed partial class SystemChanges
                     At = DateTime.Now,
                     DeviceId = dev.Id,
                     DeviceName = dev.Name,
+                    Flow = flow,
                     OldDeviceFormat = Convert.ToBase64String(now.Device),
                     OldMixFormat = Convert.ToBase64String(now.Mix),
                     OldRate = now.SampleRate,
@@ -137,13 +138,20 @@ public sealed partial class SystemChanges
         if (e.DeviceId is null) return UndoOutcome.LeftAsIs;
         var who = _formats.Find(e.DeviceId);
         if (who is null || who.Status == DeviceStatus.NotPresent) return UndoOutcome.Gone; // driver removed: nothing left to put back
-        if (!IsCableEndpoint(who.Name, who.Flow)) return UndoOutcome.LeftAsIs; // never write to anything but the cable
+        // The ID was checked as the cable when the entry was written, and endpoint IDs are unique and stable:
+        // a renamed cable is still found. A different direction means it is not that endpoint: keep the entry.
+        if (e.Flow is { } flow ? who.Flow != flow : !IsCableEndpoint(who.Name, who.Flow))
+            throw new InvalidOperationException(L.Get("Changes.FormatOtherDevice"));
         if (who.Status != DeviceStatus.Active) throw new InvalidOperationException(L.Get("Changes.FormatNotActive"));
         var now = _formats.Read(e.DeviceId) ?? throw new InvalidOperationException(L.Get("Changes.FormatUnreadable"));
-        if (now.SampleRate != e.NewRate) return UndoOutcome.LeftAsIs;
         byte[] oldDevice = Convert.FromBase64String(e.OldDeviceFormat ?? "");
         byte[] oldMix = Convert.FromBase64String(e.OldMixFormat ?? "");
         if (!WaveFormatBytes.IsValid(oldDevice) || !WaveFormatBytes.IsValid(oldMix)) return UndoOutcome.LeftAsIs;
+        // Only while the format is still exactly what the app set (rate, channels, bit depth): a format
+        // someone chose since stays.
+        if (now.SampleRate != e.NewRate || WaveFormatBytes.Channels(now.Device) != WaveFormatBytes.Channels(oldDevice)
+            || WaveFormatBytes.Bits(now.Device) != WaveFormatBytes.Bits(oldDevice) || WaveFormatBytes.BlockAlign(now.Device) != WaveFormatBytes.BlockAlign(oldDevice))
+            return UndoOutcome.LeftAsIs;
         _formats.Write(e.DeviceId, oldDevice, oldMix);
         return UndoOutcome.Restored;
     }

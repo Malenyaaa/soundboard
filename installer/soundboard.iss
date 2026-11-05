@@ -10,12 +10,12 @@
 ; - Optional task: start with Windows (HKCU Run value "Soundboard", started with --tray).
 ;   The app's own switch uses the same value name, so both show and change one entry.
 ; - Uninstalling runs "Soundboard.exe --uninstall" (guided removal, it asks before it
-;   deletes anything); a silent uninstall runs "--restore" instead (puts the Windows default
-;   devices back to the saved ones, nothing else).
+;   deletes anything); a silent uninstall runs "--restore" instead (puts back every Windows
+;   setting the app changed, from its change journal, and the default devices; deletes nothing).
 ; - VB-CABLE is not bundled; the app links to vb-cable.com.
 
 #define AppName "Soundboard"
-#define AppVersion "0.14.6"
+#define AppVersion "0.15.0"
 #define AppExe "Soundboard.exe"
 
 [Setup]
@@ -83,6 +83,6 @@ Filename: "{app}\{#AppExe}"; Description: "{cm:StartNow}"; Flags: nowait postins
 ; Interactive uninstall: the guided removal (audio state, own data with question, cable steps).
 Filename: "{app}\{#AppExe}"; Parameters: "--uninstall"; Flags: waituntilterminated; \
     RunOnceId: "GuidedRemoval"; Check: not UninstallSilent
-; Silent uninstall: only put the default devices back to the saved ones.
+; Silent uninstall: put back what the app changed in Windows and the default devices; delete nothing.
 Filename: "{app}\{#AppExe}"; Parameters: "--restore"; Flags: runhidden waituntilterminated; \
     RunOnceId: "RestoreDefaults"; Check: UninstallSilent
