@@ -570,7 +570,7 @@
                     <CheckBox Style="{StaticResource Switch}" Content="{t:T Main.Monitor}" IsChecked="{Binding MonitorEnabled}"
                               ToolTip="{t:T Main.MonitorTip}" />
                     <ComboBox ItemsSource="{Binding OutputChoices}" SelectedItem="{Binding SelectedOutput}" DisplayMemberPath="Display"
-                              Width="190" Margin="12,0,0,0" ToolTip="{t:T Main.MonitorDeviceTip}" AutomationProperties.Name="{t:T Main.MonitorDeviceTip}" />
+                              Width="190" Height="{StaticResource HeaderControlHeight}" Margin="12,0,0,0" ToolTip="{t:T Main.MonitorDeviceTip}" AutomationProperties.Name="{t:T Main.MonitorDeviceTip}" />
                 </StackPanel>
                 <StackPanel x:Name="VolumeGroup" Grid.Column="1" Orientation="Horizontal" Margin="16,0,16,0" VerticalAlignment="Center" KeyboardNavigation.TabNavigation="Local">
                     <views:VolumeIcon Percent="{Binding MasterVolumePercent}" Stroke="{DynamicResource TextBrush}" VerticalAlignment="Center"
@@ -584,7 +584,7 @@
                 <!-- Search: always there. Ctrl+F jumps here, Esc empties it. -->
                 <Grid x:Name="SearchGroup" Grid.Column="2" Margin="0,0,16,0" VerticalAlignment="Center" MinWidth="150" MaxWidth="280" HorizontalAlignment="Stretch"
                       KeyboardNavigation.TabNavigation="Local">
-                    <TextBox x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="16,2,16,2" MinHeight="34" VerticalContentAlignment="Center"
+                    <TextBox x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="16,2,16,2" Height="{StaticResource HeaderControlHeight}" VerticalContentAlignment="Center"
                              AutomationProperties.Name="{t:T Search.Placeholder}" ToolTip="{t:T Search.Tip}" KeyDown="OnSearchKeyDown" />
                     <Path Data="M 6.5,1 A 5.5,5.5 0 1 1 6.49,1 Z M 10.6,10.6 L 15,15" Stroke="{DynamicResource SubTextBrush}" StrokeThickness="1.6"
                           Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="9,0,0,0" IsHitTestVisible="False" />
@@ -597,10 +597,10 @@
                         <Path Data="M 1,1 L 9,9 M 9,1 L 1,9" Stroke="{DynamicResource TextBrush}" StrokeThickness="1.6" Width="10" Height="10" />
                     </Button>
                 </Grid>
-                <Button x:Name="StopButton" Grid.Column="3" Style="{StaticResource StopButton}" Content="{t:T Main.Stop}" VerticalAlignment="Center"
+                <Button x:Name="StopButton" Grid.Column="3" Style="{StaticResource StopButton}" Content="{t:T Main.Stop}" Height="{StaticResource HeaderControlHeight}" VerticalAlignment="Center"
                         Command="{Binding StopAllCommand}" ToolTip="{Binding StopAllToolTip}" />
                 <Button x:Name="SettingsButton" Grid.Column="4" Style="{StaticResource IconButton}" Command="{Binding ShowSettingsCommand}" CommandParameter=""
-                        Margin="8,0,0,0" VerticalAlignment="Center"
+                        Width="{StaticResource HeaderControlHeight}" Height="{StaticResource HeaderControlHeight}" Margin="8,0,0,0" VerticalAlignment="Center"
                         AutomationProperties.Name="{t:T Settings.Title}"
                         ToolTip="{t:T Main.SettingsTip}">
                     <Path Data="{StaticResource GearGeometry}" Fill="{DynamicResource TextBrush}" Width="20" Height="20" Stretch="Uniform" />

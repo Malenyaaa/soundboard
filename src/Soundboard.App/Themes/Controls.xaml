@@ -25,6 +25,8 @@
     <sys:Double x:Key="SizeSmall">12</sys:Double>
     <sys:Double x:Key="SizeGroup">16</sys:Double>
     <sys:Double x:Key="SizeTitle">20</sys:Double>
+    <!-- Every bordered control of the main header (device, search, Stop, gear): one height, so tops and bottoms line up. -->
+    <sys:Double x:Key="HeaderControlHeight">36</sys:Double>
 
     <!-- Keyboard focus: 2 px ring in the accent colour (>= 4.5 : 1 against every ground). -->
     <Style x:Key="FocusRing">
