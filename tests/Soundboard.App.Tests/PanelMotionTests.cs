@@ -1,6 +1,7 @@
 using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Soundboard.App.Views;
 
@@ -114,6 +115,26 @@ public class PanelMotionTests
 
         // Without a turnable symbol nothing happens.
         Assert.IsFalse(GearMotion.Turn(new Button { Content = "x" }, forward: true, move: true));
+    });
+
+    [TestMethod]
+    public void Gear_stays_turned_while_held_and_turns_back_when_released() => OnSta(() =>
+    {
+        var turn = new RotateTransform();
+        var button = new Button { Content = new Border { RenderTransform = turn } };
+        GearMotion.SetIsEnabled(button, true);
+        double held = Soundboard.App.Themes.ThemeManager.AnimationsOn ? GearMotion.Angle : 0; // animations off: always 0°
+        double Target() => (double)turn.GetAnimationBaseValue(RotateTransform.AngleProperty);
+
+        GearMotion.SetIsHeld(button, true); // settings opened
+        Assert.AreEqual(held, Target());
+
+        // The mouse leaves the gear while the settings are open: it keeps standing turned.
+        button.RaiseEvent(new MouseEventArgs(Mouse.PrimaryDevice, 0) { RoutedEvent = Mouse.MouseLeaveEvent });
+        Assert.AreEqual(held, Target());
+
+        GearMotion.SetIsHeld(button, false); // settings closed: back to 0°
+        Assert.AreEqual(0, Target());
     });
 
     private static Window Invisible(UIElement content, double width, double height) => new()

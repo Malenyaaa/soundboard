@@ -135,7 +135,13 @@ public sealed class SnapshotTests
     public void Restore_never_makes_a_cable_default_even_if_saved()
     {
         // A snapshot taken while the cable was (wrongly) default must not put it back.
-        var snap = AudioSnapshot.From(State(renderDefault: "cin", extra: [CableIn]), "1.0");
+        // From() no longer saves it; built by hand, as an older version could have written it.
+        var snap = AudioSnapshot.From(State(extra: [CableIn]), "1.0");
+        foreach (var role in new[] { DeviceRoleKind.Console, DeviceRoleKind.Multimedia })
+        {
+            snap.Defaults.RemoveAll(d => d.Flow == DeviceFlow.Render && d.Role == role);
+            snap.Defaults.Add(new SnapshotDefault(DeviceFlow.Render, role, CableIn.Id, CableIn.Name));
+        }
         var w = new FakeWriter();
         var r = SnapshotService.Restore(snap, State(extra: [CableIn]), w);
 
@@ -238,5 +244,38 @@ public sealed class SnapshotTests
         Assert.IsFalse(CableDetector.Detect(State()).IsKnown);
         Assert.IsTrue(CableDetector.IsCableName("CABLE Output (VB-Audio Virtual Cable)"));
         Assert.IsFalse(CableDetector.IsCableName("Mikrofon"));
+    }
+
+    [TestMethod]
+    public void Cable_as_default_playback_is_not_saved_as_normal()
+    {
+        // First start after the VB-CABLE setup made the cable the default playback device.
+        var snap = AudioSnapshot.From(State(renderDefault: "cin", extra: [CableIn, CableOut]), "1.0");
+        Assert.IsNull(snap.GetDefault(DeviceFlow.Render, DeviceRoleKind.Console)!.Id);
+        Assert.IsNull(snap.GetDefault(DeviceFlow.Render, DeviceRoleKind.Multimedia)!.Id);
+        Assert.AreEqual("head", snap.GetDefault(DeviceFlow.Render, DeviceRoleKind.Communications)!.Id);
+        Assert.AreEqual("mic", snap.GetDefault(DeviceFlow.Capture, DeviceRoleKind.Console)!.Id);
+    }
+
+    [TestMethod]
+    public void Loading_an_old_snapshot_drops_the_cable_as_default_playback()
+    {
+        var old = new AudioSnapshot
+        {
+            Defaults = [new SnapshotDefault(DeviceFlow.Render, DeviceRoleKind.Multimedia, "cin", "CABLE Input (VB-Audio Virtual Cable)"),
+                        new SnapshotDefault(DeviceFlow.Capture, DeviceRoleKind.Multimedia, "cout", "CABLE Output (VB-Audio Virtual Cable)")],
+        };
+        var loaded = SnapshotStore.Deserialize(SnapshotStore.Serialize(old))!;
+        Assert.IsNull(loaded.GetDefault(DeviceFlow.Render, DeviceRoleKind.Multimedia)!.Id);
+        Assert.AreEqual("cout", loaded.GetDefault(DeviceFlow.Capture, DeviceRoleKind.Multimedia)!.Id, "the cable as microphone may be chosen on purpose");
+    }
+
+    [TestMethod]
+    public void A_real_device_fills_an_empty_role_but_never_replaces_a_saved_one()
+    {
+        var snap = AudioSnapshot.From(State(renderDefault: "cin", extra: [CableIn, CableOut]), "1.0");
+        Assert.IsTrue(SnapshotService.DefaultsOnlyFillGaps(snap, State(extra: [CableIn, CableOut])), "speakers into the empty roles");
+        Assert.IsFalse(SnapshotService.DefaultsOnlyFillGaps(snap, State(commRender: "spk", extra: [CableIn, CableOut])), "headset was saved");
+        Assert.IsFalse(SnapshotService.DefaultsOnlyFillGaps(AudioSnapshot.From(State(), "1.0"), State(renderDefault: "head")));
     }
 }

@@ -92,6 +92,26 @@ public sealed class PlayerGroup
         if (MixActive) Mix.SetVolume(clipHandle, volume);
     }
 
+    /// <summary>
+    /// Plays <paramref name="clip"/> on the monitor only (listening while cutting): the others in the
+    /// call do not hear it. False when the monitor is not running.
+    /// </summary>
+    public bool Preview(SoundClip clip, float volume)
+    {
+        if (!MonitorActive) return false;
+        Monitor.Play(clip, volume);
+        return true;
+    }
+
+    /// <summary>Stops a preview started with <see cref="Preview"/>.</summary>
+    public void StopPreview(int clipHandle)
+    {
+        if (MonitorActive) Monitor.Stop(clipHandle);
+    }
+
+    /// <summary>Progress of a preview (monitor only), null when it does not play.</summary>
+    public double? GetPreviewProgress(int clipHandle) => MonitorActive ? Monitor.GetProgress(clipHandle) : null;
+
     /// <summary>Progress from the monitor if it runs, else from the mix.</summary>
     public double? GetProgress(int clipHandle) =>
         MonitorActive ? Monitor.GetProgress(clipHandle)

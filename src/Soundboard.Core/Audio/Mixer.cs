@@ -135,6 +135,7 @@ public sealed class Mixer : ISampleProvider
     private float _limiterGain = 1f;
     private float _voiceGainNow = 1f;
     private float _voiceVolume = 1f;
+    private float _soundVolume = 1f;
     private int _blockVoice;
     private float _peak;
     private int _toneFramesLeft; // audio thread only
@@ -169,6 +170,17 @@ public sealed class Mixer : ISampleProvider
     {
         get => Volatile.Read(ref _voiceVolume);
         set => Volatile.Write(ref _voiceVolume, Math.Clamp(value, 0f, 2f));
+    }
+
+    /// <summary>
+    /// Level of the sounds in this mix, 0..2, on top of the player's master volume. The monitor does not
+    /// get it: what is fine on one's own speakers (turned down in Windows) is often far too loud for
+    /// the others next to the voice.
+    /// </summary>
+    public float SoundVolume
+    {
+        get => Volatile.Read(ref _soundVolume);
+        set => Volatile.Write(ref _soundVolume, Math.Clamp(value, 0f, 2f));
     }
 
     /// <summary>Mute the microphone while a sound plays ("Stimme blockieren").</summary>
@@ -209,6 +221,7 @@ public sealed class Mixer : ISampleProvider
         float voiceTarget = block ? 0f : VoiceVolume;
         float voiceStep = (voiceTarget - _voiceGainNow) / VoiceRampFrames;
         float voiceGain = _voiceGainNow;
+        float soundGain = SoundVolume;
 
         if (Interlocked.Exchange(ref _toneRequest, 0) != 0) _toneFramesLeft = Format.SampleRate;
         int toneLeft = _toneFramesLeft;
@@ -239,7 +252,7 @@ public sealed class Mixer : ISampleProvider
             for (int c = 0; c < _channels; c++)
             {
                 int i = i0 + c;
-                float v = (i < voiceRead ? _voiceBuf[i] * voiceGain : 0f) + (i < soundRead ? _soundBuf[i] : 0f) + tone;
+                float v = (i < voiceRead ? _voiceBuf[i] * voiceGain : 0f) + (i < soundRead ? _soundBuf[i] * soundGain : 0f) + tone;
                 _soundBuf[i] = v; // reuse as output scratch
                 float a = v < 0 ? -v : v;
                 if (a > framePeak) framePeak = a;

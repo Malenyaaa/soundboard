@@ -18,7 +18,7 @@ Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.15.0 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.17.0 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -43,6 +43,28 @@ stellt sie zuverlässig zurück (Änderungs-Journal, siehe „Was das Soundboard
 Windows das Kabel zum Standardgerät gemacht, stellt es still das gesicherte Gerät zurück; das
 Windows-Ducking ist aus, solange es läuft; das Kabel läuft mit 48 kHz; der Wächter stellt nach einem
 Absturz still zurück und zeigt ein Fenster nur noch, wenn das Kabel lief.
+In 0.15.1: Das Mikrofon kommt wieder ins Kabel (der Aufnahme-Thread öffnete das Gerät aus dem
+UI-Thread und brach mit „Specified cast is not valid“ ab, sodass nur die Sounds gesendet wurden).
+Das Kabel als Standard-Wiedergabegerät wird nie mehr als „normal“ gesichert, auch nicht aus einer
+älteren Sicherung; die Rolle bleibt leer, bis dort ein echtes Gerät Standard ist. Das Zahnrad bleibt
+gedreht, solange die Einstellungen offen sind, und dreht beim Schließen zurück.
+In 0.15.2: Eigener Regler „Sounds für andere“ (Mikrofon & Kabel): Lautstärke der Sounds nur im Kabel,
+zusätzlich zur Gesamtlautstärke, voreingestellt auf 35 % – Sounddateien sind laut gemastert, die Stimme
+ist viel leiser, und die eigene Windows-Lautstärke wirkt aufs Kabel nicht.
+In 0.15.3: Beim Darüberfahren, Klicken, Auswählen und Fokussieren ändert sich keine Größe mehr –
+Schrift und Rahmenlinien bleiben stehen (Pads, Auswahlknöpfe, Reiter, Eingabefelder, „Stop“,
+Statuszeile); stärkerer Rahmen und Abdunkeln liegen als Ebene darüber. Gelöschte oder verschobene
+Pads blenden keinen Hinweis mehr ein; Strg+Z nimmt sie weiter zurück. Pads ohne Taste zeigen beim
+Darüberfahren kein „Taste zuweisen“ mehr; zuweisen geht über Rechtsklick → „Taste zuweisen …“.
+Im Hauptfenster (Kopfzeile, Pads, Statuszeile, Rechtsklick-Menüs) gehen keine Tooltips mehr auf;
+in den Einstellungen bleiben sie.
+In 0.16: Rechtsklick auf ein Pad → „Zuschneiden …“: Anfang und Ende in der Wellenform ziehen
+(oder in die Welle klicken; Pfeiltasten 10 ms, mit Umschalt 100 ms, Leertaste wechselt den Rand),
+„Anhören“ spielt den Ausschnitt nur zum Mithören, nicht ins Kabel. Das Pad merkt sich Anfang und Ende,
+die Datei bleibt unverändert; Strg+Z nimmt den Schnitt zurück.
+In 0.17: Favoriten – Rechtsklick auf ein Pad → „Favorit“. Favoriten stehen immer vorne in einer
+eigenen Reihe (mit etwas Abstand zu den anderen) und tragen unten rechts einen kleinen Stern;
+verschieben geht innerhalb der eigenen Gruppe; Strg+Z nimmt es zurück.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).

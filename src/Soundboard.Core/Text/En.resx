@@ -336,6 +336,8 @@ Delete: remove key</value></data>
   <data name="Cable.MicTip" xml:space="preserve"><value>Your real microphone. It is mixed with the sounds. The Windows settings stay unchanged.</value></data>
   <data name="Cable.MicVolume" xml:space="preserve"><value>Mic volume</value></data>
   <data name="Cable.MicVolumeTip" xml:space="preserve"><value>Volume of your voice in the mix. 100% = unchanged. The Windows volume of the microphone stays as it is.</value></data>
+  <data name="Cable.SoundVolume" xml:space="preserve"><value>Sounds for others</value></data>
+  <data name="Cable.SoundVolumeTip" xml:space="preserve"><value>How loud the others hear your sounds (only in the cable, on top of the overall volume). What sounds right to you is often far too loud for the others next to your voice. 100% = as you hear them.</value></data>
   <data name="Cable.Level" xml:space="preserve"><value>Level in the cable</value></data>
   <data name="Cable.TestToneTip" xml:space="preserve"><value>Sends a tone into the cable for one second (not to your headphones).</value></data>
   <data name="Cable.Buffer" xml:space="preserve"><value>Buffer</value></data>
@@ -651,4 +653,22 @@ Delete: remove key</value></data>
   <data name="Traces.ChangesBroken" xml:space="preserve"><value>List of changes (temporary copy)</value></data>
   <data name="Changes.JournalBusy" xml:space="preserve"><value>The list of changes is in use by another soundboard process; nothing was changed. Try again in a moment.</value></data>
   <data name="Changes.FormatOtherDevice" xml:space="preserve"><value>The device with this ID is no longer the cable endpoint it was.</value></data>
+  <data name="Pad.Trim" xml:space="preserve"><value>Trim…</value></data>
+  <data name="Trim.Title" xml:space="preserve"><value>Trim</value></data>
+  <data name="Trim.Heading" xml:space="preserve"><value>Trim “{0}”</value></data>
+  <data name="Trim.Hint" xml:space="preserve"><value>Drag the edges to where the pad should start and end – or click into the wave. The file stays unchanged.</value></data>
+  <data name="Trim.Start" xml:space="preserve"><value>Start</value></data>
+  <data name="Trim.End" xml:space="preserve"><value>End</value></data>
+  <data name="Trim.Length" xml:space="preserve"><value>Length</value></data>
+  <data name="Trim.Seconds" xml:space="preserve"><value>{0:0.00} s</value></data>
+  <data name="Trim.Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="Trim.Whole" xml:space="preserve"><value>Whole sound</value></data>
+  <data name="Trim.Listen" xml:space="preserve"><value>Listen</value></data>
+  <data name="Trim.StopListening" xml:space="preserve"><value>Stop listening</value></data>
+  <data name="Trim.NoMonitor" xml:space="preserve"><value>Listening only works while “Monitor” is on (top of the main window). The others in the call hear nothing while you listen here.</value></data>
+  <data name="Notice.Trimmed" xml:space="preserve"><value>“{0}” trimmed.</value></data>
+  <data name="Notice.TrimBroken" xml:space="preserve"><value>“{0}” cannot be played, so it cannot be trimmed either.</value></data>
+  <data name="Pad.Favorite" xml:space="preserve"><value>Favourite</value></data>
+  <data name="Notice.Favorited" xml:space="preserve"><value>“{0}” is now a favourite.</value></data>
+  <data name="Notice.Unfavorited" xml:space="preserve"><value>“{0}” is no longer a favourite.</value></data>
 </root>

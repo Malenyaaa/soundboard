@@ -23,13 +23,27 @@ public sealed class AudioSnapshot
     public List<SnapshotDefault> Defaults { get; set; } = [];
     public List<SnapshotDevice> Devices { get; set; } = [];
 
-    public static AudioSnapshot From(AudioStateReport report, string appVersion) => new()
+    public static AudioSnapshot From(AudioStateReport report, string appVersion) => new AudioSnapshot
     {
         TakenAt = report.TakenAt,
         AppVersion = appVersion,
-        Defaults = [.. report.Defaults.Select(d => new SnapshotDefault(d.Flow, d.Role, d.Id, d.Name))],
+        Defaults = [.. report.Defaults.Select(d => new SnapshotDefault(d.Flow, d.Role, d.Id, d.Name ?? report.FindById(d.Id)?.Name))],
         Devices = [.. report.Devices.Select(d => new SnapshotDevice(d.Id, d.Name, d.Flow, d.Status, d.VolumeScalar, d.Muted))],
-    };
+    }.WithoutCablePlayback();
+
+    /// <summary>
+    /// The cable as default playback device is never "normal" (nothing there is heard – it is
+    /// what the VB-CABLE setup leaves behind): such roles are kept empty, so the cable is not
+    /// taken as the device to go back to. An empty role is filled later with the real device
+    /// the user has there (see <see cref="SnapshotService.DefaultsOnlyFillGaps"/>).
+    /// </summary>
+    public AudioSnapshot WithoutCablePlayback()
+    {
+        Defaults = [.. Defaults.Select(d => d.Flow == DeviceFlow.Render && SystemChanges.IsCableEndpoint(d.Name, DeviceFlow.Render)
+            ? d with { Id = null, Name = null }
+            : d)];
+        return this;
+    }
 
     public SnapshotDefault? GetDefault(DeviceFlow flow, DeviceRoleKind role) =>
         Defaults.FirstOrDefault(d => d.Flow == flow && d.Role == role);
@@ -52,7 +66,7 @@ public static class SnapshotStore
         if (s is null) return null;
         s.Defaults ??= [];
         s.Devices ??= [];
-        return s;
+        return s.WithoutCablePlayback(); // snapshots saved by 0.15.0 may hold the cable
     }
 
     /// <summary>Null if there is no file. Throws <see cref="SnapshotException"/> if it is unreadable.</summary>

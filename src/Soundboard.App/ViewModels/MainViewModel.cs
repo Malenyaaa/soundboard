@@ -116,6 +116,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ = LoadTileAsync(tile);
             _ = LoadTileImageAsync(tile);
         }
+        KeepFavoritesFirst();
 
         InitFunctionKeys();
         _hotkeys = new HotkeyService(services.Hotkeys);
@@ -505,8 +506,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var path = Path.Combine(_paths.SoundsDir, tile.Config.FileName);
         try
         {
-            var clip = await _bank.LoadAsync(tile.Config.Id, path);
-            if (version != tile.LoadVersion || clip.Format != _player.Format) return; // superseded
+            var full = await _bank.LoadAsync(tile.Config.Id, path);
+            if (version != tile.LoadVersion || full.Format != _player.Format) return; // superseded
+            var clip = SoundTrim.Apply(full, tile.Config.TrimStart, tile.Config.TrimEnd);
+            tile.FullClip = full;
             tile.Clip = clip;
             tile.State = TileState.Ready;
             tile.SetIssue(null);
@@ -750,6 +753,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _hotkeys.Set(restored.Config.Id.ToString(), HotkeyGesture.Parse(restored.Config.Hotkey));
             RecolorAutomatic();
             restored.RefreshTheme();
+            KeepFavoritesFirst();
             RefreshHotkeyViews();
             ScheduleSave();
         });
@@ -917,7 +921,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// (first start), and when devices came or went (e.g. the cable after the driver setup)
     /// while the defaults are still the saved ones and everything works. A default the user
     /// changed is never taken over silently – it stays visible in the tab until
-    /// "Save current state as normal".
+    /// "Save current state as normal". A role the snapshot left empty (the cable was the default
+    /// playback device) is filled as soon as a working real device is the default there.
     /// </summary>
     private void SaveInBackgroundIfUseful()
     {
@@ -928,7 +933,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
         var cmp = SnapshotService.Compare(_snapshot, _state);
-        if (cmp.IsIdentical || cmp.DefaultsChanged) return;
+        if (cmp.IsIdentical) return;
+        if (cmp.DefaultsChanged && !SnapshotService.DefaultsOnlyFillGaps(_snapshot, _state)) return;
         if (AudioHealth.Check(_state, _snapshot).Count > 0) return;
         TrySaveSnapshot(_state);
     }
@@ -1136,6 +1142,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(MicVolumeText))]
     private double _micVolumePercent;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CableSoundVolumeText))]
+    private double _cableSoundVolumePercent;
+
     /// <summary>Level of what the mix sends right now, 0..1.</summary>
     [ObservableProperty]
     private double _mixLevel;
@@ -1154,6 +1164,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SelectedBuffer = BufferChoices.First(b => b.Size == _profile.Buffer);
         BlockVoice = _profile.BlockVoiceWhileSound;
         MicVolumePercent = Math.Round(Math.Clamp(_profile.MicVolume, 0f, 2f) * 100);
+        CableSoundVolumePercent = Math.Round(Math.Clamp(_profile.CableSoundVolume, 0f, 2f) * 100);
     }
 
     /// <summary>Microphone list: active capture endpoints, without virtual cables (that would feed back).</summary>
@@ -1211,6 +1222,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_mix is not null) _mix.Mixer.BlockVoiceWhileSound = value;
         if (_profile.BlockVoiceWhileSound == value) return;
         _profile.BlockVoiceWhileSound = value;
+        ScheduleSave();
+    }
+
+    partial void OnCableSoundVolumePercentChanged(double value)
+    {
+        float v = (float)Math.Clamp(value / 100.0, 0, 2);
+        if (_mix is not null) _mix.Mixer.SoundVolume = v;
+        if (Math.Abs(_profile.CableSoundVolume - v) < 0.0001f) return;
+        _profile.CableSoundVolume = v;
         ScheduleSave();
     }
 
@@ -1284,6 +1304,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             session = new MixSession(output, mic, _player.Mix, _profile.Buffer);
             session.Mixer.BlockVoiceWhileSound = BlockVoice;
             session.Mixer.VoiceVolume = EffectiveMicVolume;
+            session.Mixer.SoundVolume = (float)Math.Clamp(CableSoundVolumePercent / 100.0, 0, 2);
             session.Stopped += OnMixStopped;
             _player.SetMixActive(true);
             _mix = session;

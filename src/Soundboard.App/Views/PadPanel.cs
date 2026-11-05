@@ -7,6 +7,8 @@ namespace Soundboard.App.Views;
 /// Lays the pads out like the grid of a pad sampler: as many columns as fit with at least
 /// <see cref="MinPadWidth"/>, all pads equally wide and filling the row, almost square.
 /// Hidden pads (search) take no place. <see cref="Compact"/> makes them smaller and flatter.
+/// Favourites come first (the view model keeps that order); after the last one the row breaks and a
+/// little more space follows, so they form a group of their own.
 /// </summary>
 public sealed class PadPanel : Panel
 {
@@ -59,37 +61,73 @@ public sealed class PadPanel : Panel
 
     private double CurrentGap => Compact ? 8 : Gap;
 
+    /// <summary>Extra space between the favourites and the other pads.</summary>
+    private double GroupGap => Compact ? 8 : 12;
+
+    private static bool IsFavorite(UIElement child) =>
+        child is FrameworkElement { DataContext: ViewModels.TileViewModel { IsFavorite: true } };
+
+    /// <summary>
+    /// Slot (row, column) of every shown pad, with the row break after the last favourite.
+    /// Returns the number of rows and whether there is a favourite group with pads after it.
+    /// </summary>
+    private (int Rows, bool Split) Slots(int cols, Action<UIElement, int, int>? place)
+    {
+        int row = 0, col = 0, rows = 0;
+        bool anyFavorite = false, split = false;
+        foreach (UIElement child in InternalChildren)
+        {
+            if (child.Visibility == Visibility.Collapsed) continue;
+            bool fav = IsFavorite(child);
+            if (fav) anyFavorite = true;
+            else if (anyFavorite && !split)
+            {
+                split = true;
+                if (col != 0) { row++; col = 0; }
+            }
+            place?.Invoke(child, row, col);
+            rows = row + 1;
+            if (++col == cols) { row++; col = 0; }
+        }
+        return (rows, split);
+    }
+
+    /// <summary>First row after the favourites (for the extra space), or -1.</summary>
+    private int FirstRowAfterFavorites(int cols)
+    {
+        int found = -1;
+        bool sawFavorite = false;
+        Slots(cols, (child, row, _) =>
+        {
+            if (IsFavorite(child)) sawFavorite = true;
+            else if (found < 0 && sawFavorite) found = row;
+        });
+        return found;
+    }
+
     protected override Size MeasureOverride(Size available)
     {
         var (cols, w, h) = Grid(available.Width);
-        int shown = 0;
-        foreach (UIElement child in InternalChildren)
-        {
-            child.Measure(new Size(w, h));
-            if (child.Visibility != Visibility.Collapsed) shown++;
-        }
-        int rows = (shown + cols - 1) / cols;
+        foreach (UIElement child in InternalChildren) child.Measure(new Size(w, h));
+        var (rows, split) = Slots(cols, null);
         double gap = CurrentGap;
         double width = double.IsInfinity(available.Width) ? cols * w + (cols - 1) * gap : available.Width;
-        return new Size(width, rows == 0 ? 0 : rows * h + (rows - 1) * gap);
+        double height = rows == 0 ? 0 : rows * h + (rows - 1) * gap + (split ? GroupGap : 0);
+        return new Size(width, height);
     }
 
     protected override Size ArrangeOverride(Size final)
     {
         var (cols, w, h) = Grid(final.Width);
         double gap = CurrentGap;
-        int i = 0;
+        int splitRow = FirstRowAfterFavorites(cols);
         foreach (UIElement child in InternalChildren)
+            if (child.Visibility == Visibility.Collapsed) child.Arrange(new Rect(0, 0, 0, 0));
+        Slots(cols, (child, r, c) =>
         {
-            if (child.Visibility == Visibility.Collapsed)
-            {
-                child.Arrange(new Rect(0, 0, 0, 0));
-                continue;
-            }
-            int r = i / cols, c = i % cols;
-            child.Arrange(new Rect(c * (w + gap), r * (h + gap), w, h));
-            i++;
-        }
+            double extra = splitRow >= 0 && r >= splitRow ? GroupGap : 0;
+            child.Arrange(new Rect(c * (w + gap), r * (h + gap) + extra, w, h));
+        });
         return final;
     }
 }

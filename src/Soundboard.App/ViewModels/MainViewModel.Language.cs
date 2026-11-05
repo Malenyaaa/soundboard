@@ -42,6 +42,7 @@ public sealed partial class MainViewModel
     public string MasterVolumeText => L.Percent(MasterVolumePercent / 100.0);
 
     public string MicVolumeText => L.Percent(MicVolumePercent / 100.0);
+    public string CableSoundVolumeText => L.Percent(CableSoundVolumePercent / 100.0);
 
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
@@ -77,6 +78,7 @@ public sealed partial class MainViewModel
         OnPropertyChanged(nameof(GearTip));
         OnPropertyChanged(nameof(MasterVolumeText));
         OnPropertyChanged(nameof(MicVolumeText));
+        OnPropertyChanged(nameof(CableSoundVolumeText));
         OnPropertyChanged(nameof(Language));
     }
 }

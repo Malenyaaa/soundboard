@@ -204,6 +204,7 @@ public sealed partial class MainViewModel
             _ = LoadTileAsync(tile);
             _ = LoadTileImageAsync(tile);
         }
+        KeepFavoritesFirst();
         ApplyAllHotkeys();
         RecolorAutomatic();
         ScheduleSave();

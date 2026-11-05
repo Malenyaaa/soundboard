@@ -87,6 +87,7 @@ public sealed class CaptureSource : ICaptureInput
         if (_thread is not null) return;
         _stop = false;
         _thread = new Thread(Run) { IsBackground = true, Name = "Mikrofon", Priority = ThreadPriority.AboveNormal };
+        _thread.SetApartmentState(ApartmentState.MTA); // the default, stated: Run opens its COM objects here
         _thread.Start();
     }
 
@@ -101,12 +102,19 @@ public sealed class CaptureSource : ICaptureInput
     private void Run()
     {
         Exception? error = null;
+        MMDeviceEnumerator? enumerator = null;
+        MMDevice? device = null;
         AudioClient? client = null;
         bool started = false;
         var ready = new EventWaitHandle(false, EventResetMode.AutoReset);
         try
         {
-            client = _device.AudioClient;
+            // Open the endpoint again on this thread (MTA). _device usually comes from the UI
+            // thread (STA); its COM objects cannot be used here – the audio client then fails
+            // with "Specified cast is not valid" or blocks.
+            enumerator = new MMDeviceEnumerator();
+            device = enumerator.GetDevice(DeviceId);
+            client = device.AudioClient;
             long duration = _bufferMs * 10_000L; // 100-ns units
             client.Initialize(AudioClientShareMode.Shared, AudioClientStreamFlags.EventCallback, duration, 0, _mix, Guid.Empty);
             client.SetEventHandle(ready.SafeWaitHandle.DangerousGetHandle());
@@ -142,6 +150,8 @@ public sealed class CaptureSource : ICaptureInput
                 catch (Exception) { }
             }
             client?.Dispose();
+            device?.Dispose();
+            enumerator?.Dispose();
             ready.Dispose(); // only after the stream is stopped and released
         }
 

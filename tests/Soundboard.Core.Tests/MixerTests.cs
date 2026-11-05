@@ -29,6 +29,17 @@ public sealed class MixerTests
     }
 
     [TestMethod]
+    public void Sound_volume_scales_only_the_sounds()
+    {
+        var mixer = new Mixer(Out, new ConstantProvider(Out, 0.2f), new ConstantProvider(Out, 0.4f)) { SoundVolume = 0.25f };
+        var buf = Pull(mixer, 4800);
+        Assert.AreEqual(0.2f + 0.4f * 0.25f, buf[^1], 1e-4f, "voice unchanged, sounds at a quarter");
+        mixer.SoundVolume = 0f;
+        buf = Pull(mixer, 4800);
+        Assert.AreEqual(0.2f, buf[^1], 1e-4f);
+    }
+
+    [TestMethod]
     public void Ring_buffer_wraps_and_counts_drops()
     {
         var r = new FloatRingBuffer(8);

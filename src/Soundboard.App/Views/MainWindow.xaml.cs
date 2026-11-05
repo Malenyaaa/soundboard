@@ -24,6 +24,18 @@ public partial class MainWindow : Window
             if (Container(tile) is { } c) c.BringIntoView(new Rect(-16, -16, c.ActualWidth + 32, c.ActualHeight + 32));
         });
         Text.UiLanguage.Attach(this);
+        // Favourites: the pad panel breaks the row after the last one.
+        _vm.FavoritesChanged += () => FindPadPanel(PadList)?.InvalidateMeasure();
+        // Right-click -> "Trim...": the editor is a dialog owned by this window.
+        _vm.TrimRequested += tile => TrimWindow.Show(this, _vm, tile);
+        // Main screen without tooltips (header, pads, status line, right-click menus); the settings keep theirs.
+        _current = this;
+        if (!s_tooltipFilter)
+        {
+            s_tooltipFilter = true;
+            EventManager.RegisterClassHandler(typeof(FrameworkElement), ToolTipService.ToolTipOpeningEvent,
+                new ToolTipEventHandler(OnAnyToolTipOpening));
+        }
         // Settings: shown from the start if already open, later opened from the gear and closed back to it.
         SettingsPanel.Visibility = _vm.SettingsOpen ? Visibility.Visible : Visibility.Collapsed;
         // The line under the open tab: slides to a tab chosen with the mouse while the settings are seen,
@@ -44,6 +56,38 @@ public partial class MainWindow : Window
     }
 
     private readonly TabIndicator _tabLine;
+
+    private static PadPanel? FindPadPanel(System.Windows.DependencyObject root)
+    {
+        for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is PadPanel p) return p;
+            if (FindPadPanel(child) is { } found) return found;
+        }
+        return null;
+    }
+
+    private static MainWindow? _current;
+    private static bool s_tooltipFilter;
+
+    /// <summary>
+    /// Cancels a tooltip on the main screen: in this window outside the settings panel, or in a
+    /// right-click menu (its own popup, not part of the window tree). Other windows are untouched.
+    /// </summary>
+    private static void OnAnyToolTipOpening(object sender, ToolTipEventArgs e)
+    {
+        if (_current is not { } main || sender is not FrameworkElement el) return;
+        if (IsOnMainScreen(main, el)) e.Handled = true;
+    }
+
+    private static bool IsOnMainScreen(MainWindow main, FrameworkElement el)
+    {
+        for (DependencyObject? d = el; d is not null; d = LogicalTreeHelper.GetParent(d) ?? (d is System.Windows.Media.Visual ? System.Windows.Media.VisualTreeHelper.GetParent(d) : null))
+            if (d is ContextMenu) return true;
+        if (Window.GetWindow(el) != main) return false;
+        return !main.SettingsPanel.IsAncestorOf(el);
+    }
 
     /// <summary>
     /// The settings move only when opened or closed with the mouse (gear, "Close"): Esc or Enter on the gear

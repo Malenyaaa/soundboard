@@ -111,6 +111,26 @@ public static class SnapshotService
     public static string RoleText(DeviceFlow flow, DeviceRoleKind role) =>
         $"{AudioStateText.Flow(flow)} ({AudioStateText.Role(role)})";
 
+    /// <summary>
+    /// True when every default that differs from the snapshot is a role the snapshot left empty
+    /// (e.g. because the cable was the default playback device when it was taken). Taking the
+    /// current state over then replaces no device the user had.
+    /// </summary>
+    public static bool DefaultsOnlyFillGaps(AudioSnapshot snap, AudioStateReport now)
+    {
+        foreach (var flow in new[] { DeviceFlow.Render, DeviceFlow.Capture })
+        {
+            foreach (var role in new[] { DeviceRoleKind.Console, DeviceRoleKind.Multimedia, DeviceRoleKind.Communications })
+            {
+                var saved = snap.GetDefault(flow, role);
+                var cur = now.GetDefault(flow, role);
+                if (string.Equals(saved?.Id, cur?.Id, StringComparison.OrdinalIgnoreCase)) continue;
+                if (saved?.Id is not null) return false;
+            }
+        }
+        return true;
+    }
+
     public static SnapshotComparison Compare(AudioSnapshot snap, AudioStateReport now)
     {
         var rows = new List<ComparisonRow>();

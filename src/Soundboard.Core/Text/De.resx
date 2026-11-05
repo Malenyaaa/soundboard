@@ -336,6 +336,8 @@ Entf: Taste löschen</value></data>
   <data name="Cable.MicTip" xml:space="preserve"><value>Dein echtes Mikrofon. Es wird mit den Sounds gemischt. Die Windows-Einstellungen bleiben unverändert.</value></data>
   <data name="Cable.MicVolume" xml:space="preserve"><value>Mikro-Lautstärke</value></data>
   <data name="Cable.MicVolumeTip" xml:space="preserve"><value>Lautstärke deiner Stimme im Mix. 100 % = unverändert. Die Windows-Lautstärke des Mikrofons bleibt, wie sie ist.</value></data>
+  <data name="Cable.SoundVolume" xml:space="preserve"><value>Sounds für andere</value></data>
+  <data name="Cable.SoundVolumeTip" xml:space="preserve"><value>Wie laut die anderen deine Sounds hören (nur im Kabel, zusätzlich zur Gesamtlautstärke). Was bei dir gut klingt, ist für die anderen neben deiner Stimme oft viel zu laut. 100 % = wie bei dir.</value></data>
   <data name="Cable.Level" xml:space="preserve"><value>Pegel im Kabel</value></data>
   <data name="Cable.TestToneTip" xml:space="preserve"><value>Schickt eine Sekunde lang einen Ton ins Kabel (nicht auf deinen Kopfhörer).</value></data>
   <data name="Cable.Buffer" xml:space="preserve"><value>Puffer</value></data>
@@ -651,4 +653,22 @@ Entf: Taste löschen</value></data>
   <data name="Traces.ChangesBroken" xml:space="preserve"><value>Liste der Änderungen (Zwischenkopie)</value></data>
   <data name="Changes.JournalBusy" xml:space="preserve"><value>Die Liste der Änderungen ist gerade von einem anderen Soundboard-Prozess belegt; es wurde nichts geändert. Gleich noch einmal versuchen.</value></data>
   <data name="Changes.FormatOtherDevice" xml:space="preserve"><value>Das Gerät mit dieser ID ist nicht mehr der Kabel-Endpunkt von vorher.</value></data>
+  <data name="Pad.Trim" xml:space="preserve"><value>Zuschneiden …</value></data>
+  <data name="Trim.Title" xml:space="preserve"><value>Zuschneiden</value></data>
+  <data name="Trim.Heading" xml:space="preserve"><value>„{0}“ zuschneiden</value></data>
+  <data name="Trim.Hint" xml:space="preserve"><value>Zieh die Ränder an den Anfang und das Ende, die das Pad spielen soll – oder klick in die Welle. Die Datei bleibt unverändert.</value></data>
+  <data name="Trim.Start" xml:space="preserve"><value>Anfang</value></data>
+  <data name="Trim.End" xml:space="preserve"><value>Ende</value></data>
+  <data name="Trim.Length" xml:space="preserve"><value>Länge</value></data>
+  <data name="Trim.Seconds" xml:space="preserve"><value>{0:0.00} s</value></data>
+  <data name="Trim.Apply" xml:space="preserve"><value>Übernehmen</value></data>
+  <data name="Trim.Whole" xml:space="preserve"><value>Ganzer Sound</value></data>
+  <data name="Trim.Listen" xml:space="preserve"><value>Anhören</value></data>
+  <data name="Trim.StopListening" xml:space="preserve"><value>Anhören beenden</value></data>
+  <data name="Trim.NoMonitor" xml:space="preserve"><value>Anhören geht nur, solange „Mithören“ eingeschaltet ist (Hauptfenster oben). Die anderen im Gespräch hören beim Anhören nichts.</value></data>
+  <data name="Notice.Trimmed" xml:space="preserve"><value>„{0}“ zugeschnitten.</value></data>
+  <data name="Notice.TrimBroken" xml:space="preserve"><value>„{0}“ lässt sich nicht abspielen und deshalb auch nicht zuschneiden.</value></data>
+  <data name="Pad.Favorite" xml:space="preserve"><value>Favorit</value></data>
+  <data name="Notice.Favorited" xml:space="preserve"><value>„{0}“ ist jetzt Favorit.</value></data>
+  <data name="Notice.Unfavorited" xml:space="preserve"><value>„{0}“ ist kein Favorit mehr.</value></data>
 </root>

@@ -9,43 +9,27 @@ public sealed partial class MainViewModel
 {
     private const int UndoLimit = 50;
 
-    /// <summary>Steps that can be taken back, newest last. The notice always offers the newest.</summary>
+    /// <summary>Steps that can be taken back, newest last (Ctrl+Z).</summary>
     private readonly List<(Func<string> Text, Action Undo)> _undo = [];
 
-    /// <summary>Remembers a step; the notice names it and offers "Undo" (also Ctrl+Z).</summary>
+    /// <summary>
+    /// Remembers a step for Ctrl+Z. No notice: the result (pad gone, moved, quieter) is seen on the
+    /// pads themselves, and a banner after every step was in the way.
+    /// </summary>
     private void PushUndo(Func<string> text, Action undo)
     {
         _undo.Add((text, undo));
         if (_undo.Count > UndoLimit) _undo.RemoveAt(0);
-        ShowUndoNotice();
     }
 
-    private void ShowUndoNotice()
-    {
-        if (_undo.Count == 0)
-        {
-            ClearNotice("undo");
-            return;
-        }
-        var text = _undo[^1].Text;
-        int more = _undo.Count - 1;
-        ShowNotice("undo", more == 0 ? text : () => L.Count("Notice.UndoMore", more, text()), T("Action.Undo"), UndoLast);
-    }
-
-    /// <summary>Takes back the newest step; the notice then offers the one before, if any.</summary>
+    /// <summary>Takes back the newest step (Ctrl+Z); with nothing left it does nothing.</summary>
     [RelayCommand]
     private void UndoLast()
     {
-        if (_undo.Count == 0)
-        {
-            ShowNotice("undo", T("Notice.NothingToUndo"));
-            HideNoticeAfter("undo", TimeSpan.FromSeconds(3));
-            return;
-        }
+        if (_undo.Count == 0) return;
         var (_, undo) = _undo[^1];
         _undo.RemoveAt(_undo.Count - 1);
         undo();
-        ShowUndoNotice();
     }
 
     /// <summary>Moves a pad to <paramref name="index"/> (in the order without it) and remembers the step.</summary>
@@ -53,7 +37,7 @@ public sealed partial class MainViewModel
     {
         int from = Tiles.IndexOf(tile);
         if (from < 0) return;
-        index = Math.Clamp(index, 0, Tiles.Count - 1);
+        index = ClampToGroup(tile, Math.Clamp(index, 0, Tiles.Count - 1)); // favourites stay in front
         if (index == from) return;
         MoveTileRaw(tile, index);
         // Found again by its settings: removing and restoring or an import makes new pad objects.

@@ -87,6 +87,7 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
         _owner = owner;
         Config = config;
         Name = config.Name;
+        _isFavorite = config.Favorite;
         VolumePercent = Math.Round(Math.Clamp(config.Volume, 0f, 1f) * 100);
         Pad = new PadBrushes(ThemeManager.PadColorsFor(config.Color));
         _compact = owner.CompactPads;
@@ -109,8 +110,11 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
     /// <summary>Owner name of this pad's key in the hotkey service.</summary>
     public string OwnerId => Config.Id.ToString();
 
-    /// <summary>Decoded sound, null while loading or on error.</summary>
+    /// <summary>Decoded sound as the pad plays it (cut, if a cut is set); null while loading or on error.</summary>
     public SoundClip? Clip { get; set; }
+
+    /// <summary>The whole file, decoded; the cut is taken from it.</summary>
+    public SoundClip? FullClip { get; set; }
 
     /// <summary>Increased on every load start; stale load results are ignored.</summary>
     public int LoadVersion { get; set; }
@@ -431,6 +435,16 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget
 
     [RelayCommand]
     private void EvenOutAll() => _owner.EvenOutAll();
+
+    [RelayCommand]
+    private void Trim() => _owner.RequestTrim(this);
+
+    /// <summary>Pinned to the front (right-click → "Favourite").</summary>
+    [ObservableProperty]
+    private bool _isFavorite;
+
+    [RelayCommand]
+    private void ToggleFavorite() => _owner.SetFavorite(this, !IsFavorite);
 
     [RelayCommand]
     private void ShowInFolder() => _owner.ShowTileInFolder(this);

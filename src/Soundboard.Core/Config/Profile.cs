@@ -30,6 +30,15 @@ public sealed class TileConfig
 
     /// <summary>Background picture: file name inside the picture folder (no directory part); null = none. Since version 3.</summary>
     public string? Image { get; set; }
+
+    /// <summary>Cut: the pad starts this many seconds into the file; null = at the beginning. The file stays as it is.</summary>
+    public double? TrimStart { get; set; }
+
+    /// <summary>Cut: the pad ends this many seconds into the file; null = at the end of the file.</summary>
+    public double? TrimEnd { get; set; }
+
+    /// <summary>Favourite: pinned to the front of the pads, in a row of its own.</summary>
+    public bool Favorite { get; set; }
 }
 
 /// <summary>User settings: tiles and the chosen monitor device. Stored as JSON.</summary>
@@ -58,6 +67,12 @@ public sealed class Profile
 
     /// <summary>Microphone level inside the app, 0..2 (1 = unchanged). Not the Windows volume.</summary>
     public float MicVolume { get; set; } = 1f;
+
+    /// <summary>
+    /// Level of the sounds in the cable, 0..2, on top of the master volume (what the others hear).
+    /// Default well below 1: sound files are mastered loud, a voice is much quieter.
+    /// </summary>
+    public float CableSoundVolume { get; set; } = 0.35f;
 
     /// <summary>Buffer size of the microphone path.</summary>
     public BufferSize Buffer { get; set; } = BufferSize.Medium;

@@ -131,14 +131,13 @@
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource StopPressed}" />
                         </Trigger>
-                        <!-- Nothing plays (main window): a quiet secondary button, only the square stays red.
+                        <!-- Nothing plays (main window): a quiet secondary button, only the square stays red (same weight, same width).
                              Red again as soon as something plays – that also says "something runs". -->
                         <DataTrigger Binding="{Binding AnyPlaying}" Value="False">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonBg}" />
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource LineBrush}" />
                             <Setter TargetName="Square" Property="Fill" Value="{DynamicResource StopIcon}" />
                             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-                            <Setter Property="FontWeight" Value="Normal" />
                         </DataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
@@ -297,7 +296,8 @@
         </Setter>
     </Style>
 
-    <!-- Segment (one of a few choices): selected = soft accent fill, accent frame, semibold. -->
+    <!-- Segment (one of a few choices): selected = soft accent fill and a 2-px accent ring laid on top;
+         the frame stays 1 px and the text keeps its weight, so nothing moves. -->
     <Style x:Key="Segment" TargetType="RadioButton">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="FontFamily" Value="{DynamicResource FontText}" />
@@ -310,10 +310,13 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
-                    <Border x:Name="Bd" CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}" Background="{DynamicResource ButtonBg}"
-                            Padding="{TemplateBinding Padding}">
-                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" RecognizesAccessKey="False" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Bd" CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}" Background="{DynamicResource ButtonBg}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" RecognizesAccessKey="False" />
+                        </Border>
+                        <Border x:Name="Ring" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}" Opacity="0" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ButtonHover}" />
@@ -324,8 +327,7 @@
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentSoft}" />
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-                            <Setter TargetName="Bd" Property="BorderThickness" Value="2" />
-                            <Setter Property="FontWeight" Value="SemiBold" />
+                            <Setter TargetName="Ring" Property="Opacity" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -333,7 +335,7 @@
         </Setter>
     </Style>
 
-    <!-- Tab of the settings: semibold when selected. The accent line under the open tab is not part of a tab:
+    <!-- Tab of the settings: the open one is marked by the accent line only (same weight, so the row does not move). The accent line under the open tab is not part of a tab:
          one line for the whole row slides from tab to tab (TabIndicator). -->
     <Style x:Key="Tab" TargetType="RadioButton">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
@@ -356,9 +358,6 @@
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PressedOverlay}" />
-                        </Trigger>
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -384,17 +383,21 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
-                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <!-- Focus: a 2-px ring on top; the text inside does not move. -->
+                        <Border x:Name="FocusBd" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}" Opacity="0" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource TextBrush}" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-                            <Setter TargetName="Bd" Property="BorderThickness" Value="2" />
+                            <Setter TargetName="FocusBd" Property="Opacity" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -850,5 +853,6 @@
         <Setter Property="VerticalAlignment" Value="Top" />
     </Style>
 
+    <Geometry x:Key="StarGeometry">M 10,0.6 L 12.6,6.6 L 19.1,7.2 L 14.2,11.5 L 15.7,17.9 L 10,14.5 L 4.3,17.9 L 5.8,11.5 L 0.9,7.2 L 7.4,6.6 Z</Geometry>
     <Geometry x:Key="GearGeometry">F0 M 17.09,8.26 L 19.52,8.76 L 19.52,11.24 L 17.09,11.74 L 16.24,13.79 L 17.61,15.85 L 15.85,17.61 L 13.79,16.24 L 11.74,17.09 L 11.24,19.52 L 8.76,19.52 L 8.26,17.09 L 6.21,16.24 L 4.15,17.61 L 2.39,15.85 L 3.76,13.79 L 2.91,11.74 L 0.48,11.24 L 0.48,8.76 L 2.91,8.26 L 3.76,6.21 L 2.39,4.15 L 4.15,2.39 L 6.21,3.76 L 8.26,2.91 L 8.76,0.48 L 11.24,0.48 L 11.74,2.91 L 13.79,3.76 L 15.85,2.39 L 17.61,4.15 L 16.24,6.21 Z M 10,6.8 A 3.2,3.2 0 1 0 10,13.2 A 3.2,3.2 0 1 0 10,6.8 Z</Geometry>
 </ResourceDictionary>

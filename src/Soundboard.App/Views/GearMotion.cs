@@ -16,6 +16,8 @@ namespace Soundboard.App.Views;
 /// finished turn is taken off the transform: an animation that has ended still counts as "animated" for WPF.
 /// The turn sits on the button's content (a RotateTransform about its centre). Keyboard focus does not
 /// turn it (only the mouse raises MouseEnter/MouseLeave); animations off (setting or Windows): no turn, 0°.
+/// While <see cref="IsHeldProperty"/> is true (the settings are open) the gear turns forward and stays
+/// there, whatever the mouse does; when it becomes false (closed) it turns back.
 /// </summary>
 public static class GearMotion
 {
@@ -35,6 +37,20 @@ public static class GearMotion
     public static bool GetIsEnabled(DependencyObject d) => (bool)d.GetValue(IsEnabledProperty);
     public static void SetIsEnabled(DependencyObject d, bool value) => d.SetValue(IsEnabledProperty, value);
 
+    /// <summary>True while what the gear opens is open: it stays turned forward until this goes false.</summary>
+    public static readonly DependencyProperty IsHeldProperty = DependencyProperty.RegisterAttached(
+        "IsHeld", typeof(bool), typeof(GearMotion), new PropertyMetadata(false, OnIsHeldChanged));
+
+    public static bool GetIsHeld(DependencyObject d) => (bool)d.GetValue(IsHeldProperty);
+    public static void SetIsHeld(DependencyObject d, bool value) => d.SetValue(IsHeldProperty, value);
+
+    private static void OnIsHeldChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not ContentControl button) return;
+        // Released with the mouse still on the button: back as well – the click has done its work.
+        Turn(button, forward: (bool)e.NewValue, ThemeManager.AnimationsOn);
+    }
+
     private static IEasingFunction Frozen(EasingFunctionBase f)
     {
         f.Freeze();
@@ -53,7 +69,12 @@ public static class GearMotion
 
     private static void OnMouseEnter(object sender, MouseEventArgs e) => Turn((ContentControl)sender, forward: true, ThemeManager.AnimationsOn);
 
-    private static void OnMouseLeave(object sender, MouseEventArgs e) => Turn((ContentControl)sender, forward: false, ThemeManager.AnimationsOn);
+    private static void OnMouseLeave(object sender, MouseEventArgs e)
+    {
+        var button = (ContentControl)sender;
+        if (GetIsHeld(button)) return; // open: stays turned until closed
+        Turn(button, forward: false, ThemeManager.AnimationsOn);
+    }
 
     /// <summary>Whether a turn is running on the button's symbol.</summary>
     public static bool IsTurning(ContentControl button) =>
