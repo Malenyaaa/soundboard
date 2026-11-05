@@ -49,10 +49,7 @@ public sealed partial class MainViewModel
         CancelKeyCapture();
         RefreshDeviceViews();
         UpdateMonitorStatus();
-        // The comparison texts are rebuilt in the new language; a notice the user already closed stays closed.
-        bool hadSnapshotNotice = Notices.Any(n => n.Key == "snapshot");
-        CompareNow();
-        if (!hadSnapshotNotice) ClearNotice("snapshot");
+        CompareNow(); // comparison and the "!" texts in the new language
         UpdateCableStatus();
         foreach (var f in FunctionKeys) f.RefreshTexts();
         RefreshHotkeyViews();

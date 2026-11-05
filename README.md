@@ -13,13 +13,14 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.0 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.1 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
 Neu in 0.14: Suche über den Pads, Pads per Ziehen sortieren, Farbe je Pad, frei belegbare
 Stopp-Taste, „Mikrofon stumm“ als Taste, Profil als ZIP exportieren/importieren, Lautstärke
-angleichen, mehrstufiges Rückgängig.
+angleichen, mehrstufiges Rückgängig. In 0.14.1: Der Audio-Zustand wird im Hintergrund gesichert;
+gemeldet wird nur noch als „Audio“ mit Warnzeichen in der Statuszeile, wenn wirklich etwas nicht geht.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -46,16 +47,17 @@ der Knöpfe stehen hier auf Deutsch; in der englischen Oberfläche heißen sie e
 
 ### 1. Virtuelles Kabel (VB-CABLE)
 
-1. Im Soundboard **„Audio-Zustand jetzt sichern“** klicken – so lässt sich später zeigen, ob
-   das Treiber-Setup etwas verstellt hat.
-2. Auf [vb-cable.com](https://vb-cable.com) das ZIP-Paket für Windows laden und entpacken.
-3. `VBCABLE_Setup_x64.exe` mit Rechtsklick → „Als Administrator ausführen“ starten, dann
+Den Windows-Audio-Zustand sichert das Soundboard selbst im Hintergrund (beim ersten Start und
+wenn Geräte dazukommen, etwa das Kabel); dafür muss man nichts tun.
+
+1. Auf [vb-cable.com](https://vb-cable.com) das ZIP-Paket für Windows laden und entpacken.
+2. `VBCABLE_Setup_x64.exe` mit Rechtsklick → „Als Administrator ausführen“ starten, dann
    „Install Driver“.
-4. Windows neu starten, Soundboard öffnen. Es findet „CABLE Input“ und „CABLE Output“ und
-   vergleicht mit der Sicherung. Hat das Setup ein Standardgerät verstellt (Windows macht
-   neue Audiotreiber manchmal zum Standard), erscheint ein Hinweis über den Pads; „Ansehen“ öffnet den Vergleich mit
-   **„Standardgerät zurückstellen“**.
-5. Prüfen: Beim Sprechen schlägt „Das sendet dein Kabel gerade“ aus. Gegenprobe ohne
+3. Windows neu starten, Soundboard öffnen. Es findet „CABLE Input“ und „CABLE Output“ und
+   vergleicht mit der Sicherung. Hat das Setup das Kabel zum Standardgerät gemacht (Windows macht
+   neue Audiotreiber manchmal zum Standard), steht unten in der Statuszeile **„Audio“ mit
+   Warnzeichen**; ein Klick öffnet den Reiter „Audio-Zustand“ mit **„Standardgerät zurückstellen“**.
+4. Prüfen: Beim Sprechen schlägt „Das sendet dein Kabel gerade“ aus. Gegenprobe ohne
    Discord: Systemsteuerung → Sound → Registerkarte „Aufnahme“ → bei „CABLE Output“
    bewegt sich die Anzeige. „Testton senden“ schickt eine Sekunde 440 Hz nur ins Kabel.
 
@@ -91,7 +93,7 @@ Discords Dateien.
 ┌──────────────────────────────────────────────────────────────────────────────────┐
 │ (●) Mithören [Kopfhörer v] ◁) ━━●── 80 % [Sounds hinzufügen …] [⚙] [Pads suchen …] [■ Stop] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
-│ ⚠ Ein Windows-Standardgerät weicht von der Sicherung ab …   [Ansehen] [Schließen] │
+│ ⚠ Nicht übernommen: notiz.txt. Möglich sind MP3, WAV, OGG und FLAC.      [Schließen] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ ┌Num 1───1,2 s┐ ┌Num 2─■ −2,0 s┐ ┌Num 3───6,0 s┐ ┌⚠ Num 3─1,8 s┐ ┌────────12,4 s┐ │
 │ │             │ │▓▓▓▓▓ leuchtet│ │             │ │             │ │              │ │
@@ -182,15 +184,23 @@ zweite (bei 560 px Deutsch auch dritte) Zeile; Mithören und Stop bleiben oben.
   nicht wirkt oder das Mikrofon stumm ist („Mikrofon: stumm“ – ein Klick schaltet es wieder
   ein; im Infobereich-Menü gibt es denselben Schalter zum Abhaken). Nach einem Neustart ist
   das Mikrofon immer an. Fehlt das Kabel ganz, steht dort fett „Kabel fehlt“, und der Klick öffnet die
-  Einrichtung; ein eigener Hinweis über den Pads erscheint dafür nicht. Die
-  Windows-Standardgeräte stehen hier nicht; die zeigt Windows selbst.
+  Einrichtung; ein eigener Hinweis über den Pads erscheint dafür nicht.
+  **„Audio“ mit Warnzeichen** erscheint nur, wenn in Windows-Audio etwas nicht mehr geht: ein
+  Standardgerät (Wiedergabe oder Aufnahme, Multimedia oder Kommunikation) fehlt, ist deaktiviert
+  oder abgezogen; das Kabel ist Standard-Wiedergabegerät (dann hört man nichts) oder neu
+  Standardmikrofon geworden; das Standard-Wiedergabegerät ist stumm oder auf 0 %. Der Tooltip
+  nennt den Grund, ein Klick öffnet „Audio-Zustand“. Ein anderes, funktionierendes Standardgerät
+  (z. B. selbst auf Kopfhörer umgestellt) ist kein Problem und steht nur leise im Reiter.
+  Hintergrund: Virtuelle Audio-Software kann Windows-Standardgeräte übernehmen; läuft sie nicht,
+  ist kein Ton da. Stumm und Lautstärke melden keine Geräte-Ereignisse; das Soundboard liest sie
+  neu, wenn sein Fenster nach vorn kommt.
 - **Hinweise:** Es steht immer höchstens ein Hinweis über den Pads – ein Feld wie die
   anderen, erkennbar am bernsteinfarbenen Warnzeichen. Gibt es mehrere,
   blättert „Nächster“ weiter.
 - **Fenster schließen** lässt das Programm im Infobereich (Soundboard-Symbol: Taste mit
   Wellenform) weiterlaufen, damit Discord weiter dein Mikrofon bekommt. **Beenden** über Rechtsklick auf das Symbol; die
   Rückfrage im Stil der App ([Beenden] / [Weiterlaufen lassen]) sagt, dass Discord dann Stille
-  vom Kabel hört, und zeigt den Vergleich mit der Sicherung.
+  vom Kabel hört, und nennt Windows-Audio nur, wenn dort etwas nicht geht.
 - **Mit Windows starten:** Schalter „Mit Windows starten (nur im Infobereich)“ unter
   „Darstellung“ → „Start“, für die portable EXE genauso wie für die installierte. Er setzt den
   Wert `Soundboard` unter `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` auf
@@ -201,9 +211,10 @@ zweite (bei 560 px Deutsch auch dritte) Zeile; Mithören und Stop bleiben oben.
   Kopie), steht der Schalter auf an, und darunter steht, welche Datei er startet, mit
   „Auf diese Kopie umstellen“. Verweigert Windows die Änderung (Richtlinie, Rechte), springt
   der Schalter zurück und ein Hinweis nennt den Grund.
-- **Absturz:** Ein kleiner Wächter-Prozess merkt, wenn das Programm unerwartet endet, und
-  meldet, was das für Discord heißt – mit „Neu starten“ und, falls nötig, „Standardgerät
-  zurückstellen“.
+- **Absturz:** Ein kleiner Wächter-Prozess merkt, wenn das Programm unerwartet endet. Ein
+  Fenster zeigt er nur, wenn dadurch etwas nicht geht: Das Kabel lief (Discord-Mikrofon jetzt
+  stumm) oder Windows-Audio hat ein Problem wie oben. Dann mit „Neu starten“ und, falls es
+  hilft, „Standardgerät zurückstellen“. Sonst bleibt er still.
 
 ### Einstellungen (Zahnrad)
 
@@ -215,7 +226,7 @@ Die Einstellungen legen sich über die Pads; Kopfzeile und „Stop“ bleiben. E
 | Einrichtung | die drei Schritte: Kabel, Discord, Rauschunterdrückung (siehe oben) |
 | Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
 | Tasten | Tasten pausieren; „Alle Sounds stoppen“, „Mikrofon stumm“ und alle Pads mit Taste, nur Abweichungen stehen dabei, Ausweg bei Konflikten; Sounds überlagern (aus: ein neuer Sound stoppt den laufenden); „Dieselbe Taste, während der Sound läuft“: Stoppen oder Von vorn spielen |
-| Audio-Zustand | Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken (ist nur das Kabel neu, steht das so da); „Standardgerät zurückstellen“, „Audio-Zustand jetzt sichern“, „Neu vergleichen“; darunter die Audiogeräte in Windows (nur angezeigt, die Endpunkt-ID im Tooltip der Zeile) |
+| Audio-Zustand | oben, nur bei einem Problem, was in Windows-Audio nicht geht; Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken; „Standardgerät zurückstellen“ (bei abweichendem Standardgerät), „Jetzigen Zustand als normal sichern“ (z. B. nach eigenem Umstellen), „Neu vergleichen“; darunter die Audiogeräte in Windows (nur angezeigt, die Endpunkt-ID im Tooltip der Zeile) |
 | Darstellung | Sprache (English, Deutsch); hell oder dunkel (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); Pad-Größe (groß, kompakt); weiches Aufleuchten an/aus; Profil exportieren/importieren; mit Windows starten (nur im Infobereich) |
 
 **Profil:** „Profil exportieren …“ speichert alle Pads mit ihren Sounds und Bildern als eine
@@ -321,7 +332,7 @@ Alles liegt unter `%LOCALAPPDATA%\Soundboard\`:
 | `Bilder\` | die Pad-Bilder (Kopien); ein entferntes oder ersetztes Bild wird beim Beenden gelöscht, sofern es kein Pad mehr nutzt. Andere Dateien im Ordner bleiben unberührt |
 | `Aufnahmen\` | 10-Sekunden-Testaufnahmen |
 | `Sicherungen\` | ZIP der Pads vor jedem Import (`vor-import-<Datum>.zip`) |
-| `audio-snapshot.json` | gesicherter Windows-Audio-Zustand (beim ersten Start automatisch) |
+| `audio-snapshot.json` | gesicherter Windows-Audio-Zustand (automatisch: beim ersten Start und wenn Geräte dazukommen oder wegfallen, solange die Standardgeräte wie gesichert sind und alles geht) |
 | `audio-snapshot.vorher.json` | die Sicherung davor |
 | `running.json` | Merker „läuft gerade“; bleibt er nach dem Ende liegen, war es ein Absturz |
 

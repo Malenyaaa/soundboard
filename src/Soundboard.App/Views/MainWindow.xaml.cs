@@ -293,6 +293,13 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>Mute and volume raise no device event: look again when the window comes to the front.</summary>
+    protected override void OnActivated(EventArgs e)
+    {
+        base.OnActivated(e);
+        _vm.RecheckAudio();
+    }
+
     protected override void OnDeactivated(EventArgs e)
     {
         base.OnDeactivated(e);

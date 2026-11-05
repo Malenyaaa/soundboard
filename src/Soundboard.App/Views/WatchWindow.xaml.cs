@@ -6,8 +6,8 @@ using Soundboard.Core.Text;
 namespace Soundboard.App.Views;
 
 /// <summary>
-/// Small window of the watcher process after the app ended unexpectedly: what that means
-/// for Discord, how the Windows defaults look, restart or put the defaults back.
+/// Small window of the watcher process after the app ended unexpectedly and something no
+/// longer works: what that means for Discord and Windows audio, restart or put the defaults back.
 /// </summary>
 public partial class WatchWindow : Window
 {
@@ -20,7 +20,7 @@ public partial class WatchWindow : Window
         _restore = restore;
         Headline.Text = report.Headline;
         Body.Text = string.Join(Environment.NewLine, report.Lines(discordWayBack));
-        RestoreButton.Visibility = report.DefaultsChanged ? Visibility.Visible : Visibility.Collapsed;
+        RestoreButton.Visibility = report.CanRestore ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OnRestart(object sender, RoutedEventArgs e)

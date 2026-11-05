@@ -761,7 +761,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _snapshotInfo = "";
 
-    private string? _snapshotNoticeShownFor;
+    /// <summary>Why the last save failed; null when it worked.</summary>
+    private string? _snapshotSaveError;
+
+    /// <summary>Something in Windows audio no longer works (see <see cref="AudioHealth"/>): the small "!" in the status line.</summary>
+    [ObservableProperty]
+    private bool _audioWarn;
+
+    /// <summary>The problems, one per line, for the Audio state tab; empty when all works.</summary>
+    [ObservableProperty]
+    private string _audioProblemText = "";
+
+    /// <summary>Tooltip and screen-reader name of the "!" in the status line.</summary>
+    [ObservableProperty]
+    private string _statusAudioTip = "";
+
+    private DateTime _lastAudioRecheck;
 
     /// <summary>Explanation above the comparison when a default device changed; empty otherwise.</summary>
     [ObservableProperty]
@@ -776,42 +791,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public static string AppVersion =>
         typeof(MainViewModel).Assembly.GetName().Version?.ToString(3) ?? "?";
 
-    /// <summary>Start path: running flag, load or take the first snapshot, compare.</summary>
+    /// <summary>
+    /// Start path: running flag, load the snapshot, compare. Saving happens in the background
+    /// (<see cref="CompareNow"/>): on the first start, and whenever the devices change while the
+    /// defaults are still the saved ones. No banner – after a crash too, the "!" in the status line
+    /// is the only sign, and only if something no longer works.
+    /// </summary>
     private void InitAudioState()
     {
-        bool crashed = false;
-        if (_services.UseDirtyFlag)
-        {
-            var info = _dirty.Read();
-            crashed = info is not null && DirtyFlag.IsStale(info, DirtyFlag.ProcessStartTime);
-            WriteDirtyFlag(cableActive: false);
-        }
+        if (_services.UseDirtyFlag) WriteDirtyFlag(cableActive: false);
 
         try
         {
             _snapshot = SnapshotStore.Load(_paths.SnapshotFile);
         }
-        catch (SnapshotException ex)
+        catch (SnapshotException)
         {
-            ShowNotice("snapshot-file", TF("Notice.SnapshotFile", ex.Message), T("Action.SaveState"), SaveSnapshotNow);
-        }
-
-        if (_snapshot is null && !File.Exists(_paths.SnapshotFile))
-        {
-            // First start: remember how Windows audio looks before anything else happens.
-            TrySaveSnapshot(_state);
+            // Unreadable: a new one is saved below; the old file stays as "…vorher.json".
+            _snapshot = null;
         }
 
         _stateReady = true;
         CompareNow();
-
-        // After an unclean exit, speak up only if something is actually off: a Windows default
-        // device that differs from the saved state. Nothing to do means nothing to say.
-        if (crashed && Comparison is { DefaultsChanged: true })
-        {
-            ShowNotice("crash", T("Notice.CrashChanged"), T("Action.Restore"), RestoreDefaults);
-            HideNoticeAfter("crash", TimeSpan.FromSeconds(3));
-        }
     }
 
     /// <summary>Removes the notice shown under <paramref name="key"/> after a delay, unless it
@@ -850,28 +851,52 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var snap = AudioSnapshot.From(state, AppVersion);
             SnapshotStore.Save(_paths.SnapshotFile, snap);
             _snapshot = snap;
-            ClearNotice("snapshot-file");
+            _snapshotSaveError = null;
             return true;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            ShowNotice("snapshot-file", TF("Notice.SnapshotSaveFailed", ex.Message), T("Action.Retry"), SaveSnapshotNow);
+            // Not worth a banner: the sound works without it. The Audio state tab says why.
+            _snapshotSaveError = ex.Message;
             return false;
         }
+    }
+
+    /// <summary>
+    /// Saves in the background when that keeps the reference useful: when there is none yet
+    /// (first start), and when devices came or went (e.g. the cable after the driver setup)
+    /// while the defaults are still the saved ones and everything works. A default the user
+    /// changed is never taken over silently – it stays visible in the tab until
+    /// "Save current state as normal".
+    /// </summary>
+    private void SaveInBackgroundIfUseful()
+    {
+        if (_state.Devices.Count == 0) return; // nothing could be read – not a state worth keeping
+        if (_snapshot is null)
+        {
+            TrySaveSnapshot(_state);
+            return;
+        }
+        var cmp = SnapshotService.Compare(_snapshot, _state);
+        if (cmp.IsIdentical || cmp.DefaultsChanged) return;
+        if (AudioHealth.Check(_state, _snapshot).Count > 0) return;
+        TrySaveSnapshot(_state);
     }
 
     /// <summary>Compares the snapshot with the current state and shows the result.</summary>
     public void CompareNow()
     {
         if (!_stateReady) return;
+        SaveInBackgroundIfUseful();
+        UpdateAudioHealth();
         ComparisonRows.Clear();
         if (_snapshot is null)
         {
             Comparison = null;
             SnapshotHeader = L.Get("State.NotSaved");
-            SnapshotInfo = L.Get("State.NotSavedInfo");
+            SnapshotInfo = _snapshotSaveError is null ? "" : L.F("State.SaveFailed", _snapshotSaveError);
             SnapshotAdvice = "";
-            ClearNotice("snapshot");
+            UpdateProblemHint(defaultsChanged: false);
             UpdateCableCompare();
             return;
         }
@@ -888,27 +913,54 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : L.Count("State.Diff", cmp.DifferenceCount, when);
         SnapshotInfo = L.Count("State.Unchanged", cmp.UnchangedDevices);
 
-        if (cmp.DefaultsChanged)
-        {
-            var lines = string.Join("; ", cmp.DefaultChangeLines);
-            SnapshotAdvice = L.F(cmp.CableBecameDefault ? "State.AdviceCable" : "State.Advice", lines);
-            int n = cmp.DefaultChangeLines.Count();
-            // Shown once per difference: a refresh (e.g. opening the settings) does not bring a closed notice back.
-            if (lines != _snapshotNoticeShownFor)
-            {
-                _snapshotNoticeShownFor = lines;
-                bool cable = cmp.CableBecameDefault;
-                ShowNotice("snapshot", () => cable ? L.Get("Notice.CableDefault") : L.Count("Notice.DefaultChanged", n),
-                    T("Action.View"), () => OpenSettings(SettingsTabs.AudioState));
-            }
-        }
-        else
-        {
-            SnapshotAdvice = "";
-            ClearNotice("snapshot");
-            _snapshotNoticeShownFor = null;
-        }
+        // A different default is only said here, quietly; the status line speaks up only when
+        // something no longer works (UpdateAudioHealth). Then "all is well if you did it" would be wrong.
+        string changes = string.Join("; ", cmp.DefaultChangeLines);
+        SnapshotAdvice = !cmp.DefaultsChanged ? ""
+            : AudioWarn ? L.F("State.AdviceProblem", changes)
+            : L.F("State.Advice", changes);
+        UpdateProblemHint(cmp.DefaultsChanged);
         UpdateCableCompare();
+    }
+
+    private void UpdateProblemHint(bool defaultsChanged)
+    {
+        AudioProblemHint = !AudioWarn ? ""
+            : string.Join(" ", new[]
+            {
+                defaultsChanged ? L.Get("State.HintRestore") : "",
+                _audioProblems.Any(p => p.Kind is AudioProblemKind.Muted or AudioProblemKind.Silent) ? L.Get("State.HintVolume") : "",
+            }.Where(s => s.Length > 0));
+    }
+
+    private IReadOnlyList<AudioProblem> _audioProblems = [];
+
+    /// <summary>What helps, under the problems in the Audio state tab; empty if nothing in the app helps.</summary>
+    [ObservableProperty]
+    private string _audioProblemHint = "";
+
+    /// <summary>Sets the "!" in the status line and the problem box of the Audio state tab from the current state.</summary>
+    private void UpdateAudioHealth()
+    {
+        var problems = AudioHealth.Check(_state, _snapshot);
+        _audioProblems = problems;
+        AudioWarn = problems.Count > 0;
+        AudioProblemText = string.Join(Environment.NewLine, problems.Select(p => p.Text));
+        StatusAudioTip = problems.Count == 0 ? "" : L.F("Status.AudioTip", string.Join(" ", problems.Select(p => p.Text)));
+    }
+
+    /// <summary>
+    /// Reads Windows audio again when the window comes to the front, because mute and volume
+    /// changes raise no device event. At most every two seconds; the device lists stay as they are.
+    /// </summary>
+    public void RecheckAudio()
+    {
+        if (!_stateReady || _disposed) return;
+        var now = DateTime.UtcNow;
+        if (now - _lastAudioRecheck < TimeSpan.FromSeconds(2)) return;
+        _lastAudioRecheck = now;
+        _state = _audio.ReadState();
+        CompareNow();
     }
 
     /// <summary>Puts the default devices back to the saved ones (and only those).</summary>
@@ -938,16 +990,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ShowNotice("restore", () => L.F("Notice.RestorePartly", result.ManualSteps().Replace(Environment.NewLine, "; ").Replace("\n", "; ")));
     }
 
-    /// <summary>Saves the current Windows audio state as the new reference.</summary>
+    /// <summary>"Save current state as normal": the current Windows audio state becomes the reference, e.g. after the user chose another default device.</summary>
     [RelayCommand]
     private void SaveSnapshotNow()
     {
         RefreshDevices();
-        if (TrySaveSnapshot(_state))
-        {
-            RestoreResultText = L.F("State.SavedNow", L.DateTime(DateTime.Now));
-            CompareNow();
-        }
+        RestoreResultText = TrySaveSnapshot(_state)
+            ? L.F("State.SavedNow", L.DateTime(DateTime.Now))
+            : L.F("State.SaveFailed", _snapshotSaveError);
+        CompareNow();
     }
 
     [RelayCommand]
@@ -1351,7 +1402,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (cmp is null)
         {
             CableCompareText = L.Get("Cable.NoSnapshot");
-            CableCompareProblem = true;
+            CableCompareProblem = false; // nothing to restore to
             return;
         }
         string when = L.DateTime(cmp.Snapshot.TakenAt);
@@ -1499,7 +1550,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ClearNotice("cable"); // the setup says the same in detail
             if (!Cable.IsReady) SetupStep = 1;
         }
-        if (tab == SettingsTabs.AudioState) ClearNotice("snapshot"); // the tab shows the same in detail
         SettingsTab = tab;
         SettingsOpen = true;
     }
@@ -1507,7 +1557,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnSettingsTabChanged(string value)
     {
         if (Capturing is FunctionKeyViewModel) CancelKeyCapture(); // its row is on the tab just left
-        if (SettingsOpen && value == SettingsTabs.AudioState) ClearNotice("snapshot");
     }
 
     /// <summary>Opens the settings on the given tab (parameter: tab id; empty = last tab).</summary>
@@ -1591,7 +1640,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>Body of the exit question (the question itself is its heading): what Discord gets afterwards and how the audio state looks.</summary>
+    /// <summary>Body of the exit question (the question itself is its heading): what Discord gets afterwards, and Windows audio only if something there does not work.</summary>
     public string ExitQuestion()
     {
         RefreshDevices();
@@ -1602,13 +1651,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             sb.AppendLine(DiscordWayBack(_profile.DiscordPreviousMic));
             sb.AppendLine();
         }
-        var cmp = Comparison;
-        if (cmp is null) sb.AppendLine(L.Get("Exit.NoSnapshot"));
-        else if (!cmp.DefaultsChanged) sb.AppendLine(L.Get("Exit.Same"));
-        else
+        var problems = AudioHealth.Check(_state, _snapshot);
+        if (problems.Count > 0)
         {
-            sb.AppendLine(L.Get("Exit.Changed"));
-            foreach (var line in cmp.DefaultChangeLines) sb.AppendLine("  " + line);
+            sb.AppendLine(L.Get("Exit.Problem"));
+            foreach (var p in problems) sb.AppendLine("  " + p.Text);
             sb.AppendLine(L.Get("Exit.NotUs"));
         }
         return sb.ToString().TrimEnd();

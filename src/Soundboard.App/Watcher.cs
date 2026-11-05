@@ -10,8 +10,9 @@ namespace Soundboard.App;
 
 /// <summary>
 /// Watcher child process (<c>Soundboard.exe --watch &lt;pid&gt;</c>). Waits until the app
-/// ends. Normal exit (running flag removed): ends silently. Otherwise: compares the saved
-/// audio state with Windows (read only) and shows a small window. No service, no admin.
+/// ends. Normal exit (running flag removed): ends silently. Otherwise: reads Windows audio
+/// (read only) and shows a small window only if something no longer works – the cable was
+/// feeding Discord, or a default device gives no sound. No service, no admin.
 /// </summary>
 internal static class Watcher
 {
@@ -57,7 +58,7 @@ internal static class Watcher
         try { snap = SnapshotStore.Load(paths.SnapshotFile); }
         catch (SnapshotException) { }
 
-        var report = CrashCheck.Evaluate(flag, pid, () => snap is null ? null : SnapshotService.Compare(snap, ReadState()));
+        var report = CrashCheck.Evaluate(flag, pid, snap, ReadState);
         if (report is null)
         {
             app.Shutdown();

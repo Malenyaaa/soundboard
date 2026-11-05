@@ -153,8 +153,12 @@ mit VB-Audios Setup, beaufsichtigt von unserer App.
 
 ### 2.2 Snapshot: was gesichert wird
 
-Vor dem Verweis auf den Treiber-Download (und jederzeit über „Audio-Zustand sichern")
-schreibt die App `audio-snapshot.json` mit Zeitstempel und App-Version:
+Die App schreibt `audio-snapshot.json` mit Zeitstempel und App-Version **selbst im
+Hintergrund**: beim ersten Start (also vor dem Treiber-Download) und immer dann, wenn Geräte
+dazukommen oder wegfallen (z. B. das Kabel nach dem Setup), solange die Standardgeräte noch die
+gesicherten sind und nichts kaputt ist. Ein Standardgerät, das jemand anders umgestellt hat,
+übernimmt sie nie still; das geht nur über den Nebenknopf „Jetzigen Zustand als normal sichern"
+im Reiter „Audio-Zustand“. Gesichert wird:
 
 1. Standard-Endpunkte für Render und Capture × Rollen eConsole, eMultimedia,
    eCommunications: ID + Anzeigename (`GetDefaultAudioEndpoint`).
@@ -176,11 +180,28 @@ zeigt die App eine Anleitung „so stellst du es von Hand zurück" mit den gesic
 
 ### 2.3 Wann geprüft und zurückgestellt wird
 
+Gemeldet wird nicht jede Abweichung, sondern nur, **was nicht mehr geht** — klein, als „Audio“
+mit Warnzeichen in der Statuszeile (Tooltip nennt den Grund, Klick öffnet „Audio-Zustand“), nie
+als Banner. Grund für die ganze Vorsicht: Virtuelle Audio-Software kann Windows-Standardgeräte
+übernehmen; läuft sie nicht, ist gar kein Ton da. „Geht nicht mehr“ heißt, für die Rollen
+Multimedia und Kommunikation:
+
+- kein Standardgerät, obwohl eines gesichert war (Gerät fehlt, deaktiviert, abgezogen);
+- das Standardgerät selbst ist nicht aktiv;
+- das Kabel ist Standard-Wiedergabegerät (man hört nichts) oder neu Standardmikrofon geworden;
+- das Standard-Wiedergabegerät ist stumm oder auf 0 %.
+
+Ein anderes, funktionierendes Standardgerät (selbst auf Kopfhörer umgestellt, oder Windows ist
+nach dem Abziehen auf die Lautsprecher gewechselt) ist **kein** Problem und steht nur im Reiter.
+Im Zweifel kein Warnzeichen. Nicht erkennbar ist ein virtuelles Gerät, das aktiv gemeldet wird,
+dessen Software aber nicht läuft. Stumm/Lautstärke lösen kein Geräte-Ereignis aus; die App liest
+sie zusätzlich, wenn ihr Fenster nach vorn kommt.
+
 | Situation | Mechanismus |
 |---|---|
-| Nach Treiberinstallation | Der Assistent vergleicht Snapshot und Ist. Neu: CABLE Input/Output → gut. Standardgerät verändert (z. B. CABLE als Standard-Mikro oder -Wiedergabe) → gelber Kasten mit Knopf „Standardgerät zurückstellen" → `SetDefaultEndpoint` auf die gesicherten IDs. |
-| Normales Schließen | Streams schließen, Dirty-Flag löschen. Es gibt nichts zurückzustellen, weil nichts gestellt wurde. Kurzer Vergleich Snapshot/Ist; Abweichung wird nur gemeldet. |
-| Absturz | Beim nächsten Start: Dirty-Flag vorhanden → Vergleich, Meldung. Zusätzlich **Wächter**: die App startet sich selbst als `app.exe --watch <pid>`; der Kindprozess wartet auf das Elternende, prüft und zeigt bei Bedarf ein kleines Fenster „Soundboard ist beendet — Discord hört dein Kabel, aber niemand füttert es. Neu starten / Hinweis". Kein Dienst, keine Adminrechte. |
+| Nach Treiberinstallation | Die App vergleicht Snapshot und Ist. Neu: CABLE Input/Output → gut, die Sicherung wird still nachgezogen. Kabel als Standard-Wiedergabe oder -Mikro → Warnzeichen „Audio“; im Reiter „Standardgerät zurückstellen" → `SetDefaultEndpoint` auf die gesicherten IDs. |
+| Normales Schließen | Streams schließen, Dirty-Flag löschen. Es gibt nichts zurückzustellen, weil nichts gestellt wurde. Die Rückfrage nennt Windows-Audio nur, wenn dort etwas nicht geht. |
+| Absturz | **Wächter**: die App startet sich selbst als `app.exe --watch <pid>`; der Kindprozess wartet auf das Elternende und zeigt nur dann ein kleines Fenster, wenn etwas nicht geht: das Kabel lief („Discord hört dein Kabel, aber niemand füttert es. Neu starten / Hinweis") oder Windows-Audio hat ein Problem wie oben. Sonst still. Beim nächsten Start kein Banner; ein Problem zeigt das Warnzeichen. Kein Dienst, keine Adminrechte. |
 | Neustart / Windows-Update | Kein erzwungener Autostart. Stattdessen `app.exe --check` und Menüpunkt „Audio-Zustand prüfen". Windows-Updates setzen Geräte gelegentlich um ([Hinweis](https://voicechanger.easeus.com/resources/vb-audio-virtual-cable-not-working.html)) — erkennen und melden. Optional (Häkchen): mit Windows starten, dann greift die Prüfung automatisch. |
 | Deinstallation | siehe 2.5 |
 
@@ -247,8 +268,9 @@ Discord-Dateien, Tastendrücke in andere Programme einspeisen, Self-Bot.
 1. **Kabel.** Die App sucht einen Endpunkt mit Namen „CABLE Input"/„CABLE Output". Fehlt er:
    gelber Kasten „Es ist kein virtuelles Kabel installiert" mit Link zur VB-CABLE-Seite, dem
    Donationware-Hinweis, der Kurzanleitung (ZIP entpacken, `VBCABLE_Setup_x64.exe` als
-   Administrator, Install, Neustart) und dem Knopf „Audio-Zustand jetzt sichern" (Snapshot
-   vor der Installation). Nach dem Neustart erkennt die App das Kabel und vergleicht.
+   Administrator, Install, Neustart) und dem Satz, dass die App den Audio-Zustand schon selbst
+   gesichert hat (Snapshot vor der Installation, siehe 2.2). Nach dem Neustart erkennt die App
+   das Kabel und vergleicht.
 2. **Discord.** Anleitung: Discord → Einstellungen → Sprache & Video → Eingabegerät =
    „CABLE Output (VB-Audio Virtual Cable)"; Ausgabegerät **unverändert lassen**. Feld
    „Welches Mikro war vorher gewählt?" (Freitext, für die Rück-Anleitung). Pegelanzeige

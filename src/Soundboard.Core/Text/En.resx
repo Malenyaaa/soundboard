@@ -89,8 +89,6 @@
   <data name="Crash.Headline" xml:space="preserve"><value>The soundboard closed unexpectedly.</value></data>
   <data name="Crash.CableIdle" xml:space="preserve"><value>Discord is listening to your cable, but nothing feeds it – your microphone is silent in Discord right now.</value></data>
   <data name="Crash.Restart" xml:space="preserve"><value>Restart the soundboard, or: {0}</value></data>
-  <data name="Crash.DefaultsSame" xml:space="preserve"><value>The Windows default devices are as saved.</value></data>
-  <data name="Crash.DefaultsChanged" xml:space="preserve"><value>A Windows default device differs from the saved state (the soundboard did not change it):</value></data>
   <data name="Traces.Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Traces.SettingsTemp" xml:space="preserve"><value>Settings (temporary copy)</value></data>
   <data name="Traces.SettingsBroken" xml:space="preserve"><value>Settings (old, unreadable version)</value></data>
@@ -136,9 +134,8 @@
   <data name="Action.Retry" xml:space="preserve"><value>Try again</value></data>
   <data name="Action.Undo" xml:space="preserve"><value>Undo</value></data>
   <data name="Action.RemovePad" xml:space="preserve"><value>Remove pad</value></data>
-  <data name="Action.SaveState" xml:space="preserve"><value>Save audio state now</value></data>
+  <data name="Action.SaveState" xml:space="preserve"><value>Save current state as normal</value></data>
   <data name="Action.Restore" xml:space="preserve"><value>Restore default device</value></data>
-  <data name="Action.View" xml:space="preserve"><value>View</value></data>
   <data name="Action.MonitorOn" xml:space="preserve"><value>Switch monitor on</value></data>
   <data name="Action.ChooseMic" xml:space="preserve"><value>Choose microphone</value></data>
   <data name="Action.RecordAgain" xml:space="preserve"><value>Record again</value></data>
@@ -209,13 +206,7 @@
   <data name="Notice.CopyFailed" xml:space="preserve"><value>Could not be copied into the sound folder: {0}</value></data>
   <data name="Notice.PictureNotSound" xml:space="preserve"><value>Pictures don’t become pads, they become the background of a pad: right-click the pad → “Choose picture…”, or drag the picture straight onto the pad.</value></data>
   <data name="Notice.PadRemoved" xml:space="preserve"><value>Pad “{0}” removed. The file stays in the sound folder.</value></data>
-  <data name="Notice.SnapshotFile" xml:space="preserve"><value>{0} Save the current state again if it is right.</value></data>
-  <data name="Notice.CrashChanged" xml:space="preserve"><value>The soundboard did not close normally last time. A Windows default device has changed since then.</value></data>
-  <data name="Notice.SnapshotSaveFailed" xml:space="preserve"><value>The audio state could not be saved ({0}). Is the data folder read-only?</value></data>
-  <data name="Notice.CableDefault" xml:space="preserve"><value>The virtual cable is now a Windows default device – not because of the soundboard.</value></data>
-  <data name="Notice.DefaultChanged.One" xml:space="preserve"><value>A Windows default device differs from the saved state – not because of the soundboard.</value></data>
-  <data name="Notice.DefaultChanged.Other" xml:space="preserve"><value>{0} Windows default devices differ from the saved state – not because of the soundboard.</value></data>
-  <data name="Notice.RestoreNoSnapshot" xml:space="preserve"><value>There is no saved state to go back to yet. Save the audio state first.</value></data>
+  <data name="Notice.RestoreNoSnapshot" xml:space="preserve"><value>There is no saved state to go back to yet.</value></data>
   <data name="Notice.RestorePartly" xml:space="preserve"><value>Not everything could be set back automatically. By hand: {0}</value></data>
   <data name="Notice.MicNone" xml:space="preserve"><value>No microphone is chosen, and Windows reports none. Connect a microphone and choose it in the settings under “Microphone &amp; cable”.</value></data>
   <data name="Notice.MicMissing" xml:space="preserve"><value>The microphone “{0}” is not connected or is disabled in Windows. Connect it or choose another one in the settings under “Microphone &amp; cable”.</value></data>
@@ -298,10 +289,9 @@ Delete: remove key</value></data>
   <data name="Setup.Intro" xml:space="preserve"><value>The soundboard mixes your microphone and the sounds and sends both into a virtual audio cable. Discord takes the cable as its microphone. The Windows default devices stay as they are.</value></data>
   <data name="Setup.NeedCable" xml:space="preserve"><value>You need VB-CABLE by VB-Audio from</value></data>
   <data name="Setup.NeedCableTail" xml:space="preserve"><value> – donationware: free to use, donations to VB-Audio are welcome. The soundboard does not include it.</value></data>
-  <data name="Setup.C1" xml:space="preserve"><value>1. First click “Save audio state now”, so the soundboard can later show whether the setup changed anything.</value></data>
-  <data name="Setup.C2" xml:space="preserve"><value>2. Download the ZIP package for Windows from vb-cable.com and unpack it.</value></data>
-  <data name="Setup.C3" xml:space="preserve"><value>3. Right-click VBCABLE_Setup_x64.exe → “Run as administrator”, then “Install Driver”.</value></data>
-  <data name="Setup.C4" xml:space="preserve"><value>4. Restart Windows and open the soundboard again. It finds the cable and compares with the saved state.</value></data>
+  <data name="Setup.C1" xml:space="preserve"><value>1. Download the ZIP package for Windows from vb-cable.com and unpack it.</value></data>
+  <data name="Setup.C2" xml:space="preserve"><value>2. Right-click VBCABLE_Setup_x64.exe → “Run as administrator”, then “Install Driver”.</value></data>
+  <data name="Setup.C3" xml:space="preserve"><value>3. Restart Windows and open the soundboard again. It finds the cable by itself.</value></data>
   <data name="Setup.OpenSite" xml:space="preserve"><value>Open vb-cable.com</value></data>
   <data name="Setup.SearchCable" xml:space="preserve"><value>Look for the cable</value></data>
   <data name="Setup.SendToCable" xml:space="preserve"><value>Send microphone and sounds to the cable</value></data>
@@ -333,7 +323,7 @@ Delete: remove key</value></data>
   <data name="Cable.Found" xml:space="preserve"><value>Cable found: “{0}” (the soundboard sends here) and “{1}” (choose this in Discord as the microphone).</value></data>
   <data name="Cable.Disabled" xml:space="preserve"><value>Windows knows the cable, but it is disabled or not present. Enable “CABLE Input” and “CABLE Output” in Control Panel under Sound, or reinstall VB-CABLE and restart Windows.</value></data>
   <data name="Cable.None" xml:space="preserve"><value>No virtual cable is installed.</value></data>
-  <data name="Cable.NoSnapshot" xml:space="preserve"><value>No saved state yet – click “Save audio state now” before you install VB-CABLE.</value></data>
+  <data name="Cable.NoSnapshot" xml:space="preserve"><value>There is no saved audio state yet, so there is nothing to compare with.</value></data>
   <data name="Cable.DefaultsChanged" xml:space="preserve"><value>Since the save on {0}, a Windows default device has changed: {1}. “Restore default device” sets it back.</value></data>
   <data name="Cable.OnlyCableNew" xml:space="preserve"><value>Compared with the save on {0}: only the cable is new – that’s how it should be. The default devices are unchanged.</value></data>
   <data name="Cable.Unchanged" xml:space="preserve"><value>Compared with the save on {0}: the Windows default devices are unchanged.</value></data>
@@ -365,18 +355,16 @@ Delete: remove key</value></data>
   <data name="Keys.Overlay" xml:space="preserve"><value>Overlap sounds</value></data>
   <data name="Keys.OverlayHint" xml:space="preserve"><value>Off: a new sound stops the one playing. On: several sounds play at the same time.</value></data>
   <data name="State.NotSaved" xml:space="preserve"><value>Audio state: not saved yet</value></data>
-  <data name="State.NotSavedInfo" xml:space="preserve"><value>Save the state while everything is the way you want it. After that you see every change here.</value></data>
   <data name="State.Same" xml:space="preserve"><value>Audio state: as saved on {0}</value></data>
   <data name="State.Diff.One" xml:space="preserve"><value>Audio state: 1 difference since the save on {1}</value></data>
   <data name="State.Diff.Other" xml:space="preserve"><value>Audio state: {0} differences since the save on {1}</value></data>
   <data name="State.Unchanged.One" xml:space="preserve"><value>1 more device is unchanged.</value></data>
   <data name="State.Unchanged.Other" xml:space="preserve"><value>{0} more devices are unchanged.</value></data>
-  <data name="State.AdviceCable" xml:space="preserve"><value>The virtual cable is now a Windows default device – the soundboard did not do this (usually it was the driver setup). {0}. “Restore default device” sets it back. If you wanted it this way, click “Save audio state now”.</value></data>
-  <data name="State.Advice" xml:space="preserve"><value>A Windows default device has changed since the save – the soundboard did not do this. {0}. “Restore default device” sets it back. If you wanted it this way, click “Save audio state now”.</value></data>
+  <data name="State.Advice" xml:space="preserve"><value>A Windows default device differs from the saved state: {0}. If you changed it yourself, all is well – “Save current state as normal” takes it over. “Restore default device” sets it back.</value></data>
   <data name="State.SavedNow" xml:space="preserve"><value>Saved on {0}. The previous save is in the data folder as “audio-snapshot.vorher.json”.</value></data>
   <data name="State.ComparedSame" xml:space="preserve"><value>Compared: everything as saved.</value></data>
   <data name="State.ComparedDiff" xml:space="preserve"><value>Compared: the differences are in the list.</value></data>
-  <data name="State.SaveTip" xml:space="preserve"><value>Remembers how Windows audio is set up right now. Later changes are compared with it.</value></data>
+  <data name="State.SaveTip" xml:space="preserve"><value>Takes the current Windows audio setup as normal, e.g. after you chose other default devices yourself. Otherwise the soundboard saves by itself.</value></data>
   <data name="State.CompareAgain" xml:space="preserve"><value>Compare again</value></data>
   <data name="State.Devices" xml:space="preserve"><value>Audio devices in Windows</value></data>
   <data name="State.Reread" xml:space="preserve"><value>Read again</value></data>
@@ -439,10 +427,7 @@ Delete: remove key</value></data>
   <data name="Discord.WayBackDefault" xml:space="preserve"><value>In Discord, go to User Settings → Voice &amp; Video and choose your microphone again as the input device (or “Default”).</value></data>
   <data name="Discord.WayBack" xml:space="preserve"><value>In Discord, go to User Settings → Voice &amp; Video and choose “{0}” again as the input device.</value></data>
   <data name="Exit.Silence" xml:space="preserve"><value>Discord then hears silence from the cable: your microphone is silent in Discord until you start the soundboard again.</value></data>
-  <data name="Exit.NoSnapshot" xml:space="preserve"><value>Audio state: no saved state.</value></data>
-  <data name="Exit.Same" xml:space="preserve"><value>Audio state: the Windows default devices are as saved.</value></data>
-  <data name="Exit.Changed" xml:space="preserve"><value>Audio state: a Windows default device differs from the saved state:</value></data>
-  <data name="Exit.NotUs" xml:space="preserve"><value>The soundboard did not change this. To set it back: in the window under Settings → Audio state, or later with Soundboard.exe --restore.</value></data>
+  <data name="Exit.NotUs" xml:space="preserve"><value>The soundboard did not cause this. Details under Settings → Audio state; default devices can also be set back later with Soundboard.exe --restore.</value></data>
   <data name="Exit.Question" xml:space="preserve"><value>Quit the soundboard now?</value></data>
   <data name="App.QuitTitle" xml:space="preserve"><value>Quit soundboard</value></data>
   <data name="App.UninstallTitle" xml:space="preserve"><value>Remove everything</value></data>
@@ -607,4 +592,20 @@ Delete: remove key</value></data>
   <data name="Profile.BackupFailed" xml:space="preserve"><value>The current pads could not be backed up ({0}), so nothing was imported. Is the data folder read-only?</value></data>
   <data name="Notice.EvenOutNoSounds" xml:space="preserve"><value>No pad has a playable sound yet, so there is nothing to measure.</value></data>
   <data name="Archive.TooBig" xml:space="preserve"><value>This file would unpack to more than 8 GB. Import it in parts.</value></data>
+  <data name="Setup.AutoSave" xml:space="preserve"><value>The soundboard has already noted how Windows audio is set up. If the driver setup breaks anything, “Audio” with a warning sign appears in the status line.</value></data>
+  <data name="State.SaveFailed" xml:space="preserve"><value>The audio state could not be saved ({0}). Is the data folder read-only?</value></data>
+  <data name="State.ProblemTitle" xml:space="preserve"><value>Something in Windows audio no longer works – the soundboard did not cause it.</value></data>
+  <data name="Status.Audio" xml:space="preserve"><value>Audio</value></data>
+  <data name="Status.AudioTip" xml:space="preserve"><value>Windows audio: {0} Click to see.</value></data>
+  <data name="Health.NoDevice" xml:space="preserve"><value>{0}: no device – “{1}” is no longer available.</value></data>
+  <data name="Health.NotActive" xml:space="preserve"><value>{0}: “{1}” is {2}.</value></data>
+  <data name="Health.CableRender" xml:space="preserve"><value>{0}: the virtual cable “{1}” is the default – Windows sound goes into the cable, and you hear nothing.</value></data>
+  <data name="Health.CableCapture" xml:space="preserve"><value>{0}: the virtual cable “{1}” has become the default microphone – programs set to “Default” hear the soundboard instead of your microphone.</value></data>
+  <data name="Health.Muted" xml:space="preserve"><value>{0}: “{1}” is muted in Windows.</value></data>
+  <data name="Health.Silent" xml:space="preserve"><value>{0}: the volume of “{1}” is turned all the way down in Windows.</value></data>
+  <data name="Crash.AudioProblem" xml:space="preserve"><value>Windows audio does not work everywhere (the soundboard did not cause this):</value></data>
+  <data name="Exit.Problem" xml:space="preserve"><value>Windows audio: something does not work:</value></data>
+  <data name="State.AdviceProblem" xml:space="preserve"><value>Different from the saved state: {0}.</value></data>
+  <data name="State.HintRestore" xml:space="preserve"><value>“Restore default device” below sets the default devices back to the saved ones.</value></data>
+  <data name="State.HintVolume" xml:space="preserve"><value>Mute and volume are set in Windows itself: speaker icon in the taskbar.</value></data>
 </root>

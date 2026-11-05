@@ -535,6 +535,15 @@
                             <TextBlock Text="{Binding StatusHotkeys}" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
+                    <!-- Windows audio: only there when something no longer works (no device, cable as default, muted); a click opens the Audio state tab. -->
+                    <Button Style="{StaticResource LinkButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="zustand" Margin="12,0,0,0"
+                            ToolTip="{Binding StatusAudioTip}" AutomationProperties.Name="{Binding StatusAudioTip}"
+                            Visibility="{Binding AudioWarn, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Style="{StaticResource WarnIcon}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{t:T Status.Audio}" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                 </WrapPanel>
             </DockPanel>
         </Border>
@@ -738,17 +747,14 @@
                                             <TextBlock TextWrapping="Wrap" Margin="26,8,0,0" LineHeight="20">
                                                 <Run Text="{t:T Setup.C1}" /><LineBreak />
                                                 <Run Text="{t:T Setup.C2}" /><LineBreak />
-                                                <Run Text="{t:T Setup.C3}" /><LineBreak />
-                                                <Run Text="{t:T Setup.C4}" />
+                                                <Run Text="{t:T Setup.C3}" />
                                             </TextBlock>
                                             <WrapPanel Margin="26,8,0,0">
-                                                <Button Style="{StaticResource NoticeButton}" Content="{t:T Action.SaveState}" Command="{Binding SaveSnapshotNowCommand}" Margin="0,0,8,6" />
                                                 <Button Style="{StaticResource NoticeButton}" Content="{t:T Setup.OpenSite}" Command="{Binding OpenCableWebsiteCommand}" Margin="0,0,8,6" />
                                                 <Button Style="{StaticResource NoticeButton}" Content="{t:T Setup.SearchCable}" Command="{Binding SearchCableCommand}" Margin="0,0,8,6" />
                                             </WrapPanel>
-                                            <TextBlock Text="{Binding SnapshotHeader}" Margin="26,2,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SubTextBrush}" />
-                                            <TextBlock Text="{Binding RestoreResultText}" Margin="26,4,0,0" TextWrapping="Wrap"
-                                                       Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
+                                            <!-- The soundboard saves the audio state by itself; the setup only says so. -->
+                                            <TextBlock Text="{t:T Setup.AutoSave}" Margin="26,2,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SubTextBrush}" />
                                         </StackPanel>
                                     </Border>
 
@@ -938,6 +944,19 @@
 
                             <!-- ............................................ Audio-Zustand -->
                             <StackPanel Visibility="{Binding SettingsTab, Converter={StaticResource EqToVis}, ConverterParameter=zustand}">
+                                <!-- Only when something no longer works – the same as the "!" in the status line, in full. -->
+                                <Border Style="{StaticResource NoticeBox}" Padding="14,10" Margin="0,0,0,16"
+                                        Visibility="{Binding AudioWarn, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel>
+                                        <DockPanel>
+                                            <Path Style="{StaticResource WarnIcon}" Margin="0,1,8,0" />
+                                            <TextBlock Text="{t:T State.ProblemTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        </DockPanel>
+                                        <TextBlock Text="{Binding AudioProblemText}" Margin="26,4,0,0" TextWrapping="Wrap" LineHeight="20" />
+                                        <TextBlock Text="{Binding AudioProblemHint}" Margin="26,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SubTextBrush}"
+                                                   Visibility="{Binding AudioProblemHint, Converter={StaticResource TextToVis}}" />
+                                    </StackPanel>
+                                </Border>
                                 <TextBlock Text="{Binding SnapshotHeader}" FontSize="{DynamicResource SizeGroup}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                 <TextBlock Style="{StaticResource P}" Margin="0,8,0,0" Text="{Binding SnapshotAdvice}"
                                            Visibility="{Binding SnapshotAdvice, Converter={StaticResource TextToVis}}" />
