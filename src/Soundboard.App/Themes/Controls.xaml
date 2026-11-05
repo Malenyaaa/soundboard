@@ -333,7 +333,8 @@
         </Setter>
     </Style>
 
-    <!-- Tab of the settings: semibold + accent underline when selected. -->
+    <!-- Tab of the settings: semibold when selected. The accent line under the open tab is not part of a tab:
+         one line for the whole row slides from tab to tab (TabIndicator). -->
     <Style x:Key="Tab" TargetType="RadioButton">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="FontFamily" Value="{DynamicResource FontText}" />
@@ -348,7 +349,6 @@
                         <Border x:Name="Bd" CornerRadius="4,4,0,0" Padding="{TemplateBinding Padding}" Background="Transparent">
                             <ContentPresenter RecognizesAccessKey="False" />
                         </Border>
-                        <Border x:Name="Line" Height="3" VerticalAlignment="Bottom" CornerRadius="1.5" Background="{DynamicResource AccentBrush}" Visibility="Hidden" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -358,7 +358,6 @@
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PressedOverlay}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Line" Property="Visibility" Value="Visible" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                     </ControlTemplate.Triggers>

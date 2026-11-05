@@ -1564,11 +1564,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>The settings cover the pads while open; the header with "Stop" stays.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GearName), nameof(GearTip))]
     private bool _settingsOpen;
+
+    /// <summary>Name of the gear for screen readers: what a click does (open or close the settings).</summary>
+    public string GearName => L.Get(SettingsOpen ? "Main.CloseSettings" : "Settings.Title");
+
+    public string GearTip => L.Get(SettingsOpen ? "Main.CloseSettingsTip" : "Main.SettingsTip");
 
     /// <summary>Open tab, one of <see cref="SettingsTabs"/>.</summary>
     [ObservableProperty]
-    private string _settingsTab = SettingsTabs.Setup;
+    private string _settingsTab = SettingsTabs.MicAndCable;
 
     /// <summary>1 = cable, 2 = Discord, 3 = noise suppression.</summary>
     [ObservableProperty]
@@ -1611,9 +1617,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (Capturing is FunctionKeyViewModel) CancelKeyCapture(); // its row is on the tab just left
     }
 
-    /// <summary>Opens the settings on the given tab (parameter: tab id; empty = last tab).</summary>
+    /// <summary>Opens the settings on the given tab (parameter: tab id; empty = microphone &amp; cable).</summary>
     [RelayCommand]
-    private void ShowSettings(string? tab) => OpenSettings(string.IsNullOrEmpty(tab) ? SettingsTab : tab);
+    private void ShowSettings(string? tab) => OpenSettings(string.IsNullOrEmpty(tab) ? SettingsTabs.MicAndCable : tab);
+
+    /// <summary>
+    /// The gear: opens the settings on "Microphone &amp; cable" (whichever tab was open before), or, while they are
+    /// open, closes them the same way as "Close".
+    /// </summary>
+    [RelayCommand]
+    private void ToggleSettings()
+    {
+        if (SettingsOpen) CloseSettings();
+        else OpenSettings(SettingsTabs.MicAndCable);
+    }
 
     /// <summary>Setup steps (cable, Discord, noise suppression) — tray menu and notices.</summary>
     [RelayCommand]

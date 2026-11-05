@@ -70,6 +70,8 @@ public sealed partial class MainViewModel
         UpdateAutostartTexts();
         OnPropertyChanged(nameof(StopAllToolTip));
         OnPropertyChanged(nameof(StatusMicTip));
+        OnPropertyChanged(nameof(GearName));
+        OnPropertyChanged(nameof(GearTip));
         OnPropertyChanged(nameof(MasterVolumeText));
         OnPropertyChanged(nameof(MicVolumeText));
         OnPropertyChanged(nameof(Language));

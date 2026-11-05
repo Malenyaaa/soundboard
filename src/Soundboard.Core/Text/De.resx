@@ -152,7 +152,9 @@
   <data name="Main.AddSounds" xml:space="preserve"><value>Sounds hinzufügen …</value></data>
   <data name="Main.AddSoundsTip" xml:space="preserve"><value>MP3-, WAV-, OGG- oder FLAC-Dateien auswählen (Strg+O). Sie werden in den Sound-Ordner kopiert; ins Fenster ziehen geht auch.</value></data>
   <data name="Main.AddSoundsKey" xml:space="preserve"><value>Strg+O</value></data>
-  <data name="Main.SettingsTip" xml:space="preserve"><value>Einstellungen: Einrichtung, Mikrofon &amp; Kabel, Tasten, Audio-Zustand, Darstellung</value></data>
+  <data name="Main.SettingsTip" xml:space="preserve"><value>Einstellungen: Mikrofon &amp; Kabel, Einrichtung, Tasten, Audio-Zustand, Darstellung</value></data>
+  <data name="Main.CloseSettings" xml:space="preserve"><value>Einstellungen schließen</value></data>
+  <data name="Main.CloseSettingsTip" xml:space="preserve"><value>Einstellungen schließen (Esc)</value></data>
   <data name="Main.Stop" xml:space="preserve"><value>Stop</value></data>
   <data name="Main.StopTip" xml:space="preserve"><value>Stoppt alle laufenden Sounds sofort.</value></data>
   <data name="Main.StopTipKey" xml:space="preserve"><value>Stoppt alle laufenden Sounds sofort. Taste: {0} – wirkt überall, auch wenn ein Spiel im Vordergrund ist.</value></data>

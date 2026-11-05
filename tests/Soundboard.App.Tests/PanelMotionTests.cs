@@ -9,7 +9,7 @@ namespace Soundboard.App.Tests;
 [TestClass]
 public class PanelMotionTests
 {
-    private static void OnSta(Action action)
+    internal static void OnSta(Action action)
     {
         ExceptionDispatchInfo? error = null;
         var t = new Thread(() =>
@@ -84,17 +84,27 @@ public class PanelMotionTests
     });
 
     [TestMethod]
-    public void Gear_turns_two_teeth_and_rests_at_zero() => OnSta(() =>
+    public void Gear_turns_forward_and_back_and_without_motion_stands_at_zero() => OnSta(() =>
     {
         var turn = new RotateTransform();
         var button = new Button { Content = new Border { RenderTransform = turn } };
-        Assert.IsFalse(GearMotion.Play(button, move: false));
+        Assert.IsFalse(GearMotion.Turn(button, forward: true, move: false));
         Assert.IsFalse(turn.HasAnimatedProperties);
-        Assert.IsTrue(GearMotion.Play(button, move: true));
+        Assert.AreEqual(0, turn.Angle);
+
+        Assert.IsTrue(GearMotion.Turn(button, forward: true, move: true));
         Assert.IsTrue(turn.HasAnimatedProperties);
         Assert.IsTrue(GearMotion.IsTurning(button));
-        Assert.IsTrue(GearMotion.Play(button, move: true)); // a running turn finishes, no restart
-        Assert.IsFalse(GearMotion.Play(button, move: false));
+        Assert.AreEqual(GearMotion.Angle, turn.GetAnimationBaseValue(RotateTransform.AngleProperty), "forward ends on two teeth");
+
+        // Left before the turn was seen at all: nothing to turn back, it stands at 0.
+        Assert.IsFalse(GearMotion.Turn(button, forward: false, move: true));
+        Assert.IsFalse(turn.HasAnimatedProperties);
+        Assert.AreEqual(0, turn.Angle);
+        Assert.IsTrue(GearMotion.Turn(button, forward: true, move: true));
+
+        // Animations switched off mid-way: at rest at once, nothing left on the transform.
+        Assert.IsFalse(GearMotion.Turn(button, forward: true, move: false));
         Assert.IsFalse(GearMotion.IsTurning(button));
         Assert.IsFalse(turn.HasAnimatedProperties);
         Assert.AreEqual(0, turn.Angle);
@@ -103,47 +113,56 @@ public class PanelMotionTests
         Assert.IsTrue(GearMotion.Angle >= 90);
 
         // Without a turnable symbol nothing happens.
-        Assert.IsFalse(GearMotion.Play(new Button { Content = "x" }, move: true));
+        Assert.IsFalse(GearMotion.Turn(new Button { Content = "x" }, forward: true, move: true));
     });
 
+    private static Window Invisible(UIElement content, double width, double height) => new()
+    {
+        Content = content,
+        WindowStyle = WindowStyle.None,
+        ShowInTaskbar = false,
+        ShowActivated = false,
+        WindowStartupLocation = WindowStartupLocation.Manual,
+        Left = -30000,
+        Top = -30000,
+        Width = width,
+        Height = height,
+    };
+
     /// <summary>
-    /// The turn really moves the symbol, ends at rest and is taken off, so the next mouse-over turns
-    /// again (before, a finished turn still counted as running and the gear turned only once).
+    /// The turn really moves the symbol: forward to two teeth and it stays there while the mouse is on it,
+    /// back to 0 on leaving; each time taken off at the end, so the next mouse-over turns again.
     /// Shown in an invisible window: the animation clock only ticks for something rendered.
     /// </summary>
     [TestMethod]
-    public void Gear_turns_through_and_again_on_the_next_mouse_over() => OnSta(() =>
+    public void Gear_turns_forward_stays_and_turns_back_again_and_again() => OnSta(() =>
     {
         var turn = new RotateTransform();
         var button = new Button { Content = new Border { Width = 20, Height = 20, RenderTransform = turn } };
-        var window = new Window
-        {
-            Content = button,
-            WindowStyle = WindowStyle.None,
-            ShowInTaskbar = false,
-            ShowActivated = false,
-            WindowStartupLocation = WindowStartupLocation.Manual,
-            Left = -30000,
-            Top = -30000,
-            Width = 60,
-            Height = 60,
-        };
+        var window = Invisible(button, 60, 60);
         window.Show();
         try
         {
             for (int round = 0; round < 2; round++)
             {
-                var angles = new List<double>();
-                EventHandler sample = (_, _) => angles.Add(turn.Angle);
-                CompositionTarget.Rendering += sample;
-                Assert.IsTrue(GearMotion.Play(button, move: true));
-                Pump(TimeSpan.FromMilliseconds(900), () => !GearMotion.IsTurning(button));
-                CompositionTarget.Rendering -= sample;
+                foreach (bool forward in new[] { true, false })
+                {
+                    double to = forward ? GearMotion.Angle : 0;
+                    var angles = new List<double>();
+                    EventHandler sample = (_, _) => angles.Add(turn.Angle);
+                    CompositionTarget.Rendering += sample;
+                    Assert.IsTrue(GearMotion.Turn(button, forward, move: true));
+                    Pump(TimeSpan.FromMilliseconds(900), () => !GearMotion.IsTurning(button));
+                    CompositionTarget.Rendering -= sample;
 
-                Assert.IsFalse(GearMotion.IsTurning(button), $"round {round}: the turn has ended");
-                Assert.IsFalse(turn.HasAnimatedProperties, $"round {round}: taken off");
-                Assert.AreEqual(0, turn.Angle);
-                Assert.IsTrue(angles.Any(a => a > 10 && a < GearMotion.Angle - 10), $"round {round}: seen in between ({string.Join(" ", angles)})");
+                    string what = $"round {round}, {(forward ? "forward" : "back")}";
+                    Assert.IsFalse(GearMotion.IsTurning(button), $"{what}: ended");
+                    Assert.IsFalse(turn.HasAnimatedProperties, $"{what}: taken off");
+                    Assert.AreEqual(to, turn.Angle, what);
+                    Assert.IsTrue(angles.Any(a => a > 10 && a < GearMotion.Angle - 10), $"{what}: seen in between ({string.Join(" ", angles)})");
+                    // Already there: nothing to turn.
+                    Assert.IsFalse(GearMotion.Turn(button, forward, move: true), $"{what}: no second turn");
+                }
             }
         }
         finally
@@ -152,7 +171,53 @@ public class PanelMotionTests
         }
     });
 
-    private static void Pump(TimeSpan max, Func<bool> done)
+    /// <summary>Leaving mid-way turns back from the angle seen then, not from the end; coming back turns forward from there.</summary>
+    [TestMethod]
+    public void Gear_turns_round_from_the_angle_seen_mid_way() => OnSta(() =>
+    {
+        var turn = new RotateTransform();
+        var button = new Button { Content = new Border { Width = 20, Height = 20, RenderTransform = turn } };
+        var window = Invisible(button, 60, 60);
+        window.Show();
+        try
+        {
+            GearMotion.Turn(button, forward: true, move: true);
+            Pump(TimeSpan.FromMilliseconds(500), () => turn.Angle > 30);
+            double mid = turn.Angle;
+            Assert.IsTrue(mid > 0 && mid < GearMotion.Angle, $"mid-way ({mid})");
+
+            var angles = new List<double>();
+            EventHandler sample = (_, _) => angles.Add(turn.Angle);
+            CompositionTarget.Rendering += sample;
+            Assert.IsTrue(GearMotion.Turn(button, forward: false, move: true));
+            Pump(TimeSpan.FromMilliseconds(400), () => turn.Angle < mid / 2);
+            CompositionTarget.Rendering -= sample;
+            string list = string.Join(" ", angles);
+            Assert.IsTrue(angles.Count > 0 && angles[0] > mid - 10, $"first frame near where it was, no jump ({mid}: {list})");
+            Assert.IsTrue(angles.All(a => a <= mid + 0.001), $"turns back from where it was ({mid}: {list})");
+
+            double back = turn.Angle;
+            Assert.IsTrue(back > 0, $"still mid-way back ({back})");
+            Assert.IsTrue(GearMotion.Turn(button, forward: true, move: true));
+            // Left again in the same frame, before the turn has ticked: it starts from there, not from its end.
+            Assert.IsTrue(GearMotion.Turn(button, forward: false, move: true));
+            Assert.IsTrue(GearMotion.Turn(button, forward: true, move: true));
+            angles.Clear();
+            CompositionTarget.Rendering += sample;
+            Pump(TimeSpan.FromMilliseconds(60), () => angles.Count > 0);
+            CompositionTarget.Rendering -= sample;
+            Assert.IsTrue(angles.Count > 0 && Math.Abs(angles[0] - back) < 10, $"no jump when coming back ({back}: {string.Join(" ", angles)})");
+            Pump(TimeSpan.FromMilliseconds(900), () => !GearMotion.IsTurning(button));
+            Assert.AreEqual(GearMotion.Angle, turn.Angle);
+            Assert.IsFalse(turn.HasAnimatedProperties);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    internal static void Pump(TimeSpan max, Func<bool> done)
     {
         var until = DateTime.UtcNow + max;
         var frame = new System.Windows.Threading.DispatcherFrame();

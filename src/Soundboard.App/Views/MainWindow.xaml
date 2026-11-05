@@ -599,11 +599,11 @@
                 </Grid>
                 <Button x:Name="StopButton" Grid.Column="3" Style="{StaticResource StopButton}" Content="{t:T Main.Stop}" Height="{StaticResource HeaderControlHeight}" VerticalAlignment="Center"
                         Command="{Binding StopAllCommand}" ToolTip="{Binding StopAllToolTip}" />
-                <Button x:Name="SettingsButton" Grid.Column="4" Style="{StaticResource IconButton}" Command="{Binding ShowSettingsCommand}" CommandParameter=""
+                <Button x:Name="SettingsButton" Grid.Column="4" Style="{StaticResource IconButton}" Command="{Binding ToggleSettingsCommand}"
                         Width="{StaticResource HeaderControlHeight}" Height="{StaticResource HeaderControlHeight}" Margin="8,0,0,0" VerticalAlignment="Center"
-                        AutomationProperties.Name="{t:T Settings.Title}"
-                        ToolTip="{t:T Main.SettingsTip}" views:GearMotion.IsEnabled="True">
-                    <!-- Turns by one tooth on mouse-over (GearMotion), about its centre. -->
+                        AutomationProperties.Name="{Binding GearName}"
+                        ToolTip="{Binding GearTip}" views:GearMotion.IsEnabled="True">
+                    <!-- Opens the settings, or closes them while open. Turns by two teeth on mouse-over and back on leaving (GearMotion), about its centre. -->
                     <Path Data="{StaticResource GearGeometry}" Fill="{DynamicResource TextBrush}" Width="20" Height="20" Stretch="Uniform" RenderTransformOrigin="0.5,0.5">
                         <Path.RenderTransform>
                             <RotateTransform />
@@ -714,12 +714,13 @@
                                         ToolTip="{t:T Settings.CloseTip}" />
                                 <TextBlock Text="{t:T Settings.Title}" FontSize="{DynamicResource SizeTitle}" FontWeight="SemiBold" VerticalAlignment="Center" />
                             </DockPanel>
-                            <StackPanel>
-                                <WrapPanel Margin="-12,6,0,0">
-                                    <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.Setup}"
-                                                 IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=einrichtung}" />
+                            <!-- Mic & cable first: the gear opens there. One accent line under the open tab slides from tab to tab (TabIndicator). -->
+                            <Grid Margin="-12,6,0,0">
+                                <WrapPanel x:Name="SettingsTabStrip">
                                     <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.Cable}"
                                                  IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=kabel}" />
+                                    <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.Setup}"
+                                                 IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=einrichtung}" />
                                     <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.Keys}"
                                                  IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=tasten}" />
                                     <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.State}"
@@ -727,7 +728,10 @@
                                     <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.Appearance}"
                                                  IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=design}" />
                                 </WrapPanel>
-                            </StackPanel>
+                                <Canvas IsHitTestVisible="False" ClipToBounds="False">
+                                    <Border x:Name="SettingsTabLine" Height="3" Width="0" CornerRadius="1.5" Background="{DynamicResource AccentBrush}" Visibility="Hidden" />
+                                </Canvas>
+                            </Grid>
                         </StackPanel>
                     </Border>
 

@@ -26,12 +26,24 @@ public partial class MainWindow : Window
         Text.UiLanguage.Attach(this);
         // Settings: shown from the start if already open, later opened from the gear and closed back to it.
         SettingsPanel.Visibility = _vm.SettingsOpen ? Visibility.Visible : Visibility.Collapsed;
+        // The line under the open tab: slides to a tab chosen with the mouse while the settings are seen,
+        // stands at once when they open and after a resize or a language switch (it follows the tab sizes).
+        _tabLine = new TabIndicator(SettingsTabStrip, SettingsTabLine);
         _vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(MainViewModel.SettingsOpen))
+            {
                 PanelMotion.Show(SettingsPanel, _vm.SettingsOpen, SettingsPanel.IsLoaded && IsVisible && SettingsMotionWanted());
+                _tabLine.Follow(move: false);
+            }
+            else if (e.PropertyName == nameof(MainViewModel.SettingsTab))
+            {
+                _tabLine.Follow(move: _vm.SettingsOpen && SettingsPanel.IsVisible && SettingsMotionWanted());
+            }
         };
     }
+
+    private readonly TabIndicator _tabLine;
 
     /// <summary>
     /// The settings move only when opened or closed with the mouse (gear, "Close"): Esc or Enter on the gear

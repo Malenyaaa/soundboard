@@ -13,7 +13,7 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.5 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.6 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -30,7 +30,9 @@ um einen Zahn, die Einstellungen gleiten vom Zahnrad aus auf und wieder zu (mit 
 ausgeschalteten Animationen sofort). In 0.14.5: Die Einstellungen gehen sofort auf; die Geräteliste
 (über eine Sekunde bei vielen alten Geräten) wird danach im Hintergrund gelesen, ebenso nach Geräteänderungen
 und beim Zurückholen des Fensters. Das Zahnrad dreht sich bei jedem Darüberfahren um zwei Zähne,
-nicht mehr nur beim ersten Mal.
+nicht mehr nur beim ersten Mal. In 0.14.6: Das Zahnrad dreht beim Verlassen wieder zurück; sind die
+Einstellungen offen, schließt ein Klick aufs Zahnrad sie. Das Zahnrad öffnet immer auf „Mikrofon & Kabel“,
+jetzt der erste Reiter. Der Strich unter dem offenen Reiter gleitet beim Wechsel zum neuen Reiter.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -229,13 +231,15 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
 
 ### Einstellungen (Zahnrad)
 
-Die Einstellungen legen sich über die Pads; Kopfzeile und „Stop“ bleiben. Esc oder
-„Schließen“ führt zurück.
+Die Einstellungen legen sich über die Pads; Kopfzeile und „Stop“ bleiben. Esc, „Schließen“ oder
+ein zweiter Klick aufs Zahnrad führt zurück. Das Zahnrad öffnet sie immer auf „Mikrofon & Kabel“; die
+Einrichtung beim ersten Start, „Kabel fehlt“, „Audio“ mit Warnzeichen und die Tasten-Warnung öffnen ihren
+eigenen Reiter.
 
 | Reiter | Inhalt |
 |---|---|
-| Einrichtung | die drei Schritte: Kabel, Discord, Rauschunterdrückung (siehe oben) |
 | Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
+| Einrichtung | die drei Schritte: Kabel, Discord, Rauschunterdrückung (siehe oben) |
 | Tasten | Tasten pausieren; „Alle Sounds stoppen“, „Mikrofon stumm“ und alle Pads mit Taste, nur Abweichungen stehen dabei, Ausweg bei Konflikten; Sounds überlagern (aus: ein neuer Sound stoppt den laufenden); „Dieselbe Taste, während der Sound läuft“: Stoppen oder Von vorn spielen |
 | Audio-Zustand | oben, nur bei einem Problem, was in Windows-Audio nicht geht; Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken; „Standardgerät zurückstellen“ (bei abweichendem Standardgerät), „Jetzigen Zustand als normal sichern“ (z. B. nach eigenem Umstellen), „Neu vergleichen“; darunter die Audiogeräte in Windows (nur angezeigt, die Endpunkt-ID im Tooltip der Zeile) |
 | Darstellung | Sprache (English, Deutsch); hell oder dunkel (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); Pad-Größe (groß, kompakt); weiches Aufleuchten an/aus; Profil exportieren/importieren; mit Windows starten (nur im Infobereich) |
@@ -268,10 +272,11 @@ Wada wandern auf die nächste neue (Pfauenblau → Petrol, Olympiablau → Blau,
 Violett, Purpur → Pink, Olivgelb und Grün → Grün, Schiefer → Blau bzw. bei Pads Grau); eine
 eigene Akzentfarbe und selbst gewählte Pad-Farben bleiben.
 
-**Animationen:** Nur das Aufleuchten eines Pads blendet kurz ein (160 ms). Ist es im Reiter
-„Darstellung“ aus oder sind in Windows die Animationseffekte ausgeschaltet, leuchtet das Pad sofort
-auf. Was per Taste
-ausgelöst wird, bewegt sich sonst nicht.
+**Animationen:** Das Aufleuchten eines Pads blendet kurz ein (160 ms); Schalter gleiten; das Zahnrad dreht
+beim Darüberfahren um zwei Zähne vor und beim Verlassen zurück; die Einstellungen gleiten vom Zahnrad auf
+und zu; der Strich unter dem offenen Reiter gleitet zum neuen Reiter (200 ms). Ist „Pads leuchten weich auf“ im
+Reiter „Darstellung“ aus oder sind in Windows die Animationseffekte ausgeschaltet, springt alles sofort an
+seinen Platz. Was per Taste ausgelöst wird, bewegt sich nicht.
 
 Fehlt etwas (kein Mikrofon, Taste belegt), erscheint ein Hinweis mit Warnzeichen und dem nächsten
 Schritt – bei Pads direkt auf dem Pad. Ein fehlendes Kabel zeigt nur die Statuszeile (siehe

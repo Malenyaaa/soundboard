@@ -152,7 +152,9 @@
   <data name="Main.AddSounds" xml:space="preserve"><value>Add sounds…</value></data>
   <data name="Main.AddSoundsTip" xml:space="preserve"><value>Choose MP3, WAV, OGG or FLAC files (Ctrl+O). They are copied into the sound folder; dragging them into the window works too.</value></data>
   <data name="Main.AddSoundsKey" xml:space="preserve"><value>Ctrl+O</value></data>
-  <data name="Main.SettingsTip" xml:space="preserve"><value>Settings: setup, microphone &amp; cable, keys, audio state, appearance</value></data>
+  <data name="Main.SettingsTip" xml:space="preserve"><value>Settings: microphone &amp; cable, setup, keys, audio state, appearance</value></data>
+  <data name="Main.CloseSettings" xml:space="preserve"><value>Close settings</value></data>
+  <data name="Main.CloseSettingsTip" xml:space="preserve"><value>Close settings (Esc)</value></data>
   <data name="Main.Stop" xml:space="preserve"><value>Stop</value></data>
   <data name="Main.StopTip" xml:space="preserve"><value>Stops all playing sounds at once.</value></data>
   <data name="Main.StopTipKey" xml:space="preserve"><value>Stops all playing sounds at once. Key: {0} – works everywhere, even when a game is in front.</value></data>
