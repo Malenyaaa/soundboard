@@ -25,7 +25,9 @@ In 0.14.2: Das Zahnrad steht ganz rechts neben „Stop“; „Sounds hinzufügen
 heraus und steckt im Rechtsklick auf die freie Fläche und auf Strg+O; das Suchfeld heißt „Sounds suchen“.
 In 0.14.3: Schalter (etwa „Mithören“) gleiten beim Umschalten, die Farbe blendet mit; mit
 ausgeschalteten Animationen springen sie wie bisher. In 0.14.4: Gerätewahl, Suchfeld, „Stop“ und Zahnrad
-in der Kopfzeile sind gleich hoch (36 px) und stehen auf einer Linie.
+in der Kopfzeile sind gleich hoch (36 px) und stehen auf einer Linie; das Zahnrad dreht sich beim Darüberfahren
+um einen Zahn, die Einstellungen gleiten vom Zahnrad aus auf und wieder zu (mit der Tastatur und mit
+ausgeschalteten Animationen sofort).
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).

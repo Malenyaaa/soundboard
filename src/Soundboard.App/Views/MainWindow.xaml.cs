@@ -24,7 +24,21 @@ public partial class MainWindow : Window
             if (Container(tile) is { } c) c.BringIntoView(new Rect(-16, -16, c.ActualWidth + 32, c.ActualHeight + 32));
         });
         Text.UiLanguage.Attach(this);
+        // Settings: shown from the start if already open, later opened from the gear and closed back to it.
+        SettingsPanel.Visibility = _vm.SettingsOpen ? Visibility.Visible : Visibility.Collapsed;
+        _vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(MainViewModel.SettingsOpen))
+                PanelMotion.Show(SettingsPanel, _vm.SettingsOpen, SettingsPanel.IsLoaded && IsVisible && SettingsMotionWanted());
+        };
     }
+
+    /// <summary>
+    /// The settings move only when opened or closed with the mouse (gear, "Close"): Esc or Enter on the gear
+    /// is used often and should not wait for an animation; and only when animations are on.
+    /// </summary>
+    private static bool SettingsMotionWanted() =>
+        Themes.ThemeManager.AnimationsOn && InputManager.Current.MostRecentInputDevice is not KeyboardDevice;
 
     // ---- hex field of the custom colour: the short form counts once the field is left
 

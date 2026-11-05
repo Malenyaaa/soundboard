@@ -602,8 +602,13 @@
                 <Button x:Name="SettingsButton" Grid.Column="4" Style="{StaticResource IconButton}" Command="{Binding ShowSettingsCommand}" CommandParameter=""
                         Width="{StaticResource HeaderControlHeight}" Height="{StaticResource HeaderControlHeight}" Margin="8,0,0,0" VerticalAlignment="Center"
                         AutomationProperties.Name="{t:T Settings.Title}"
-                        ToolTip="{t:T Main.SettingsTip}">
-                    <Path Data="{StaticResource GearGeometry}" Fill="{DynamicResource TextBrush}" Width="20" Height="20" Stretch="Uniform" />
+                        ToolTip="{t:T Main.SettingsTip}" views:GearMotion.IsEnabled="True">
+                    <!-- Turns by one tooth on mouse-over (GearMotion), about its centre. -->
+                    <Path Data="{StaticResource GearGeometry}" Fill="{DynamicResource TextBrush}" Width="20" Height="20" Stretch="Uniform" RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform>
+                            <RotateTransform />
+                        </Path.RenderTransform>
+                    </Path>
                 </Button>
             </Grid>
         </Border>
@@ -699,7 +704,8 @@
             </StackPanel>
 
             <!-- ======================================================== settings: covers the pads, header stays -->
-            <Border Background="{DynamicResource WindowBg}" Visibility="{Binding SettingsOpen, Converter={StaticResource BoolToVis}}">
+            <!-- Shown and hidden by PanelMotion (code-behind, from SettingsOpen): it opens from the gear and closes back to it. -->
+            <Border x:Name="SettingsPanel" Background="{DynamicResource WindowBg}" Visibility="Collapsed">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="16,12,16,0">
                         <StackPanel>
