@@ -150,7 +150,8 @@
   <data name="Main.VolumeAllTip" xml:space="preserve"><value>Volume of all sounds in this program (not the Windows volume).</value></data>
   <data name="Main.VolumeMuted" xml:space="preserve"><value>Volume of all sounds: muted</value></data>
   <data name="Main.AddSounds" xml:space="preserve"><value>Add sounds…</value></data>
-  <data name="Main.AddSoundsTip" xml:space="preserve"><value>Choose MP3, WAV, OGG or FLAC files. They are copied into the sound folder; dragging works too.</value></data>
+  <data name="Main.AddSoundsTip" xml:space="preserve"><value>Choose MP3, WAV, OGG or FLAC files (Ctrl+O). They are copied into the sound folder; dragging them into the window works too.</value></data>
+  <data name="Main.AddSoundsKey" xml:space="preserve"><value>Ctrl+O</value></data>
   <data name="Main.SettingsTip" xml:space="preserve"><value>Settings: setup, microphone &amp; cable, keys, audio state, appearance</value></data>
   <data name="Main.Stop" xml:space="preserve"><value>Stop</value></data>
   <data name="Main.StopTip" xml:space="preserve"><value>Stops all playing sounds at once.</value></data>
@@ -523,10 +524,10 @@ Delete: remove key</value></data>
   <data name="Keys.SameKeyStop" xml:space="preserve"><value>Stop</value></data>
   <data name="Keys.SameKeyRestart" xml:space="preserve"><value>Play from the start</value></data>
   <data name="Keys.SameKeyHint" xml:space="preserve"><value>Only for the keys. A click on a playing pad always stops it.</value></data>
-  <data name="Search.Placeholder" xml:space="preserve"><value>Search pads</value></data>
-  <data name="Search.Tip" xml:space="preserve"><value>Finds pads by name or key (Ctrl+F). Esc empties the search.</value></data>
+  <data name="Search.Placeholder" xml:space="preserve"><value>Search sounds</value></data>
+  <data name="Search.Tip" xml:space="preserve"><value>Finds sounds by name or key (Ctrl+F). Esc empties the search.</value></data>
   <data name="Search.Clear" xml:space="preserve"><value>Clear search</value></data>
-  <data name="Search.NoResults" xml:space="preserve"><value>No pad matches “{0}”. The search looks at names and keys.</value></data>
+  <data name="Search.NoResults" xml:space="preserve"><value>No sound matches “{0}”. The search looks at names and keys.</value></data>
   <data name="Design.PadSize" xml:space="preserve"><value>Pad size</value></data>
   <data name="Design.PadLarge" xml:space="preserve"><value>Large</value></data>
   <data name="Design.PadCompact" xml:space="preserve"><value>Compact</value></data>

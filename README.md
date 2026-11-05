@@ -13,7 +13,7 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.1 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.2 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -21,6 +21,8 @@ Neu in 0.14: Suche über den Pads, Pads per Ziehen sortieren, Farbe je Pad, frei
 Stopp-Taste, „Mikrofon stumm“ als Taste, Profil als ZIP exportieren/importieren, Lautstärke
 angleichen, mehrstufiges Rückgängig. In 0.14.1: Der Audio-Zustand wird im Hintergrund gesichert;
 gemeldet wird nur noch als „Audio“ mit Warnzeichen in der Statuszeile, wenn wirklich etwas nicht geht.
+In 0.14.2: Das Zahnrad steht ganz rechts neben „Stop“; „Sounds hinzufügen …“ ist aus der Kopfzeile
+heraus und steckt im Rechtsklick auf die freie Fläche und auf Strg+O; das Suchfeld heißt „Sounds suchen“.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -91,7 +93,7 @@ Discords Dateien.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ (●) Mithören [Kopfhörer v] ◁) ━━●── 80 % [Sounds hinzufügen …] [⚙] [Pads suchen …] [■ Stop] │
+│ (●) Mithören [Kopfhörer v]  ◁) ━━●── 80 %      [Sounds suchen …]    [■ Stop] [⚙] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ ⚠ Nicht übernommen: notiz.txt. Möglich sind MP3, WAV, OGG und FLAC.      [Schließen] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
@@ -104,8 +106,8 @@ Discords Dateien.
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Ist das Fenster schmaler, rücken Lautstärke, „Sounds hinzufügen …“ und die Suche in eine
-zweite (bei 560 px Deutsch auch dritte) Zeile; Mithören und Stop bleiben oben.
+Ist das Fenster schmaler, rücken Lautstärke und Suche in eine zweite Zeile; Mithören, Stop und
+das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenfolge durch.
 
 - **Pads:** Jeder Sound ist ein Pad – eine Taste mit dicker Unterkante, gedrückt sinkt sie ein.
   Klick spielt ab, nochmal klicken stoppt. Ein spielendes
@@ -127,7 +129,7 @@ zweite (bei 560 px Deutsch auch dritte) Zeile; Mithören und Stop bleiben oben.
   nach ein paar Pixeln, ein Klick bleibt ein Klick); ein Balken zeigt die Einfügestelle, Esc
   bricht ab. Mit der Tastatur verschiebt **Strg + Pfeil links/rechts** das fokussierte Pad.
   Automatische Farben folgen dem Platz.
-- **Suche:** Das Feld „Pads suchen“ steht immer in der Kopfzeile; **Strg+F** springt hinein,
+- **Suche:** Das Feld „Sounds suchen“ steht immer in der Kopfzeile; **Strg+F** springt hinein,
   Esc leert es. Gesucht wird in Name und Taste („air“, „num 3“), jedes Wort muss passen. Ohne
   Treffer steht dort ein Satz mit „Suche leeren“.
 - **Rückgängig:** Entfernen, Verschieben, Angleichen und Importieren landen auf einem Stapel.
@@ -151,7 +153,8 @@ zweite (bei 560 px Deutsch auch dritte) Zeile; Mithören und Stop bleiben oben.
   Datei zurück, ist auch das Bild wieder da. „Bild entfernen“ und das Ersetzen eines Bildes
   lassen sich rückgängig machen. Rechtsklick → „Bilder-Ordner öffnen“ zeigt den Ordner mit den
   Pad-Bildern im Explorer (das Bild des Pads ist markiert, falls vorhanden).
-- **Sounds hinzufügen:** MP3, WAV, OGG oder FLAC ins Fenster ziehen oder „Sounds hinzufügen …“.
+- **Sounds hinzufügen:** MP3, WAV, OGG oder FLAC ins Fenster ziehen, **Strg+O** drücken oder
+  Rechtsklick auf die freie Fläche zwischen und unter den Pads → „Sounds hinzufügen …“.
   Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt. Danach rollt das
   Fenster zum ersten neuen Pad, die neuen Pads tragen kurz einen Ring. Ohne Sounds zeigt das
   Fenster eine Ablagefläche mit demselben Knopf.

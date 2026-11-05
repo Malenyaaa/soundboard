@@ -150,7 +150,8 @@
   <data name="Main.VolumeAllTip" xml:space="preserve"><value>Lautstärke aller Sounds in diesem Programm (nicht die Windows-Lautstärke).</value></data>
   <data name="Main.VolumeMuted" xml:space="preserve"><value>Lautstärke aller Sounds: stumm</value></data>
   <data name="Main.AddSounds" xml:space="preserve"><value>Sounds hinzufügen …</value></data>
-  <data name="Main.AddSoundsTip" xml:space="preserve"><value>MP3-, WAV-, OGG- oder FLAC-Dateien auswählen. Sie werden in den Sound-Ordner kopiert; ziehen geht auch.</value></data>
+  <data name="Main.AddSoundsTip" xml:space="preserve"><value>MP3-, WAV-, OGG- oder FLAC-Dateien auswählen (Strg+O). Sie werden in den Sound-Ordner kopiert; ins Fenster ziehen geht auch.</value></data>
+  <data name="Main.AddSoundsKey" xml:space="preserve"><value>Strg+O</value></data>
   <data name="Main.SettingsTip" xml:space="preserve"><value>Einstellungen: Einrichtung, Mikrofon &amp; Kabel, Tasten, Audio-Zustand, Darstellung</value></data>
   <data name="Main.Stop" xml:space="preserve"><value>Stop</value></data>
   <data name="Main.StopTip" xml:space="preserve"><value>Stoppt alle laufenden Sounds sofort.</value></data>
@@ -523,10 +524,10 @@ Entf: Taste löschen</value></data>
   <data name="Keys.SameKeyStop" xml:space="preserve"><value>Stoppen</value></data>
   <data name="Keys.SameKeyRestart" xml:space="preserve"><value>Von vorn spielen</value></data>
   <data name="Keys.SameKeyHint" xml:space="preserve"><value>Gilt nur für die Tasten. Ein Klick auf ein laufendes Pad stoppt es immer.</value></data>
-  <data name="Search.Placeholder" xml:space="preserve"><value>Pads suchen</value></data>
-  <data name="Search.Tip" xml:space="preserve"><value>Findet Pads nach Name oder Taste (Strg+F). Esc leert die Suche.</value></data>
+  <data name="Search.Placeholder" xml:space="preserve"><value>Sounds suchen</value></data>
+  <data name="Search.Tip" xml:space="preserve"><value>Findet Sounds nach Name oder Taste (Strg+F). Esc leert die Suche.</value></data>
   <data name="Search.Clear" xml:space="preserve"><value>Suche leeren</value></data>
-  <data name="Search.NoResults" xml:space="preserve"><value>Kein Pad passt zu „{0}“. Gesucht wird in Namen und Tasten.</value></data>
+  <data name="Search.NoResults" xml:space="preserve"><value>Kein Sound passt zu „{0}“. Gesucht wird in Namen und Tasten.</value></data>
   <data name="Design.PadSize" xml:space="preserve"><value>Pad-Größe</value></data>
   <data name="Design.PadLarge" xml:space="preserve"><value>Groß</value></data>
   <data name="Design.PadCompact" xml:space="preserve"><value>Kompakt</value></data>

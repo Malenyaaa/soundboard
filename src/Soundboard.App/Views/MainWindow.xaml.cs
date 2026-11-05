@@ -120,6 +120,13 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 return;
             }
+            // Ctrl+O: add sounds (the file dialog).
+            if (e.Key == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                _vm.AddFilesDialogCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
             // Ctrl+Z: take back the newest step (removed or moved pad …), except inside a text field.
             if (e.Key == Key.Z && Keyboard.Modifiers == ModifierKeys.Control && Keyboard.FocusedElement is not TextBox)
             {
@@ -211,47 +218,58 @@ public partial class MainWindow : Window
         return false;
     }
 
-    /// <summary>Narrow window: the volume and the buttons move into a second header row.</summary>
+    /// <summary>Narrow window: the volume and the search move into a second header row.</summary>
     private void OnSizeChanged(object sender, SizeChangedEventArgs e) => LayoutHeader(ActualWidth);
 
     public void LayoutHeader(double width)
     {
         if (width <= 0 || double.IsNaN(width)) return; // not laid out yet (e.g. started in the tray)
         // Measure the groups once, then pick the first arrangement that fits:
-        // one row; monitor + search + stop over the actions; or monitor + stop over actions + search.
+        // one row; monitor + search + Stop/gear over the volume; or monitor + Stop/gear over volume + search.
+        // Stop and the gear always stay together at the top right.
         var free = new Size(double.PositiveInfinity, double.PositiveInfinity);
         MonitorGroup.Measure(free);
-        ActionGroup.Measure(free);
+        VolumeGroup.Measure(free);
         StopButton.Measure(free);
-        const double gap = 16, wideGap = 16, searchMin = 140, searchMax = 280, searchTight = 120;
+        SettingsButton.Measure(free);
+        const double gap = 16, searchMin = 140, searchMax = 280, searchTight = 120;
         double inner = width - 32 - 8; // header padding, a little air for rounding and the window frame
-        double mon = MonitorGroup.DesiredSize.Width, act = ActionGroup.DesiredSize.Width, stop = StopButton.DesiredSize.Width;
+        // Without the volume's margin: it changes with the arrangement, the gaps below stand for it.
+        double mon = MonitorGroup.DesiredSize.Width, vol = VolumeGroup.DesiredSize.Width - VolumeGroup.Margin.Left - VolumeGroup.Margin.Right;
+        double end = StopButton.DesiredSize.Width + SettingsButton.DesiredSize.Width; // the gear's margin is part of its desired width
 
-        if (inner >= mon + wideGap + act + gap + searchMin + gap + stop)
+        if (inner >= mon + gap + vol + gap + searchMin + gap + end)
         {
-            Place(ActionGroup, 0, 1, 1, new Thickness(wideGap, 0, gap, 0));
+            Place(VolumeGroup, 0, 1, 1, new Thickness(gap, 0, gap, 0));
             Place(SearchGroup, 0, 2, 1, new Thickness(0, 0, gap, 0));
-            SearchGroup.Width = Math.Min(searchMax, inner - (mon + wideGap + act + gap + gap + stop));
+            SearchGroup.Width = Math.Min(searchMax, inner - (mon + gap + vol + gap + gap + end));
         }
-        else if (inner >= mon + gap + searchMin + gap + stop && act <= inner)
+        else if (inner >= mon + gap + searchMin + gap + end && vol <= inner)
         {
             Place(SearchGroup, 0, 1, 2, new Thickness(gap, 0, gap, 0));
-            Place(ActionGroup, 1, 0, 4, new Thickness(0, 10, 0, 0));
-            SearchGroup.Width = Math.Min(searchMax, inner - (mon + gap + gap + stop));
+            Place(VolumeGroup, 1, 0, 5, new Thickness(0, 10, 0, 0));
+            SearchGroup.Width = Math.Min(searchMax, inner - (mon + gap + gap + end));
         }
-        else if (inner - act - gap >= searchTight)
+        else if (inner - vol - gap >= searchTight)
         {
-            Place(ActionGroup, 1, 0, 2, new Thickness(0, 10, 0, 0));
-            Place(SearchGroup, 1, 2, 2, new Thickness(gap, 10, 0, 0));
-            SearchGroup.Width = Math.Min(searchMax, inner - act - gap);
+            // Both span the whole row (the monitor sets the first column's width); the search sits on the right.
+            Place(VolumeGroup, 1, 0, 5, new Thickness(0, 10, 0, 0));
+            Place(SearchGroup, 1, 0, 5, new Thickness(gap, 10, 0, 0));
+            SearchGroup.Width = Math.Min(searchMax, inner - vol - gap);
         }
         else
         {
-            Place(ActionGroup, 1, 0, 4, new Thickness(0, 10, 0, 0));
-            Place(SearchGroup, 2, 0, 4, new Thickness(0, 10, 0, 0));
+            Place(VolumeGroup, 1, 0, 5, new Thickness(0, 10, 0, 0));
+            Place(SearchGroup, 2, 0, 5, new Thickness(0, 10, 0, 0));
             SearchGroup.Width = Math.Max(searchTight, Math.Min(searchMax * 1.5, inner));
         }
         SearchGroup.HorizontalAlignment = Grid.GetRow(SearchGroup) == 2 ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+
+        // Tab follows the reading order of the arrangement: row by row, left to right.
+        UIElement[] parts = [MonitorGroup, VolumeGroup, SearchGroup, StopButton, SettingsButton];
+        int tab = 0;
+        foreach (var part in parts.OrderBy(Grid.GetRow).ThenBy(Grid.GetColumn))
+            KeyboardNavigation.SetTabIndex(part, tab++);
 
         // The notice puts its buttons under the text when the window is narrow.
         bool narrowNotice = width < 760;

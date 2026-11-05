@@ -548,13 +548,17 @@
             </DockPanel>
         </Border>
 
-        <!-- ============================================================ header: only what is used while playing -->
+        <!-- ============================================================ header: only what is used while playing.
+             Monitor · volume · search … Stop · settings (gear far right). Sounds are added by dragging, Ctrl+O,
+             the right-click on the free pad area, or the button of the empty state. The tab order follows the
+             arrangement (set in LayoutHeader), so it stays local to this grid. -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="16,10">
-            <Grid x:Name="HeaderGrid">
+            <Grid x:Name="HeaderGrid" KeyboardNavigation.TabNavigation="Local">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
@@ -562,13 +566,13 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <StackPanel x:Name="MonitorGroup" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel x:Name="MonitorGroup" Orientation="Horizontal" VerticalAlignment="Center" KeyboardNavigation.TabNavigation="Local">
                     <CheckBox Style="{StaticResource Switch}" Content="{t:T Main.Monitor}" IsChecked="{Binding MonitorEnabled}"
                               ToolTip="{t:T Main.MonitorTip}" />
                     <ComboBox ItemsSource="{Binding OutputChoices}" SelectedItem="{Binding SelectedOutput}" DisplayMemberPath="Display"
                               Width="190" Margin="12,0,0,0" ToolTip="{t:T Main.MonitorDeviceTip}" AutomationProperties.Name="{t:T Main.MonitorDeviceTip}" />
                 </StackPanel>
-                <StackPanel x:Name="ActionGroup" Grid.Column="1" Orientation="Horizontal" Margin="24,0,16,0" VerticalAlignment="Center">
+                <StackPanel x:Name="VolumeGroup" Grid.Column="1" Orientation="Horizontal" Margin="16,0,16,0" VerticalAlignment="Center" KeyboardNavigation.TabNavigation="Local">
                     <views:VolumeIcon Percent="{Binding MasterVolumePercent}" Stroke="{DynamicResource TextBrush}" VerticalAlignment="Center"
                                       Text="{t:T Main.VolumeAll}" MutedText="{t:T Main.VolumeMuted}" />
                     <Slider Minimum="0" Maximum="100" Width="110" Margin="8,0,8,0" VerticalAlignment="Center"
@@ -576,16 +580,10 @@
                             AutomationProperties.Name="{t:T Main.VolumeAll}"
                             ToolTip="{t:T Main.VolumeAllTip}" />
                     <TextBlock Text="{Binding MasterVolumeText}" Width="40" Style="{StaticResource Num}" />
-                    <Button Content="{t:T Main.AddSounds}" Command="{Binding AddFilesDialogCommand}" Margin="16,0,0,0"
-                            ToolTip="{t:T Main.AddSoundsTip}" />
-                    <Button Style="{StaticResource IconButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="" Margin="8,0,0,0"
-                            AutomationProperties.Name="{t:T Settings.Title}"
-                            ToolTip="{t:T Main.SettingsTip}">
-                        <Path Data="{StaticResource GearGeometry}" Fill="{DynamicResource TextBrush}" Width="20" Height="20" Stretch="Uniform" />
-                    </Button>
                 </StackPanel>
                 <!-- Search: always there. Ctrl+F jumps here, Esc empties it. -->
-                <Grid x:Name="SearchGroup" Grid.Column="2" Margin="0,0,16,0" VerticalAlignment="Center" MinWidth="150" MaxWidth="280" HorizontalAlignment="Stretch">
+                <Grid x:Name="SearchGroup" Grid.Column="2" Margin="0,0,16,0" VerticalAlignment="Center" MinWidth="150" MaxWidth="280" HorizontalAlignment="Stretch"
+                      KeyboardNavigation.TabNavigation="Local">
                     <TextBox x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="16,2,16,2" MinHeight="34" VerticalContentAlignment="Center"
                              AutomationProperties.Name="{t:T Search.Placeholder}" ToolTip="{t:T Search.Tip}" KeyDown="OnSearchKeyDown" />
                     <Path Data="M 6.5,1 A 5.5,5.5 0 1 1 6.49,1 Z M 10.6,10.6 L 15,15" Stroke="{DynamicResource SubTextBrush}" StrokeThickness="1.6"
@@ -601,6 +599,12 @@
                 </Grid>
                 <Button x:Name="StopButton" Grid.Column="3" Style="{StaticResource StopButton}" Content="{t:T Main.Stop}" VerticalAlignment="Center"
                         Command="{Binding StopAllCommand}" ToolTip="{Binding StopAllToolTip}" />
+                <Button x:Name="SettingsButton" Grid.Column="4" Style="{StaticResource IconButton}" Command="{Binding ShowSettingsCommand}" CommandParameter=""
+                        Margin="8,0,0,0" VerticalAlignment="Center"
+                        AutomationProperties.Name="{t:T Settings.Title}"
+                        ToolTip="{t:T Main.SettingsTip}">
+                    <Path Data="{StaticResource GearGeometry}" Fill="{DynamicResource TextBrush}" Width="20" Height="20" Stretch="Uniform" />
+                </Button>
             </Grid>
         </Border>
 
@@ -626,7 +630,14 @@
 
         <!-- ============================================================ pads, empty state, settings -->
         <Grid>
-            <ScrollViewer x:Name="PadScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+            <!-- Right-click on the free area between and below the pads (a pad has its own menu). -->
+            <ScrollViewer x:Name="PadScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False" Background="Transparent">
+                <ScrollViewer.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="{t:T Main.AddSounds}" Command="{Binding AddFilesDialogCommand}" InputGestureText="{t:T Main.AddSoundsKey}"
+                                  ToolTip="{t:T Main.AddSoundsTip}" />
+                    </ContextMenu>
+                </ScrollViewer.ContextMenu>
                 <Grid>
                 <!-- Tab enters the grid once (and leaves it); the arrow keys move between the pads. -->
                 <ItemsControl x:Name="PadList" ItemsSource="{Binding Tiles}" Margin="16,16,16,20" ItemTemplate="{StaticResource PadTemplate}" Focusable="False"
@@ -676,7 +687,7 @@
                     <TextBlock Style="{StaticResource P}" Margin="0,8,0,0"
                                Text="{t:T Empty.Text}" />
                     <Button Style="{StaticResource PrimaryButton}" Content="{t:T Main.AddSounds}" Command="{Binding AddFilesDialogCommand}"
-                            HorizontalAlignment="Left" Margin="0,18,0,0" />
+                            ToolTip="{t:T Main.AddSoundsTip}" HorizontalAlignment="Left" Margin="0,18,0,0" />
                 </StackPanel>
             </Grid>
 
