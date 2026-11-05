@@ -1,7 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-                    xmlns:local="clr-namespace:Soundboard.App">
+                    xmlns:local="clr-namespace:Soundboard.App"
+                    xmlns:views="clr-namespace:Soundboard.App.Views">
     <!--
         One closed set of controls for light and dark. Colours come only from the keys set by
         ThemeManager (neutrals + the chosen accent), never from Windows or the WPF theme.
@@ -240,8 +241,13 @@
         </Setter>
     </Style>
 
-    <!-- Switch for on/off settings: track + knob; "on" also shows the knob on the right and a filled track. -->
+    <!--
+        Switch for on/off settings: track + knob; "on" also shows the knob on the right and a filled track.
+        The triggers set the resting look. SwitchMotion lets the knob slide there and fades the "Was…" layers
+        (old colours, transparent at rest) when the value changes while the switch is shown.
+    -->
     <Style x:Key="Switch" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+        <Setter Property="views:SwitchMotion.IsEnabled" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
@@ -250,10 +256,23 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Border x:Name="Track" Width="38" Height="20" CornerRadius="10" BorderThickness="1.5" VerticalAlignment="Center"
-                                BorderBrush="{DynamicResource LineBrush}" Background="{DynamicResource FieldBg}">
-                            <Ellipse x:Name="Knob" Width="12" Height="12" HorizontalAlignment="Left" Margin="3,0,0,0" Fill="{DynamicResource SubTextBrush}" />
-                        </Border>
+                        <Grid x:Name="Rail" Width="38" Height="20" VerticalAlignment="Center">
+                            <Border x:Name="Track" CornerRadius="10" BorderThickness="1.5"
+                                    BorderBrush="{DynamicResource LineBrush}" Background="{DynamicResource FieldBg}" />
+                            <Border x:Name="WasOff" CornerRadius="10" BorderThickness="1.5" Opacity="0" IsHitTestVisible="False"
+                                    BorderBrush="{DynamicResource LineBrush}" Background="{DynamicResource FieldBg}" />
+                            <Border x:Name="WasOn" CornerRadius="10" BorderThickness="1.5" Opacity="0" IsHitTestVisible="False"
+                                    BorderBrush="{DynamicResource AccentBrush}" Background="{DynamicResource AccentBrush}" />
+                            <!-- 4.5 = 1.5 border + 3 gap. -->
+                            <Grid x:Name="Knob" Width="12" Height="12" HorizontalAlignment="Left" Margin="4.5,0,0,0">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform x:Name="KnobMove" />
+                                </Grid.RenderTransform>
+                                <Ellipse x:Name="KnobFill" Fill="{DynamicResource SubTextBrush}" />
+                                <Ellipse x:Name="KnobWasOff" Fill="{DynamicResource SubTextBrush}" Opacity="0" />
+                                <Ellipse x:Name="KnobWasOn" Fill="{DynamicResource OnAccentBrush}" Opacity="0" />
+                            </Grid>
+                        </Grid>
                         <ContentPresenter Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="False" />
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -266,9 +285,9 @@
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Track" Property="Background" Value="{DynamicResource AccentBrush}" />
                             <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-                            <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource OnAccentBrush}" />
+                            <Setter TargetName="KnobFill" Property="Fill" Value="{DynamicResource OnAccentBrush}" />
                             <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right" />
-                            <Setter TargetName="Knob" Property="Margin" Value="0,0,3,0" />
+                            <Setter TargetName="Knob" Property="Margin" Value="0,0,4.5,0" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

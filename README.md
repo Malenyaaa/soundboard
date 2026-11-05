@@ -13,7 +13,7 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.2 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.3 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -23,6 +23,8 @@ angleichen, mehrstufiges Rückgängig. In 0.14.1: Der Audio-Zustand wird im Hint
 gemeldet wird nur noch als „Audio“ mit Warnzeichen in der Statuszeile, wenn wirklich etwas nicht geht.
 In 0.14.2: Das Zahnrad steht ganz rechts neben „Stop“; „Sounds hinzufügen …“ ist aus der Kopfzeile
 heraus und steckt im Rechtsklick auf die freie Fläche und auf Strg+O; das Suchfeld heißt „Sounds suchen“.
+In 0.14.3: Schalter (etwa „Mithören“) gleiten beim Umschalten, die Farbe blendet mit; mit
+ausgeschalteten Animationen springen sie wie bisher.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
