@@ -11,7 +11,7 @@ alles wie vorher; (3) einfache Bedienung.
 Entscheidung des Nutzers: **Kabel-Weg.** Die App nimmt das echte Mikrofon auf, mischt die
 Sounds dazu und gibt die Summe auf ein **virtuelles Audiokabel**. Nur **Discord** wählt in
 seinen eigenen Spracheinstellungen das Kabel als Mikrofon. **Windows-Standardgeräte werden
-nie gesetzt.** Das Kabel ist ein Fremdtreiber (VB-CABLE), den der Nutzer selbst installiert;
+nie auf etwas Neues gesetzt.** Das Kabel ist ein Fremdtreiber (VB-CABLE), den der Nutzer selbst installiert;
 die App sichert vorher den Audio-Zustand und meldet, wenn der Installer etwas verstellt hat.
 
 ---
@@ -135,12 +135,20 @@ bei VB-Audio nachfragen.
 
 ## 2. Rücksetz-Konzept
 
-### 2.1 Grundsatz: Nichts Globales ändern
+### 2.1 Grundsatz: Ändern erlaubt, Zurückstellen Pflicht
 
-- Die App ruft **nie** `IPolicyConfig::SetDefaultEndpoint`, um etwas *einzustellen*.
+Gelockert am 05.11.2026. Vorher galt „nichts Globales ändern“. Jetzt gilt: **Die App darf
+Windows-Einstellungen ändern, wenn es die Bedienung einfacher macht — aber sie muss sie zuverlässig
+zurückstellen**, beim normalen Beenden, beim Deinstallieren und nach einem Absturz (Wächter), sodass
+Windows ohne die App wieder normal klingt. Der Maßstab bleibt der Fehler anderer Audio-Software, die
+Standardgeräte übernimmt und ohne die dann kein Ton mehr da ist.
+
+- Jede Änderung läuft über das **Änderungs-Journal** (2.6): alter Wert zuerst auf die Platte,
+  dann Windows ändern; Zurückstellen entfernt den Eintrag.
+- Standardgeräte stellt die App per `IPolicyConfig::SetDefaultEndpoint` nur **zurück** auf die
+  gesicherten Geräte, nie auf etwas Neues und nie auf das Kabel (2.3).
 - Geräte werden ausschließlich **per Endpunkt-ID** geöffnet (`IMMDeviceEnumerator`), immer
-  im **Shared Mode**, nie exklusiv, Format = Mix-Format des Geräts (kein Umstellen von
-  Abtastrate oder Bittiefe am Gerät; Resampling passiert in der App).
+  im **Shared Mode**, nie exklusiv, im Mix-Format des Geräts (Resampling in der App).
 - Kein Dienst, keine Aufgabenplanung, kein Autostart ohne ausdrückliches Häkchen.
 - Keine Änderung an „Gerät abhören", Exklusivmodus-Erlaubnis, Verbesserungen (APOs) oder
   Lautstärken fremder Endpunkte. Die eigene Mix-Lautstärke regelt die App intern, nicht
@@ -148,8 +156,9 @@ bei VB-Audio nachfragen.
 - Portable Betrieb (ein Ordner, Konfiguration daneben oder in `%LOCALAPPDATA%`) ist
   Standard.
 
-Damit bleibt als einzige globale Änderung die Treiberinstallation — ausgeführt vom Nutzer
-mit VB-Audios Setup, beaufsichtigt von unserer App.
+Was die App ändert (Stand 0.15): die Kommunikations-Absenkung („Ducking“) solange sie läuft (2.6).
+Dazu kommt die Treiberinstallation — ausgeführt vom Nutzer mit VB-Audios Setup, beaufsichtigt von
+unserer App.
 
 ### 2.2 Snapshot: was gesichert wird
 
@@ -200,7 +209,7 @@ sie zusätzlich, wenn ihr Fenster nach vorn kommt.
 | Situation | Mechanismus |
 |---|---|
 | Nach Treiberinstallation | Die App vergleicht Snapshot und Ist. Neu: CABLE Input/Output → gut, die Sicherung wird still nachgezogen. Kabel als Standard-Wiedergabe oder -Mikro (für eine Rolle, deren gesichertes Gerät kein Kabel war) → die App stellt **sofort still** per `SetDefaultEndpoint` das gesicherte Gerät zurück, wenn es da und aktiv ist, und vermerkt es leise im Reiter (stille Windows-Benachrichtigung, wenn das Fenster hinten ist). Höchstens zweimal je Rolle und Lauf, damit sie nicht gegen ein anderes Programm oder eine bewusste Wahl ankämpft. Ist das gesicherte Gerät nicht da → kein Umstellen, Warnzeichen „Audio“; im Reiter „Standardgerät zurückstellen". |
-| Normales Schließen | Streams schließen, Dirty-Flag löschen. Es gibt nichts zurückzustellen, weil nichts gestellt wurde. Die Rückfrage nennt Windows-Audio nur, wenn dort etwas nicht geht. |
+| Normales Schließen | Streams schließen, Änderungen „solange es läuft“ aus dem Journal zurückstellen (2.6), dann Dirty-Flag löschen. Die Rückfrage nennt Windows-Audio nur, wenn dort etwas nicht geht. |
 | Absturz | **Wächter**: die App startet sich selbst als `app.exe --watch <pid>`; der Kindprozess wartet auf das Elternende und zeigt nur dann ein kleines Fenster, wenn etwas nicht geht: das Kabel lief („Discord hört dein Kabel, aber niemand füttert es. Neu starten / Hinweis") oder Windows-Audio hat ein Problem wie oben. Sonst still. Beim nächsten Start kein Banner; ein Problem zeigt das Warnzeichen. Kein Dienst, keine Adminrechte. |
 | Neustart / Windows-Update | Kein erzwungener Autostart. Stattdessen `app.exe --check` und Menüpunkt „Audio-Zustand prüfen". Windows-Updates setzen Geräte gelegentlich um ([Hinweis](https://voicechanger.easeus.com/resources/vb-audio-virtual-cable-not-working.html)) — erkennen und melden. Optional (Häkchen): mit Windows starten, dann greift die Prüfung automatisch. |
 | Deinstallation | siehe 2.5 |
@@ -227,7 +236,8 @@ Discord speichert die Mikrofonwahl selbst, unabhängig von Windows.
 Portable Fassung: App über Tray beenden → Ordner löschen. Zusätzlich, geführt über
 „Alles entfernen" im Menü (oder `app.exe --uninstall`):
 
-1. Dirty-Flag/Snapshot prüfen, Zurückstellen anbieten.
+1. Änderungs-Journal sofort abarbeiten (alles zurück, 2.6), Snapshot prüfen, Standardgeräte
+   zurückstellen anbieten.
 2. Eigene Spuren: Konfiguration und Snapshot (Rückfrage: Sounds behalten?), Autostart-Eintrag
    falls gesetzt, Tray-Icon-Cache ist Windows-Sache.
 3. **Treiber:** nicht still deinstallieren. Die App zeigt den Weg: VB-CABLE-Setup als
@@ -241,6 +251,41 @@ Portable Fassung: App über Tray beenden → Ordner löschen. Zusätzlich, gefü
 Installer-Fassung (entschieden 03.11.2026, kommt zur fertigen Fassung): Inno Setup, Installation nur
 für den Benutzer (`%LOCALAPPDATA%`, ohne Admin), Startmenü, Autostart optional; der Deinstaller ruft
 `--uninstall` bzw. `--restore` auf. Die portable EXE wird weiter als zweiter Download angeboten.
+
+### 2.6 Änderungs-Journal
+
+`changes.json` im Datenordner. Je Änderung ein Eintrag: Schlüssel (`ducking`,
+`cable-format:<Endpunkt-ID>`), Art, Geltung, Besitzer (Prozess-ID + Startzeit, damit eine
+wiederverwendete ID nicht verwechselt wird), Zeit, „erledigt“-Merker und der alte Wert.
+
+- **Write-ahead:** Eintrag mit altem Wert schreiben (atomar: Zwischendatei, dann Umbenennen) →
+  Windows ändern → Eintrag als erledigt markieren. Stirbt der Prozess dazwischen, findet das
+  Zurückstellen den alten Wert noch in Windows und entfernt nur den Eintrag.
+- **Vorsichtig zurück:** Geschrieben wird der alte Wert nur, solange in Windows noch der Wert der App
+  steht. Hat jemand die Einstellung inzwischen geändert, bleibt sie so („so gelassen“). Damit ist
+  das Zurückstellen idempotent.
+- **Nie den eigenen Wert als „vorher“:** Findet ein neuer Lauf einen Eintrag eines alten Laufs und
+  in Windows noch den Wert der App, übernimmt er den Eintrag mit dem alten Wert.
+- **Fehlender Wert:** Gab es den Registry-Wert vorher nicht, wird er beim Zurückstellen gelöscht,
+  nicht auf den Windows-Standard gesetzt.
+- **Geltung „solange es läuft“** (Ducking): zurück beim Beenden, beim Abmelden/Herunterfahren
+  (`SessionEnding`), durch den Wächter nach Absturz, beim nächsten Start für Einträge toter
+  Prozesse (Stromausfall), beim Ausschalten des Schalters.
+- **Alle Einträge** gehen zurück mit „Alle Änderungen zurücknehmen“ (schaltet auch die Schalter
+  aus), `--restore` und `--uninstall`.
+- Scheitert eine Rückstellung, bleibt der Eintrag stehen und wird beim nächsten Anlass wieder
+  versucht. Ein unlesbares Journal wird beiseitegelegt (`changes.defekt-<Zeit>.json`), nie
+  überschrieben; der Rückbau löscht `changes.json` nicht, solange etwas darin steht.
+- Zugriff von App, Wächter, `--restore` und Rückbau unter einer benannten Sperre (Mutex).
+
+**Ducking** (`HKCU\Software\Microsoft\Multimedia\Audio`, DWORD `UserDuckingPreference`: 0 alle
+anderen stumm, 1 um 80 % (Standard, auch wenn der Wert fehlt), 2 um 50 %, 3 nichts unternehmen):
+Beim Start auf 3, solange der Schalter „Andere Töne bei Anrufen nicht leiser stellen“ an ist
+(Standard an). Ein Wert anderen Typs wird nicht angefasst. **Unsicher:** ob Windows den reinen
+Registry-Eintrag sofort übernimmt — die Systemsteuerung wirkt sofort, Forenberichte nennen für den
+Registry-Weg einen Neustart des Audiodienstes oder eine neue Anmeldung
+([Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/286017/audio-ducking-stream-attenuation-setting-doesnt-ta)).
+Am echten Rechner prüfen; falls nötig, dokumentieren „wirkt für neue Anrufe/nach Neuanmeldung“.
 
 ---
 

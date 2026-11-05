@@ -62,6 +62,8 @@ public sealed partial class MainViewModel
         foreach (var n in Notices) n.RefreshTexts();
         UpdateNoticeView();
         RestoreResultText = "";
+        ChangesResultText = "";
+        RefreshChanges();
         if (_mixPurpose != MixPurpose.FileTest) TestStatus = "";
         StatusMix = "";
         UpdateMixStatus();

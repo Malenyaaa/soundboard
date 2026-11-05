@@ -849,6 +849,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void InitAudioState()
     {
         if (_services.UseDirtyFlag) WriteDirtyFlag(cableActive: false);
+        InitChanges();
 
         try
         {
@@ -2165,6 +2166,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StopMix();
         StopSink();
         _hotkeys.Dispose();
+        // Windows settings changed for this run go back before the running flag goes: if putting
+        // back fails, the entries stay in the journal and the next start tries again.
+        UndoSessionChanges();
         if (_services.UseDirtyFlag) _dirty.Delete();
         _services.Hotkeys.Dispose();
         _audio.Dispose();

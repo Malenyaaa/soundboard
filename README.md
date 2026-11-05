@@ -4,13 +4,17 @@ Ein Soundboard für Windows 11: Sounds als Pads, per Klick oder globaler Taste a
 selbst mithören – und zusammen mit dem eigenen Mikrofon über ein virtuelles Audiokabel in
 Discord schicken.
 
-Grundsatz: **Die Windows-Soundeinstellungen werden nicht verändert.** Das Programm liest
-Standardgeräte nur, öffnet Geräte ausschließlich per Endpunkt-ID im Shared Mode (nie
-exklusiv) und stellt weder Lautstärken noch Formate um. Die einzige Ausnahme sind die
-Windows-Standardgeräte, und nur zurück: Hat Windows das Kabel zum Standardgerät gemacht, stellt das
-Soundboard still das gesicherte Gerät zurück; sonst auf Wunsch der Knopf „Standardgerät
-zurückstellen“ (bzw. `--restore`) – nur auf die gesicherten Geräte, nie auf das Kabel. Das
-ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
+Grundsatz: **Das Soundboard darf Windows-Einstellungen ändern, wenn es die Bedienung einfacher
+macht – aber es stellt sie zuverlässig zurück**, sodass Windows ohne das Soundboard wieder normal
+klingt (Hintergrund: Audio-Software, die Standardgeräte übernimmt und ohne die dann kein Ton mehr
+da ist). Jede Änderung steht mit dem alten Wert im Änderungs-Journal (`changes.json`), **bevor**
+Windows geändert wird, und geht zurück beim Beenden, nach einem Absturz über den Wächter, beim
+nächsten Start (falls auch der Wächter nicht mehr lief), mit „Alle Änderungen zurücknehmen“, mit
+`--restore` und beim Deinstallieren. Was das Soundboard ändert, steht unter
+[Was das Soundboard an Windows ändert](#was-das-soundboard-an-windows-ändert). Sonst öffnet es
+Geräte nur per Endpunkt-ID im Shared Mode (nie exklusiv) und stellt keine Lautstärken um.
+Standardgeräte stellt es nur **zurück**, nie auf etwas Neues, und nie auf das Kabel. Das ganze
+Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
@@ -249,10 +253,10 @@ eigenen Reiter.
 
 | Reiter | Inhalt |
 |---|---|
-| Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
+| Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; „Andere Töne bei Anrufen nicht leiser stellen“ (Windows-Ducking aus, solange das Soundboard läuft; Standard an); 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
 | Einrichtung | die drei Schritte: Kabel, Discord, Rauschunterdrückung (siehe oben) |
 | Tasten | Tasten pausieren; „Alle Sounds stoppen“, „Mikrofon stumm“ und alle Pads mit Taste, nur Abweichungen stehen dabei, Ausweg bei Konflikten; Sounds überlagern (aus: ein neuer Sound stoppt den laufenden); „Dieselbe Taste, während der Sound läuft“: Stoppen oder Von vorn spielen |
-| Audio-Zustand | oben, nur bei einem Problem, was in Windows-Audio nicht geht; Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken; „Standardgerät zurückstellen“ (bei abweichendem Standardgerät), „Jetzigen Zustand als normal sichern“ (z. B. nach eigenem Umstellen), „Neu vergleichen“; darunter die Audiogeräte in Windows (nur angezeigt, die Endpunkt-ID im Tooltip der Zeile) |
+| Audio-Zustand | oben, nur bei einem Problem, was in Windows-Audio nicht geht; Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken; „Standardgerät zurückstellen“ (bei abweichendem Standardgerät), „Jetzigen Zustand als normal sichern“ (z. B. nach eigenem Umstellen), „Neu vergleichen“; leise, falls das Kabel eben als Standardgerät zurückgestellt wurde; „Vom Soundboard geändert“ mit Liste und „Alle Änderungen zurücknehmen“; darunter die Audiogeräte in Windows (nur angezeigt, die Endpunkt-ID im Tooltip der Zeile) |
 | Darstellung | Sprache (English, Deutsch); hell oder dunkel (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); Pad-Größe (groß, kompakt); weiches Aufleuchten an/aus; Profil exportieren/importieren; mit Windows starten (nur im Infobereich) |
 
 **Profil:** „Profil exportieren …“ speichert alle Pads mit ihren Sounds und Bildern als eine
@@ -293,6 +297,37 @@ Fehlt etwas (kein Mikrofon, Taste belegt), erscheint ein Hinweis mit Warnzeichen
 Schritt – bei Pads direkt auf dem Pad. Ein fehlendes Kabel zeigt nur die Statuszeile (siehe
 oben). Knöpfe werden nie ausgegraut.
 
+## Was das Soundboard an Windows ändert
+
+| Einstellung | Wann geändert | Wann zurückgestellt |
+|---|---|---|
+| Standardgeräte (Wiedergabe/Aufnahme, je Rolle) | nur zurück: wenn Windows das Kabel zum Standard gemacht hat und das gesicherte Gerät da ist (siehe Einrichtung) | – (das ist schon der Zustand von vorher) |
+| Kommunikations-Absenkung („Ducking“, `HKCU\Software\Microsoft\Multimedia\Audio`, Wert `UserDuckingPreference`) | beim Start auf „nichts unternehmen“ (3), solange der Schalter „Andere Töne bei Anrufen nicht leiser stellen“ (Reiter „Mikrofon & Kabel“, Standard an) an ist | beim Beenden, beim Abmelden/Herunterfahren, nach einem Absturz durch den Wächter, sonst beim nächsten Start; außerdem beim Ausschalten des Schalters, mit „Alle Änderungen zurücknehmen“, `--restore` und beim Deinstallieren |
+
+**Ducking:** Windows stellt andere Töne um 80 % leiser, sobald es eine „Kommunikation“ erkennt
+(Discord zählt). Fehlt der Wert in der Registry (Windows-Standard, 80 %), merkt sich das Journal
+genau das und **löscht** ihn beim Zurückstellen wieder, statt 1 zu schreiben. Zurückgestellt wird
+nur, solange noch der Wert des Soundboards (3) drinsteht; hat jemand die Einstellung inzwischen in
+Windows geändert, bleibt sie so. **Unsicher:** Ob Windows den Registry-Wert sofort übernimmt, ist
+nicht belegt. Die Systemsteuerung (Sound → Kommunikation) wirkt sofort, ein reiner
+Registry-Eintrag nach Berichten aus Foren eventuell erst für neue Anrufe, nach Neustart des
+Windows-Audiodienstes oder nach einer neuen Anmeldung. Am echten Rechner prüfen.
+
+**Das Journal** (`changes.json` im Datenordner) hält je Änderung den alten Wert, die Art
+(„solange es läuft“ oder „bis zum Deinstallieren“) und den Prozess, der sie gemacht hat. Ablauf
+jeder Änderung: Eintrag schreiben → Windows ändern → Eintrag als erledigt markieren;
+Zurückstellen entfernt ihn. Das Zurückstellen ist idempotent (zweimal ist wie einmal), und ein
+Eintrag, dessen Rückstellung scheitert, bleibt für den nächsten Versuch stehen. App, Wächter,
+`--restore` und Rückbau greifen über eine gemeinsame Sperre zu. Ein unlesbares Journal wird als
+`changes.defekt-<Zeit>.json` beiseitegelegt, nie überschrieben. Im Reiter „Audio-Zustand“ zeigt
+**„Vom Soundboard geändert“** die Liste („Andere Töne bei Anrufen: volle Lautstärke, vorher um
+80 % leiser“) mit **„Alle Änderungen zurücknehmen“**: stellt alles sofort zurück und schaltet
+die Schalter aus, die es gesetzt haben.
+
+**Restrisiko:** Stromausfall oder hartes Ausschalten, und danach wird das Soundboard nie wieder
+gestartet: Dann bleibt das Ducking auf „nichts unternehmen“, bis `Soundboard.exe --restore`
+läuft oder das Soundboard deinstalliert wird (der Deinstaller ruft das auf).
+
 ## Sprache
 
 Die Oberfläche ist auf Englisch und lässt sich unter Einstellungen → „Appearance“ →
@@ -322,7 +357,8 @@ benutzt, aber nirgends definiert sind. Die Ordnernamen im Datenordner (`Sounds`,
 Fensterprogramm ist, wartet die Konsole nicht von selbst auf die Ausgabe; `| Out-String`
 (PowerShell) bzw. `start /wait` (Eingabeaufforderung) sorgt dafür.
 
-`--restore` stellt nur Standardgeräte zurück, nur auf IDs aus der Sicherung, nur wenn das
+`--restore` stellt zuerst alles aus dem Änderungs-Journal zurück (siehe oben), dann die
+Standardgeräte – diese nur auf IDs aus der Sicherung, nur wenn das
 Gerät angeschlossen und aktiv ist, und nie ein virtuelles Kabel. Was nicht geht, wird mit
 dem Weg „von Hand“ ausgegeben.
 
@@ -330,7 +366,9 @@ dem Weg „von Hand“ ausgegeben.
 
 Rechtsklick auf das Soundboard-Symbol im Infobereich → **„Alles entfernen …“** oder `Soundboard.exe --uninstall`:
 
-1. **Audio-Zustand prüfen**, bei Abweichung „Standardgerät zurückstellen“.
+1. **Änderungen zurückstellen und Audio-Zustand prüfen:** Alles, was das Soundboard an Windows
+   geändert hat (Journal), geht beim Öffnen der Anleitung sofort zurück; das Ergebnis steht dort.
+   Bei abweichendem Standardgerät „Standardgerät zurückstellen“.
 2. **Eigene Daten löschen** – erst nach Rückfrage; „Sounds behalten“ ist vorausgewählt und
    behält auch die Pad-Bilder. Entfernt werden Einstellungen, Sicherungen, Test-Aufnahmen und
    die Sicherungen vor Importen und der Autostart-Eintrag, falls er diese EXE startet (einer für
@@ -362,6 +400,7 @@ Alles liegt unter `%LOCALAPPDATA%\Soundboard\`:
 | `audio-snapshot.json` | gesicherter Windows-Audio-Zustand (automatisch: beim ersten Start und wenn Geräte dazukommen oder wegfallen, solange die Standardgeräte wie gesichert sind und alles geht) |
 | `audio-snapshot.vorher.json` | die Sicherung davor |
 | `running.json` | Merker „läuft gerade“; bleibt er nach dem Ende liegen, war es ein Absturz |
+| `changes.json` | Änderungs-Journal: was das Soundboard an Windows geändert hat, mit dem alten Wert; existiert nur, solange etwas geändert ist. Wird beim Rückbau nicht gelöscht, solange etwas darin steht |
 
 ## Bauen
 

@@ -26,7 +26,11 @@ public static class OwnTraces
         {
             foreach (var f in Directory.EnumerateFiles(paths.DataDir, "config.defekt-*.json")) list.Add((Text.L.Get("Traces.SettingsBroken"), f));
             foreach (var f in Directory.EnumerateFiles(paths.DataDir, "audio-snapshot*.json")) list.Add((Text.L.Get("Traces.Snapshot"), f));
+            // The journal itself (changes.json) is not listed: it exists only while a change could
+            // not be put back, and then its old values must not be lost.
+            foreach (var f in Directory.EnumerateFiles(paths.DataDir, "changes.defekt-*.json")) list.Add((Text.L.Get("Traces.ChangesBroken"), f));
         }
+        AddFile(Text.L.Get("Traces.ChangesBroken"), paths.ChangesFile + ".tmp");
         AddFile(Text.L.Get("Traces.Running"), paths.DirtyFlagFile);
         if (Directory.Exists(paths.RecordingsDir)) list.Add((Text.L.Get("Traces.Recordings"), paths.RecordingsDir));
         if (Directory.Exists(paths.BackupsDir)) list.Add((Text.L.Get("Traces.Backups"), paths.BackupsDir));

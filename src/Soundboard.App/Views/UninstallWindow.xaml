@@ -56,6 +56,7 @@
 
                 <!-- 1 -->
                 <TextBlock Style="{StaticResource H}" Text="{t:T Uninstall.H1}" />
+                <TextBlock x:Name="ChangesText" Style="{StaticResource P}" Margin="0,0,0,8" Visibility="Collapsed" />
                 <TextBlock x:Name="StateText" Style="{StaticResource P}" />
                 <Button x:Name="RestoreButton" Style="{StaticResource B}" Content="{t:T Action.Restore}" Click="OnRestore"
                         ToolTip="{t:T Restore.Tip}" />

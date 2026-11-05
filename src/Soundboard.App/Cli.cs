@@ -45,6 +45,30 @@ internal static class Cli
         using var console = ConsoleOutput.Open();
         var w = console.Writer;
         var paths = AppPaths.Default;
+        // First the settings the soundboard changed itself (journal): these go back in any case.
+        int changesCode = RestoreChanges(w, paths);
+        int defaultsCode = RestoreDefaults(w, paths);
+        return Math.Max(changesCode, defaultsCode);
+    }
+
+    /// <summary>Puts back every Windows setting in the change journal and prints what happened.</summary>
+    private static int RestoreChanges(TextWriter w, AppPaths paths)
+    {
+        var changes = Changes(paths);
+        if (changes.List().Count == 0) return 0;
+        var result = changes.UndoAll();
+        w.WriteLine(L.Get("Cli.Changes"));
+        foreach (var line in SystemChanges.Format(result).Split(Environment.NewLine)) w.WriteLine("  " + line);
+        w.WriteLine();
+        return result.AllDone ? 0 : 1;
+    }
+
+    /// <summary>The change journal with the real Windows behind it (used by --restore, the watcher and the removal guide).</summary>
+    public static SystemChanges Changes(AppPaths paths) =>
+        new(new ChangeJournal(paths.ChangesFile), new UserRegistry());
+
+    private static int RestoreDefaults(TextWriter w, AppPaths paths)
+    {
         AudioSnapshot? snap;
         try
         {

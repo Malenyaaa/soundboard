@@ -918,6 +918,12 @@
                                 <CheckBox Style="{StaticResource Switch}" Content="{t:T Cable.BlockVoice}" IsChecked="{Binding BlockVoice}" Margin="0,20,0,0"
                                           ToolTip="{t:T Cable.BlockVoiceTip}" />
 
+                                <!-- Windows communications ducking: off while the app runs, put back when it ends. -->
+                                <CheckBox Style="{StaticResource Switch}" Content="{t:T Changes.DuckingSwitch}" IsChecked="{Binding KeepFullVolumeInCalls}" Margin="0,16,0,0" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0" Text="{t:T Changes.DuckingHint}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0" Text="{Binding DuckingStatusText}"
+                                           Visibility="{Binding DuckingStatusText, Converter={StaticResource TextToVis}}" />
+
                                 <TextBlock Text="{t:T Cable.TestTitle}" Style="{StaticResource H2}" />
                                 <TextBlock Style="{StaticResource Sub}" Text="{t:T Cable.TestText}" />
                                 <WrapPanel Margin="0,10,0,0">
@@ -1015,6 +1021,26 @@
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBlock Text="{Binding SnapshotInfo}" Style="{StaticResource Sub}" Margin="0,6,0,0" />
+
+                                <!-- Windows settings the soundboard changed itself, each with the value before. -->
+                                <TextBlock Text="{t:T Changes.Title}" Style="{StaticResource H2}" Margin="0,28,0,4" />
+                                <TextBlock Text="{t:T Changes.Intro}" Style="{StaticResource Sub}" />
+                                <Border BorderBrush="{DynamicResource LineSoft}" BorderThickness="1" CornerRadius="6" Background="{DynamicResource FieldBg}"
+                                        Padding="12,8" Margin="0,10,0,0" Visibility="{Binding HasChanges, Converter={StaticResource BoolToVis}}">
+                                    <ItemsControl ItemsSource="{Binding ChangeLines}" Focusable="False">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,3" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                                <TextBlock Text="{t:T Changes.None}" Style="{StaticResource P}" Margin="0,8,0,0"
+                                           Visibility="{Binding HasChanges, Converter={StaticResource NotBoolToVis}}" />
+                                <Button Content="{t:T Changes.UndoAll}" Command="{Binding UndoAllChangesCommand}" HorizontalAlignment="Left" Margin="0,10,0,0"
+                                        ToolTip="{t:T Changes.UndoAllTip}" />
+                                <TextBlock Text="{Binding ChangesResultText}" Style="{StaticResource P}" Margin="0,6,0,0"
+                                           Visibility="{Binding ChangesResultText, Converter={StaticResource TextToVis}}" />
 
                                 <TextBlock Text="{t:T State.Devices}" Style="{StaticResource H2}" Margin="0,28,0,4" />
                                 <TextBlock Text="{Binding DevicesHeader}" Style="{StaticResource Sub}" />

@@ -31,7 +31,7 @@ public partial class UninstallWindow : Window
     private readonly string? _previousMic;
     private readonly DispatcherTimer _runningTimer;
 
-    public UninstallWindow(AppPaths paths, Func<AudioStateReport> readState, IDefaultEndpointWriter writer, Func<bool> isRunning, Autostart autostart)
+    public UninstallWindow(AppPaths paths, Func<AudioStateReport> readState, IDefaultEndpointWriter writer, Func<bool> isRunning, Autostart autostart, SystemChanges changes)
     {
         InitializeComponent();
         Text.UiLanguage.Attach(this);
@@ -55,8 +55,20 @@ public partial class UninstallWindow : Window
         Closed += (_, _) => _runningTimer.Stop();
 
         UpdateRunning();
+        UndoChanges(changes);
         UpdateTraces();
         Compare();
+    }
+
+    /// <summary>
+    /// Removing the soundboard puts back every Windows setting it changed (journal), at once and
+    /// without a button: that is what removing means. Step 1 says what happened.
+    /// </summary>
+    private void UndoChanges(SystemChanges changes)
+    {
+        if (changes.List().Count == 0) return;
+        ChangesText.Text = L.Get("Uninstall.ChangesUndone") + Environment.NewLine + SystemChanges.Format(changes.UndoAll());
+        ChangesText.Visibility = Visibility.Visible;
     }
 
     private void UpdateRunning() =>

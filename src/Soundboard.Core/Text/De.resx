@@ -615,4 +615,30 @@ Entf: Taste löschen</value></data>
   <data name="State.CableReset" xml:space="preserve"><value>Windows hatte das Kabel zum Standardgerät gemacht – auf dein Gerät zurückgestellt ({0}).</value></data>
   <data name="State.CableResetTitle" xml:space="preserve"><value>Standardgerät zurückgestellt</value></data>
   <data name="State.CableResetShort" xml:space="preserve"><value>Windows hatte das Kabel zum Standardgerät gemacht. Das Soundboard hat dein Gerät zurückgestellt.</value></data>
+  <data name="Changes.Ducking" xml:space="preserve"><value>Andere Töne bei Anrufen: {0}, vorher {1}</value></data>
+  <data name="Changes.CableFormat" xml:space="preserve"><value>Format von „{0}“: {1}, vorher {2}</value></data>
+  <data name="Changes.DuckMute" xml:space="preserve"><value>stumm</value></data>
+  <data name="Changes.Duck80" xml:space="preserve"><value>um 80 % leiser</value></data>
+  <data name="Changes.Duck50" xml:space="preserve"><value>um 50 % leiser</value></data>
+  <data name="Changes.DuckOff" xml:space="preserve"><value>volle Lautstärke</value></data>
+  <data name="Changes.Rate" xml:space="preserve"><value>{0:0.#} kHz</value></data>
+  <data name="Changes.UnknownKind" xml:space="preserve"><value>unbekannte Art von Änderung ({0}) – aus einer neueren Version?</value></data>
+  <data name="Changes.Journal" xml:space="preserve"><value>Liste der Änderungen (changes.json)</value></data>
+  <data name="Changes.NothingToUndo" xml:space="preserve"><value>Nichts zurückzunehmen – das Soundboard hat gerade keine Windows-Einstellung geändert.</value></data>
+  <data name="Changes.Undone.One" xml:space="preserve"><value>1 Windows-Einstellung zurückgestellt.</value></data>
+  <data name="Changes.Undone.Other" xml:space="preserve"><value>{0} Windows-Einstellungen zurückgestellt.</value></data>
+  <data name="Changes.LeftAsIs" xml:space="preserve"><value>So gelassen (inzwischen in Windows geändert): {0}</value></data>
+  <data name="Changes.UndoFailed" xml:space="preserve"><value>Nicht zurückgestellt: {0} ({1}). Es bleibt auf der Liste und wird wieder versucht.</value></data>
+  <data name="Changes.DuckingFailed" xml:space="preserve"><value>Windows hat die Änderung abgelehnt ({0}); andere Töne werden bei Anrufen eventuell weiter leiser.</value></data>
+  <data name="Changes.DuckingSkipped" xml:space="preserve"><value>Diese Windows-Einstellung hat eine unerwartete Form; das Soundboard lässt sie in Ruhe.</value></data>
+  <data name="Changes.DuckingSwitch" xml:space="preserve"><value>Andere Töne bei Anrufen nicht leiser stellen</value></data>
+  <data name="Changes.DuckingHint" xml:space="preserve"><value>Sonst stellt Windows andere Töne während eines Anrufs um 80 % leiser – Discord zählt als Anruf. Gilt, solange das Soundboard läuft; beim Beenden wird es zurückgestellt.</value></data>
+  <data name="Changes.Title" xml:space="preserve"><value>Vom Soundboard geändert</value></data>
+  <data name="Changes.Intro" xml:space="preserve"><value>Windows-Einstellungen, die das Soundboard zur Erleichterung geändert hat, jeweils mit dem Wert davor. Sie gehen von selbst zurück, auch nach einem Absturz.</value></data>
+  <data name="Changes.None" xml:space="preserve"><value>Gerade nichts geändert.</value></data>
+  <data name="Changes.UndoAll" xml:space="preserve"><value>Alle Änderungen zurücknehmen</value></data>
+  <data name="Changes.UndoAllTip" xml:space="preserve"><value>Stellt alle hier genannten Einstellungen jetzt zurück und schaltet die Schalter aus, die sie gesetzt haben.</value></data>
+  <data name="Cli.Changes" xml:space="preserve"><value>Vom Soundboard geänderte Windows-Einstellungen:</value></data>
+  <data name="Uninstall.ChangesUndone" xml:space="preserve"><value>Die Windows-Einstellungen, die das Soundboard geändert hatte, sind zurückgestellt:</value></data>
+  <data name="Traces.ChangesBroken" xml:space="preserve"><value>Liste der Änderungen (unlesbar oder Zwischenkopie)</value></data>
 </root>

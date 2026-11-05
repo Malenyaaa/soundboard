@@ -68,6 +68,9 @@ public sealed class Profile
     /// <summary>Send microphone + sounds to the virtual cable when it is there.</summary>
     public bool CableEnabled { get; set; } = true;
 
+    /// <summary>While the app runs, Windows does not turn other sounds down during calls (communications ducking).</summary>
+    public bool KeepFullVolumeInCalls { get; set; } = true;
+
     /// <summary>The setup panel was shown once (first start).</summary>
     public bool SetupSeen { get; set; }
 
@@ -315,6 +318,7 @@ public sealed class AppPaths
         BackupsDir = Path.Combine(dataDir, "Sicherungen");
         SnapshotFile = Path.Combine(dataDir, "audio-snapshot.json");
         DirtyFlagFile = Path.Combine(dataDir, "running.json");
+        ChangesFile = Path.Combine(dataDir, "changes.json");
     }
 
     public static AppPaths Default { get; } = new(Path.Combine(
@@ -339,6 +343,9 @@ public sealed class AppPaths
 
     /// <summary>Exists while the app runs; left over after a crash.</summary>
     public string DirtyFlagFile { get; }
+
+    /// <summary>Journal of the Windows settings the app changed, with the values before (see SystemState.ChangeJournal).</summary>
+    public string ChangesFile { get; }
 
     /// <summary>
     /// Copies a sound file into the sound folder (original stays) and returns the new file name.

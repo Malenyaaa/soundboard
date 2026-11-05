@@ -615,4 +615,30 @@ Delete: remove key</value></data>
   <data name="State.CableReset" xml:space="preserve"><value>Windows had made the cable a default device – set back to your device ({0}).</value></data>
   <data name="State.CableResetTitle" xml:space="preserve"><value>Default device set back</value></data>
   <data name="State.CableResetShort" xml:space="preserve"><value>Windows had made the cable a default device. The soundboard set your device back.</value></data>
+  <data name="Changes.Ducking" xml:space="preserve"><value>Other sounds during calls: {0}, was {1}</value></data>
+  <data name="Changes.CableFormat" xml:space="preserve"><value>Format of “{0}”: {1}, was {2}</value></data>
+  <data name="Changes.DuckMute" xml:space="preserve"><value>muted</value></data>
+  <data name="Changes.Duck80" xml:space="preserve"><value>reduced by 80%</value></data>
+  <data name="Changes.Duck50" xml:space="preserve"><value>reduced by 50%</value></data>
+  <data name="Changes.DuckOff" xml:space="preserve"><value>full volume</value></data>
+  <data name="Changes.Rate" xml:space="preserve"><value>{0:0.#} kHz</value></data>
+  <data name="Changes.UnknownKind" xml:space="preserve"><value>unknown kind of change ({0}) – from a newer version?</value></data>
+  <data name="Changes.Journal" xml:space="preserve"><value>List of changes (changes.json)</value></data>
+  <data name="Changes.NothingToUndo" xml:space="preserve"><value>Nothing to undo – the soundboard has not changed any Windows setting right now.</value></data>
+  <data name="Changes.Undone.One" xml:space="preserve"><value>1 Windows setting put back.</value></data>
+  <data name="Changes.Undone.Other" xml:space="preserve"><value>{0} Windows settings put back.</value></data>
+  <data name="Changes.LeftAsIs" xml:space="preserve"><value>Left as it is (changed in Windows since): {0}</value></data>
+  <data name="Changes.UndoFailed" xml:space="preserve"><value>Not put back: {0} ({1}). It stays on the list and is tried again.</value></data>
+  <data name="Changes.DuckingFailed" xml:space="preserve"><value>Windows refused the change ({0}); other sounds may still get quieter during calls.</value></data>
+  <data name="Changes.DuckingSkipped" xml:space="preserve"><value>This Windows setting has an unexpected form; the soundboard leaves it alone.</value></data>
+  <data name="Changes.DuckingSwitch" xml:space="preserve"><value>Keep other sounds at full volume during calls</value></data>
+  <data name="Changes.DuckingHint" xml:space="preserve"><value>Otherwise Windows turns other sounds down by 80% while a call runs – Discord counts as one. Set while the soundboard runs, put back when it ends.</value></data>
+  <data name="Changes.Title" xml:space="preserve"><value>Changed by the soundboard</value></data>
+  <data name="Changes.Intro" xml:space="preserve"><value>Windows settings the soundboard changed to make things easier, each with the value before. They go back by themselves, also after a crash.</value></data>
+  <data name="Changes.None" xml:space="preserve"><value>Nothing changed right now.</value></data>
+  <data name="Changes.UndoAll" xml:space="preserve"><value>Undo all changes</value></data>
+  <data name="Changes.UndoAllTip" xml:space="preserve"><value>Puts every setting listed here back now and turns off the switches that made them.</value></data>
+  <data name="Cli.Changes" xml:space="preserve"><value>Windows settings changed by the soundboard:</value></data>
+  <data name="Uninstall.ChangesUndone" xml:space="preserve"><value>The Windows settings the soundboard had changed are put back:</value></data>
+  <data name="Traces.ChangesBroken" xml:space="preserve"><value>List of changes (unreadable or temporary copy)</value></data>
 </root>

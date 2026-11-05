@@ -89,7 +89,8 @@ public partial class App : Application
             ReadStateSafe,
             new Core.SystemState.PolicyConfigWriter(),
             SingleInstance.IsRunning,
-            new Autostart(new RegistryRunKey(), Environment.ProcessPath));
+            new Autostart(new RegistryRunKey(), Environment.ProcessPath),
+            Cli.Changes(Core.Config.AppPaths.Default));
         window.Closed += (_, _) => Shutdown();
         MainWindow = window;
         window.Show();
@@ -184,6 +185,16 @@ public partial class App : Application
         Instance?.Dispose();
         Instance = null;
         Shutdown();
+    }
+
+    /// <summary>
+    /// Windows signs out or shuts down and may end this process without a normal exit: the
+    /// Windows settings changed for this run go back first, so the next sign-in starts as usual.
+    /// </summary>
+    protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
+    {
+        _vm?.UndoSessionChanges();
+        base.OnSessionEnding(e);
     }
 
     /// <summary>Unexpected errors become a notice instead of closing the program.</summary>
