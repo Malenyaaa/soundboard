@@ -71,6 +71,9 @@ public sealed class Profile
     /// <summary>While the app runs, Windows does not turn other sounds down during calls (communications ducking).</summary>
     public bool KeepFullVolumeInCalls { get; set; } = true;
 
+    /// <summary>The virtual cable runs at 48 kHz (set by the app, put back on removal).</summary>
+    public bool CableAt48k { get; set; } = true;
+
     /// <summary>The setup panel was shown once (first start).</summary>
     public bool SetupSeen { get; set; }
 

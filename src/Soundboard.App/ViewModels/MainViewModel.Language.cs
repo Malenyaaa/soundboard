@@ -64,6 +64,7 @@ public sealed partial class MainViewModel
         RestoreResultText = "";
         ChangesResultText = "";
         RefreshChanges();
+        UpdateCableFormatText();
         if (_mixPurpose != MixPurpose.FileTest) TestStatus = "";
         StatusMix = "";
         UpdateMixStatus();

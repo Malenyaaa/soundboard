@@ -148,7 +148,8 @@ Standardgeräte übernimmt und ohne die dann kein Ton mehr da ist.
 - Standardgeräte stellt die App per `IPolicyConfig::SetDefaultEndpoint` nur **zurück** auf die
   gesicherten Geräte, nie auf etwas Neues und nie auf das Kabel (2.3).
 - Geräte werden ausschließlich **per Endpunkt-ID** geöffnet (`IMMDeviceEnumerator`), immer
-  im **Shared Mode**, nie exklusiv, im Mix-Format des Geräts (Resampling in der App).
+  im **Shared Mode**, nie exklusiv, im Mix-Format des Geräts (Resampling in der App). Umformatiert
+  wird nur das Kabel (2.6), nie ein echtes Gerät.
 - Kein Dienst, keine Aufgabenplanung, kein Autostart ohne ausdrückliches Häkchen.
 - Keine Änderung an „Gerät abhören", Exklusivmodus-Erlaubnis, Verbesserungen (APOs) oder
   Lautstärken fremder Endpunkte. Die eigene Mix-Lautstärke regelt die App intern, nicht
@@ -156,7 +157,8 @@ Standardgeräte übernimmt und ohne die dann kein Ton mehr da ist.
 - Portable Betrieb (ein Ordner, Konfiguration daneben oder in `%LOCALAPPDATA%`) ist
   Standard.
 
-Was die App ändert (Stand 0.15): die Kommunikations-Absenkung („Ducking“) solange sie läuft (2.6).
+Was die App ändert (Stand 0.15): die Kommunikations-Absenkung („Ducking“) solange sie läuft, und
+das Standardformat des Kabels (48 kHz) bis zum Entfernen (2.6).
 Dazu kommt die Treiberinstallation — ausgeführt vom Nutzer mit VB-Audios Setup, beaufsichtigt von
 unserer App.
 
@@ -177,7 +179,8 @@ im Reiter „Audio-Zustand“. Gesichert wird:
    Property Store des Endpunkts; den genauen PKEY habe ich nicht belegt (**unsicher** — in
    der Umsetzung an SoundVolumeView/SoundSwitch-Quellen prüfen).
 4. „Exklusivmodus erlauben" und Standardformat je Endpunkt (Property Store, Schlüssel
-   **unsicher**). Nur zum Erkennen fremder Änderungen, wir schreiben sie nie.
+   **unsicher**). Nur zum Erkennen fremder Änderungen; geschrieben wird nur das Format des Kabels
+   (2.6).
 5. Liste aller Endpunkte mit IDs — um nach der Treiberinstallation zu sehen, was neu ist.
 
 Zum Zurückschreiben der Standardgeräte ist `IPolicyConfig` der einzige Weg (undokumentiert,
@@ -287,6 +290,22 @@ Registry-Weg einen Neustart des Audiodienstes oder eine neue Anmeldung
 ([Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/286017/audio-ducking-stream-attenuation-setting-doesnt-ta)).
 Am echten Rechner prüfen; falls nötig, dokumentieren „wirkt für neue Anrufe/nach Neuanmeldung“.
 
+**Kabel-Format** (Geltung „bis zum Entfernen“): Standardformat von „CABLE Input“ (Wiedergabe) und
+„CABLE Output“ (Aufnahme) auf 48 000 Hz, wenn es abweicht (VB-CABLE ab Werk 44,1 kHz). Weg:
+`IPolicyConfig::GetDeviceFormat`/`GetMixFormat` lesen, nur Rate und Bytes/s ändern, mit
+`SetDeviceFormat(id, Geräteformat, Mixformat)` schreiben — dieselbe Schnittstelle wie die
+Systemsteuerung, der reine Property-Store-Weg (`PKEY_AudioEngine_DeviceFormat`
+{f19f064d-082c-4e27-bc73-6882a1bb8e4c},0) würde das Mix-Format nicht mitziehen. Das alte Format
+steht als Bytes im Journal. Vor jedem Schreiben (hin und zurück) müssen Name und Richtung, wie
+Windows sie gerade meldet, „CABLE Input“/Wiedergabe bzw. „CABLE Output“/Aufnahme sein — nie ein
+echtes Gerät. Danach wird das Kabel neu geöffnet; bei 48 kHz entfällt das Resampling. Fehlschlag →
+still weiter mit Resampling, Vermerk unter dem Schalter. **Nicht beim normalen Beenden zurück:**
+Das Kabel gehört nur dem Soundboard, sein Format wirkt auf kein anderes Programm, und jedes
+Umstellen setzt beide Endpunkte neu auf — Discords Eingang würde bei jedem Start und Ende kurz
+abreißen. Zurück mit „Alle Änderungen zurücknehmen“, Ausschalten des Schalters, `--restore` und
+`--uninstall`. Ist das Kabel bis dahin schon entfernt, entfällt der Eintrag; ist es deaktiviert,
+bleibt er stehen.
+
 ---
 
 ## 3. Empfehlung und Reihenfolge
@@ -356,8 +375,8 @@ grau — fehlt etwas, erscheint die gelbe Meldung mit dem fehlenden Schritt.
 - Mikro: WASAPI Capture, **shared**, Event-getrieben, Gerät per ID, Format = Mix-Format
   (typisch 48 kHz/Float). Kein Exklusivmodus, keine Formatänderung am Gerät.
 - Kabel: WASAPI Render auf „CABLE Input", **shared**, Event-getrieben. Mix-Format des
-  Kabels ist einstellbar (VB-CABLE-Standard 44,1 kHz); die App resampelt intern, statt das
-  Gerät umzustellen.
+  Kabels ist einstellbar (VB-CABLE-Standard 44,1 kHz); die App stellt es auf 48 kHz (2.6) und
+  resampelt nur, wenn das nicht geht.
 - Puffer: 10 ms Periode (Standard von WASAPI shared), App-Puffer 2–3 Perioden → 20–40 ms.
   Einstellbar „Puffer: klein/mittel/groß" für Rechner mit Aussetzern.
 - Mixer: Float, Mikro + Sounds, Soft-Clipping/Limiter, damit laute Sounds nicht verzerren.

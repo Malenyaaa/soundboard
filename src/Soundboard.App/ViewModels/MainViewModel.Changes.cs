@@ -45,10 +45,11 @@ public sealed partial class MainViewModel
     /// </summary>
     private void InitChanges()
     {
-        _changes = new SystemChanges(new ChangeJournal(_paths.ChangesFile), _services.Registry);
+        _changes = new SystemChanges(new ChangeJournal(_paths.ChangesFile), _services.Registry, _services.Formats);
         using (var me = Process.GetCurrentProcess()) _owner = new ChangeOwner(Environment.ProcessId, me.StartTime);
         _changes.UndoOrphanedSession(IsOwnerAlive);
         KeepFullVolumeInCalls = _profile.KeepFullVolumeInCalls; // _changesReady is still false: only shows the switch
+        CableAt48k = _profile.CableAt48k;
         _changesReady = true;
         if (KeepFullVolumeInCalls) ApplyDucking();
         RefreshChanges();
@@ -107,12 +108,127 @@ public sealed partial class MainViewModel
         _changesReady = false; // the switches below only follow; the journal is already done
         KeepFullVolumeInCalls = false;
         _profile.KeepFullVolumeInCalls = false;
+        CableAt48k = false;
+        _profile.CableAt48k = false;
         _changesReady = true;
         _duckingError = null;
         _duckingSkipped = false;
         ScheduleSave();
         ChangesResultText = SystemChanges.Format(result);
         RefreshChanges();
+        AfterCableFormatUndone(result.Steps.Any(s => s.Entry.Kind == ChangeKind.CableFormat && s.Outcome == UndoOutcome.Restored));
+    }
+
+    // ---------------------------------------------------------------- cable at 48 kHz
+
+    /// <summary>"Set the cable to 48 kHz": only the two cable endpoints, kept until removal.</summary>
+    [ObservableProperty]
+    private bool _cableAt48k;
+
+    /// <summary>The cable's rate and whether the soundboard converts; empty while unknown.</summary>
+    [ObservableProperty]
+    private string _cableFormatText = "";
+
+    /// <summary>The cable (both endpoint IDs) the 48 kHz step has run for in this run: one try each.</summary>
+    private string? _cableFormatTriedFor;
+
+    private CableFormatResult? _cableFormat;
+    private System.Windows.Threading.DispatcherTimer? _cableOpenTimer;
+
+    partial void OnCableAt48kChanged(bool value)
+    {
+        if (!_changesReady) return;
+        if (_profile.CableAt48k != value)
+        {
+            _profile.CableAt48k = value;
+            ScheduleSave();
+        }
+        _cableFormatTriedFor = null;
+        ChangesResultText = "";
+        if (!value)
+        {
+            bool restored = false;
+            foreach (var e in _changes.List().Where(e => e.Kind == ChangeKind.CableFormat))
+                restored |= _changes.UndoKey(e.Key).RestoredCount > 0;
+            RefreshChanges();
+            AfterCableFormatUndone(restored);
+            return;
+        }
+        RefreshChanges();
+        if (_mixPurpose != MixPurpose.FileTest) EnsureCable(); // stops the cable, sets 48 kHz, opens it again
+    }
+
+    /// <summary>
+    /// Before the cable is opened: with the switch on, set both ends to 48 kHz once per run (a
+    /// failure is not retried until the switch is turned on again). True when the format was
+    /// just changed – then the caller opens the cable a moment later.
+    /// </summary>
+    private bool PrepareCableFormat()
+    {
+        if (!_changesReady || !Cable.IsReady) return false;
+        string ids = Cable.Input!.Id + "|" + Cable.Output!.Id;
+        if (CableAt48k && _cableFormatTriedFor != ids)
+        {
+            _cableFormatTriedFor = ids;
+            _cableFormat = _changes.EnsureCableFormat(Cable);
+            RefreshChanges();
+            UpdateCableFormatText();
+            return _cableFormat.Changed;
+        }
+        if (!CableAt48k || _cableFormat is null)
+        {
+            _cableFormat = _changes.ReadCableFormat(Cable);
+            UpdateCableFormatText();
+        }
+        return false;
+    }
+
+    private void OpenCableSoon(bool withMic)
+    {
+        _cableOpenTimer?.Stop();
+        _cableOpenTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
+        _cableOpenTimer.Tick += (_, _) =>
+        {
+            _cableOpenTimer?.Stop();
+            if (!_disposed && _mixPurpose == MixPurpose.None) EnsureCable(withMic);
+        };
+        _cableOpenTimer.Start();
+    }
+
+    /// <summary>The cable format went back to what it was: a running cable stream is no longer valid, so restart it.</summary>
+    private void AfterCableFormatUndone(bool formatChanged)
+    {
+        _cableFormat = null;
+        if (!formatChanged)
+        {
+            if (Cable.IsReady) _cableFormat = _changes.ReadCableFormat(Cable);
+            UpdateCableFormatText();
+            return;
+        }
+        if (_mixPurpose == MixPurpose.Cable) StopMix();
+        if (_mixPurpose == MixPurpose.None) OpenCableSoon(withMic: true);
+        else UpdateCableFormatText();
+    }
+
+    private void UpdateCableFormatText()
+    {
+        var steps = _cableFormat?.Steps;
+        int? rate = steps?.Select(s => s.Rate).FirstOrDefault(r => r is not null);
+        if (_cableFormat is null || rate is null)
+        {
+            CableFormatText = "";
+            return;
+        }
+        if (_cableFormat.AllAtRate(SystemChanges.CableRate))
+        {
+            CableFormatText = L.Get("Cable.Format48");
+            return;
+        }
+        var failed = steps!.FirstOrDefault(s => s.Outcome == ApplyOutcome.Failed);
+        string shown = SystemChanges.RateText(steps!.Select(s => s.Rate).FirstOrDefault(r => r is not null && r != SystemChanges.CableRate) ?? rate);
+        CableFormatText = CableAt48k && failed is not null
+            ? L.F("Cable.FormatFailed", shown, failed.Error)
+            : L.F("Cable.FormatOther", shown);
     }
 
     /// <summary>Puts back this run's session changes (exit, Windows signing out). Safe to call more than once.</summary>

@@ -65,7 +65,7 @@ internal static class Cli
 
     /// <summary>The change journal with the real Windows behind it (used by --restore, the watcher and the removal guide).</summary>
     public static SystemChanges Changes(AppPaths paths) =>
-        new(new ChangeJournal(paths.ChangesFile), new UserRegistry());
+        new(new ChangeJournal(paths.ChangesFile), new UserRegistry(), new PolicyConfigFormatApi());
 
     private static int RestoreDefaults(TextWriter w, AppPaths paths)
     {

@@ -253,7 +253,7 @@ eigenen Reiter.
 
 | Reiter | Inhalt |
 |---|---|
-| Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; „Andere Töne bei Anrufen nicht leiser stellen“ (Windows-Ducking aus, solange das Soundboard läuft; Standard an); 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
+| Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; „Kabel auf 48 kHz stellen“ (Standard an; darunter, mit welcher Rate das Kabel läuft); „Andere Töne bei Anrufen nicht leiser stellen“ (Windows-Ducking aus, solange das Soundboard läuft; Standard an); 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
 | Einrichtung | die drei Schritte: Kabel, Discord, Rauschunterdrückung (siehe oben) |
 | Tasten | Tasten pausieren; „Alle Sounds stoppen“, „Mikrofon stumm“ und alle Pads mit Taste, nur Abweichungen stehen dabei, Ausweg bei Konflikten; Sounds überlagern (aus: ein neuer Sound stoppt den laufenden); „Dieselbe Taste, während der Sound läuft“: Stoppen oder Von vorn spielen |
 | Audio-Zustand | oben, nur bei einem Problem, was in Windows-Audio nicht geht; Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken; „Standardgerät zurückstellen“ (bei abweichendem Standardgerät), „Jetzigen Zustand als normal sichern“ (z. B. nach eigenem Umstellen), „Neu vergleichen“; leise, falls das Kabel eben als Standardgerät zurückgestellt wurde; „Vom Soundboard geändert“ mit Liste und „Alle Änderungen zurücknehmen“; darunter die Audiogeräte in Windows (nur angezeigt, die Endpunkt-ID im Tooltip der Zeile) |
@@ -303,6 +303,7 @@ oben). Knöpfe werden nie ausgegraut.
 |---|---|---|
 | Standardgeräte (Wiedergabe/Aufnahme, je Rolle) | nur zurück: wenn Windows das Kabel zum Standard gemacht hat und das gesicherte Gerät da ist (siehe Einrichtung) | – (das ist schon der Zustand von vorher) |
 | Kommunikations-Absenkung („Ducking“, `HKCU\Software\Microsoft\Multimedia\Audio`, Wert `UserDuckingPreference`) | beim Start auf „nichts unternehmen“ (3), solange der Schalter „Andere Töne bei Anrufen nicht leiser stellen“ (Reiter „Mikrofon & Kabel“, Standard an) an ist | beim Beenden, beim Abmelden/Herunterfahren, nach einem Absturz durch den Wächter, sonst beim nächsten Start; außerdem beim Ausschalten des Schalters, mit „Alle Änderungen zurücknehmen“, `--restore` und beim Deinstallieren |
+| Standardformat des Kabels („CABLE Input“ und „CABLE Output“, nur diese beiden) | beim Öffnen des Kabels auf 48 000 Hz, Kanäle und Bittiefe bleiben; solange der Schalter „Kabel auf 48 kHz stellen“ (Reiter „Mikrofon & Kabel“, Standard an) an ist | mit „Alle Änderungen zurücknehmen“, beim Ausschalten des Schalters, `--restore` und beim Deinstallieren – **nicht** beim normalen Beenden und nicht nach einem Absturz |
 
 **Ducking:** Windows stellt andere Töne um 80 % leiser, sobald es eine „Kommunikation“ erkennt
 (Discord zählt). Fehlt der Wert in der Registry (Windows-Standard, 80 %), merkt sich das Journal
@@ -312,6 +313,22 @@ Windows geändert, bleibt sie so. **Unsicher:** Ob Windows den Registry-Wert sof
 nicht belegt. Die Systemsteuerung (Sound → Kommunikation) wirkt sofort, ein reiner
 Registry-Eintrag nach Berichten aus Foren eventuell erst für neue Anrufe, nach Neustart des
 Windows-Audiodienstes oder nach einer neuen Anmeldung. Am echten Rechner prüfen.
+
+**Kabel auf 48 kHz:** VB-CABLE kommt mit 44,1 kHz; Discord, die meisten Mikrofone und die
+Wiedergabe laufen mit 48 kHz, also müsste das Soundboard umrechnen. Es stellt deshalb das
+Standardformat beider Kabel-Endpunkte (Wiedergabe „CABLE Input“, Aufnahme „CABLE Output“) über
+dieselbe Windows-Schnittstelle wie die Systemsteuerung (`IPolicyConfig::SetDeviceFormat`, Geräte-
+und Mix-Format) auf 48 000 Hz, nur die Rate, Kanäle und Bittiefe bleiben. Vor dem Schreiben prüft
+es Name und Richtung des Endpunkts so, wie Windows sie gerade meldet: **Echte Geräte werden nie
+umformatiert.** Danach öffnet es das Kabel neu; läuft es mit 48 kHz, rechnet es nichts mehr um.
+Geht es nicht (Windows lehnt ab oder bleibt bei der alten Rate), läuft es still mit Umrechnung
+weiter, und unter dem Schalter steht, warum. Das Format bleibt beim Beenden stehen: Das Kabel gehört
+nur dem Soundboard, für andere Programme ändert sich nichts, und ein Umstellen bei jedem Start und
+Ende würde Discords Mikrofon-Eingang jedes Mal kurz unterbrechen. Zurück geht es, wenn das
+Soundboard entfernt wird (oder mit „Alle Änderungen zurücknehmen“). Beim ersten Umstellen
+verliert Discord, falls es das Kabel gerade hört, kurz den Eingang. **Ungeprüft:** das Schreiben
+selbst (am Entwicklungsrechner war kein Kabel installiert; das Lesen derselben Schnittstelle ist an
+einem echten Gerät geprüft).
 
 **Das Journal** (`changes.json` im Datenordner) hält je Änderung den alten Wert, die Art
 („solange es läuft“ oder „bis zum Deinstallieren“) und den Prozess, der sie gemacht hat. Ablauf
@@ -400,7 +417,7 @@ Alles liegt unter `%LOCALAPPDATA%\Soundboard\`:
 | `audio-snapshot.json` | gesicherter Windows-Audio-Zustand (automatisch: beim ersten Start und wenn Geräte dazukommen oder wegfallen, solange die Standardgeräte wie gesichert sind und alles geht) |
 | `audio-snapshot.vorher.json` | die Sicherung davor |
 | `running.json` | Merker „läuft gerade“; bleibt er nach dem Ende liegen, war es ein Absturz |
-| `changes.json` | Änderungs-Journal: was das Soundboard an Windows geändert hat, mit dem alten Wert; existiert nur, solange etwas geändert ist. Wird beim Rückbau nicht gelöscht, solange etwas darin steht |
+| `changes.json` | Änderungs-Journal: was das Soundboard an Windows geändert hat, mit dem alten Wert (beim Kabel-Format das alte Geräte- und Mix-Format als Bytes); existiert nur, solange etwas geändert ist. Wird beim Rückbau nicht gelöscht, solange etwas darin steht |
 
 ## Bauen
 

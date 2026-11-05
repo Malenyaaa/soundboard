@@ -12,15 +12,25 @@ namespace Soundboard.Core.SystemState;
 /// </summary>
 public sealed class PolicyConfigWriter : IDefaultEndpointWriter
 {
-    public void SetDefaultEndpoint(string deviceId, DeviceRoleKind role)
+    public void SetDefaultEndpoint(string deviceId, DeviceRoleKind role) =>
+        PolicyConfigInterop.Use(policy =>
+        {
+            int hr = policy.SetDefaultEndpoint(deviceId, (int)DeviceCatalog.ToRole(role));
+            if (hr != 0) Marshal.ThrowExceptionForHR(hr);
+        });
+}
+
+/// <summary>The IPolicyConfig COM object of Windows (undocumented, stable since Windows 7).</summary>
+internal static class PolicyConfigInterop
+{
+    /// <summary>Creates the object, runs <paramref name="action"/>, releases it.</summary>
+    public static void Use(Action<IPolicyConfig> action)
     {
         object? obj = null;
         try
         {
             obj = new PolicyConfigClient();
-            var policy = (IPolicyConfig)obj;
-            int hr = policy.SetDefaultEndpoint(deviceId, (int)DeviceCatalog.ToRole(role));
-            if (hr != 0) Marshal.ThrowExceptionForHR(hr);
+            action((IPolicyConfig)obj);
         }
         finally
         {
@@ -35,18 +45,26 @@ public sealed class PolicyConfigWriter : IDefaultEndpointWriter
     }
 
     /// <summary>
-    /// Vtable layout of IPolicyConfig (Windows 7 and later). Only SetDefaultEndpoint is
-    /// called; the entries before it exist to keep the slot positions and are never used.
+    /// Vtable layout of IPolicyConfig (Windows 7 and later). Formats are WAVEFORMATEX(TENSIBLE)
+    /// blocks; the ones Windows returns are freed with CoTaskMemFree. Slots that are never called
+    /// exist to keep the positions.
     /// </summary>
     [ComImport]
     [Guid("f8679f50-850a-41cf-9c72-430f290290c8")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    private interface IPolicyConfig
+    internal interface IPolicyConfig
     {
-        [PreserveSig] int Slot01GetMixFormat(IntPtr a, IntPtr b);
-        [PreserveSig] int Slot02GetDeviceFormat(IntPtr a, int b, IntPtr c);
+        [PreserveSig]
+        int GetMixFormat([MarshalAs(UnmanagedType.LPWStr)] string deviceId, out IntPtr format);
+
+        [PreserveSig]
+        int GetDeviceFormat([MarshalAs(UnmanagedType.LPWStr)] string deviceId, int useDefault, out IntPtr format);
+
         [PreserveSig] int Slot03ResetDeviceFormat(IntPtr a);
-        [PreserveSig] int Slot04SetDeviceFormat(IntPtr a, IntPtr b, IntPtr c);
+
+        [PreserveSig]
+        int SetDeviceFormat([MarshalAs(UnmanagedType.LPWStr)] string deviceId, IntPtr endpointFormat, IntPtr mixFormat);
+
         [PreserveSig] int Slot05GetProcessingPeriod(IntPtr a, int b, IntPtr c, IntPtr d);
         [PreserveSig] int Slot06SetProcessingPeriod(IntPtr a, IntPtr b);
         [PreserveSig] int Slot07GetShareMode(IntPtr a, IntPtr b);

@@ -918,6 +918,12 @@
                                 <CheckBox Style="{StaticResource Switch}" Content="{t:T Cable.BlockVoice}" IsChecked="{Binding BlockVoice}" Margin="0,20,0,0"
                                           ToolTip="{t:T Cable.BlockVoiceTip}" />
 
+                                <!-- Only the cable's two endpoints, kept until removal. -->
+                                <CheckBox Style="{StaticResource Switch}" Content="{t:T Cable.At48Switch}" IsChecked="{Binding CableAt48k}" Margin="0,16,0,0" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0" Text="{t:T Cable.At48Hint}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0" Text="{Binding CableFormatText}"
+                                           Visibility="{Binding CableFormatText, Converter={StaticResource TextToVis}}" />
+
                                 <!-- Windows communications ducking: off while the app runs, put back when it ends. -->
                                 <CheckBox Style="{StaticResource Switch}" Content="{t:T Changes.DuckingSwitch}" IsChecked="{Binding KeepFullVolumeInCalls}" Margin="0,16,0,0" />
                                 <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0" Text="{t:T Changes.DuckingHint}" />

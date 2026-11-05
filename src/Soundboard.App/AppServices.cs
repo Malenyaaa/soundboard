@@ -22,6 +22,9 @@ public sealed class AppServices
     /// <summary>Per-user registry for the settings the app changes and puts back (a fake for previews and tests).</summary>
     public required IUserRegistry Registry { get; init; }
 
+    /// <summary>Endpoint formats (only ever written for the virtual cable); a fake for previews and tests.</summary>
+    public required IDeviceFormatApi Formats { get; init; }
+
     /// <summary>"Start with Windows": the Run entry of this program file (a fake for previews and tests).</summary>
     public required Autostart Autostart { get; init; }
 
@@ -35,6 +38,7 @@ public sealed class AppServices
         Hotkeys = new Win32HotkeyApi(),
         Policy = new PolicyConfigWriter(),
         Registry = new UserRegistry(),
+        Formats = new PolicyConfigFormatApi(),
         Autostart = new Autostart(new RegistryRunKey(), Environment.ProcessPath),
     };
 }

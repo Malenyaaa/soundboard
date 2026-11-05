@@ -1538,6 +1538,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        // The cable at 48 kHz (once per run and cable). After a change Windows sets both ends up
+        // anew, so the cable is opened a moment later.
+        if (PrepareCableFormat())
+        {
+            OpenCableSoon(withMic);
+            UpdateCableStatus();
+            return;
+        }
+
         IAudioOutput? output;
         try
         {

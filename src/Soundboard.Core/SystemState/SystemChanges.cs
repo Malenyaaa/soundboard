@@ -60,7 +60,7 @@ public sealed class UndoResult
 /// idempotent and careful: it only writes the old value while Windows still has the app's value
 /// – a value someone changed since is left alone.
 /// </summary>
-public sealed class SystemChanges
+public sealed partial class SystemChanges
 {
     public const string DuckingKey = "ducking";
 
@@ -78,8 +78,11 @@ public sealed class SystemChanges
     private readonly ChangeJournal _journal;
     private readonly IUserRegistry _registry;
 
-    public SystemChanges(ChangeJournal journal, IUserRegistry registry)
+    private readonly IDeviceFormatApi? _formats;
+
+    public SystemChanges(ChangeJournal journal, IUserRegistry registry, IDeviceFormatApi? formats = null)
     {
+        _formats = formats;
         _journal = journal;
         _registry = registry;
     }
@@ -190,6 +193,7 @@ public sealed class SystemChanges
                         outcome = e.Kind switch
                         {
                             ChangeKind.Ducking => UndoDucking(e),
+                            ChangeKind.CableFormat => UndoCableFormat(e),
                             _ => throw new NotSupportedException(L.F("Changes.UnknownKind", e.Kind)),
                         };
                     }
@@ -246,5 +250,5 @@ public sealed class SystemChanges
 
     internal static bool IsSettingError(Exception ex) =>
         ex is IOException or UnauthorizedAccessException or SecurityException or System.Runtime.InteropServices.COMException
-            or InvalidOperationException or NotSupportedException or ArgumentException;
+            or InvalidOperationException or NotSupportedException or ArgumentException or FormatException;
 }

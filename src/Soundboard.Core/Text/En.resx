@@ -634,11 +634,20 @@ Delete: remove key</value></data>
   <data name="Changes.DuckingSwitch" xml:space="preserve"><value>Keep other sounds at full volume during calls</value></data>
   <data name="Changes.DuckingHint" xml:space="preserve"><value>Otherwise Windows turns other sounds down by 80% while a call runs – Discord counts as one. Set while the soundboard runs, put back when it ends.</value></data>
   <data name="Changes.Title" xml:space="preserve"><value>Changed by the soundboard</value></data>
-  <data name="Changes.Intro" xml:space="preserve"><value>Windows settings the soundboard changed to make things easier, each with the value before. They go back by themselves, also after a crash.</value></data>
   <data name="Changes.None" xml:space="preserve"><value>Nothing changed right now.</value></data>
   <data name="Changes.UndoAll" xml:space="preserve"><value>Undo all changes</value></data>
   <data name="Changes.UndoAllTip" xml:space="preserve"><value>Puts every setting listed here back now and turns off the switches that made them.</value></data>
   <data name="Cli.Changes" xml:space="preserve"><value>Windows settings changed by the soundboard:</value></data>
   <data name="Uninstall.ChangesUndone" xml:space="preserve"><value>The Windows settings the soundboard had changed are put back:</value></data>
   <data name="Traces.ChangesBroken" xml:space="preserve"><value>List of changes (unreadable or temporary copy)</value></data>
+  <data name="Cable.At48Switch" xml:space="preserve"><value>Set the cable to 48 kHz</value></data>
+  <data name="Cable.At48Hint" xml:space="preserve"><value>Same rate as Discord and most microphones, so nothing needs converting. Only the cable is changed; it goes back when the soundboard is removed.</value></data>
+  <data name="Cable.Format48" xml:space="preserve"><value>The cable runs at 48 kHz – nothing needs converting.</value></data>
+  <data name="Cable.FormatOther" xml:space="preserve"><value>The cable runs at {0}; the soundboard converts.</value></data>
+  <data name="Cable.FormatFailed" xml:space="preserve"><value>The cable runs at {0}; the soundboard converts. 48 kHz could not be set: {1}</value></data>
+  <data name="Changes.FormatUnreadable" xml:space="preserve"><value>Windows does not give the format of this device.</value></data>
+  <data name="Changes.FormatNotTaken" xml:space="preserve"><value>Windows kept {0}.</value></data>
+  <data name="Changes.FormatNoAccess" xml:space="preserve"><value>no access to device formats here</value></data>
+  <data name="Changes.FormatNotActive" xml:space="preserve"><value>The device is disabled or unplugged right now.</value></data>
+  <data name="Changes.Intro" xml:space="preserve"><value>Windows settings the soundboard changed to make things easier, each with the value before. The call setting goes back when the soundboard ends, also after a crash; the cable format when the soundboard is removed.</value></data>
 </root>

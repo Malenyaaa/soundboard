@@ -634,11 +634,20 @@ Entf: Taste löschen</value></data>
   <data name="Changes.DuckingSwitch" xml:space="preserve"><value>Andere Töne bei Anrufen nicht leiser stellen</value></data>
   <data name="Changes.DuckingHint" xml:space="preserve"><value>Sonst stellt Windows andere Töne während eines Anrufs um 80 % leiser – Discord zählt als Anruf. Gilt, solange das Soundboard läuft; beim Beenden wird es zurückgestellt.</value></data>
   <data name="Changes.Title" xml:space="preserve"><value>Vom Soundboard geändert</value></data>
-  <data name="Changes.Intro" xml:space="preserve"><value>Windows-Einstellungen, die das Soundboard zur Erleichterung geändert hat, jeweils mit dem Wert davor. Sie gehen von selbst zurück, auch nach einem Absturz.</value></data>
   <data name="Changes.None" xml:space="preserve"><value>Gerade nichts geändert.</value></data>
   <data name="Changes.UndoAll" xml:space="preserve"><value>Alle Änderungen zurücknehmen</value></data>
   <data name="Changes.UndoAllTip" xml:space="preserve"><value>Stellt alle hier genannten Einstellungen jetzt zurück und schaltet die Schalter aus, die sie gesetzt haben.</value></data>
   <data name="Cli.Changes" xml:space="preserve"><value>Vom Soundboard geänderte Windows-Einstellungen:</value></data>
   <data name="Uninstall.ChangesUndone" xml:space="preserve"><value>Die Windows-Einstellungen, die das Soundboard geändert hatte, sind zurückgestellt:</value></data>
   <data name="Traces.ChangesBroken" xml:space="preserve"><value>Liste der Änderungen (unlesbar oder Zwischenkopie)</value></data>
+  <data name="Cable.At48Switch" xml:space="preserve"><value>Kabel auf 48 kHz stellen</value></data>
+  <data name="Cable.At48Hint" xml:space="preserve"><value>Dieselbe Rate wie Discord und die meisten Mikrofone, dann muss nichts umgerechnet werden. Geändert wird nur das Kabel; es geht beim Entfernen des Soundboards zurück.</value></data>
+  <data name="Cable.Format48" xml:space="preserve"><value>Das Kabel läuft mit 48 kHz – es muss nichts umgerechnet werden.</value></data>
+  <data name="Cable.FormatOther" xml:space="preserve"><value>Das Kabel läuft mit {0}; das Soundboard rechnet um.</value></data>
+  <data name="Cable.FormatFailed" xml:space="preserve"><value>Das Kabel läuft mit {0}; das Soundboard rechnet um. 48 kHz ließ sich nicht einstellen: {1}</value></data>
+  <data name="Changes.FormatUnreadable" xml:space="preserve"><value>Windows gibt das Format dieses Geräts nicht heraus.</value></data>
+  <data name="Changes.FormatNotTaken" xml:space="preserve"><value>Windows ist bei {0} geblieben.</value></data>
+  <data name="Changes.FormatNoAccess" xml:space="preserve"><value>hier kein Zugriff auf Geräteformate</value></data>
+  <data name="Changes.FormatNotActive" xml:space="preserve"><value>Das Gerät ist gerade deaktiviert oder nicht angeschlossen.</value></data>
+  <data name="Changes.Intro" xml:space="preserve"><value>Windows-Einstellungen, die das Soundboard zur Erleichterung geändert hat, jeweils mit dem Wert davor. Die Anruf-Einstellung geht beim Beenden zurück, auch nach einem Absturz; das Kabel-Format beim Entfernen des Soundboards.</value></data>
 </root>
