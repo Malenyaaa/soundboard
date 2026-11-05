@@ -8,20 +8,28 @@ using Soundboard.App.Themes;
 namespace Soundboard.App.Views;
 
 /// <summary>
-/// The gear turns once by one tooth (45°, eight teeth) when the mouse comes over its button.
-/// One tooth further looks the same as at rest, so the turn ends on the base value 0 without a jump,
-/// and leaving the button lets a running turn finish instead of snapping back.
+/// The gear turns by two teeth (90°, eight teeth) each time the mouse comes over its button,
+/// slow at both ends so the turn is seen and does not just flicker. Two teeth further look the same
+/// as at rest, so the turn ends on the base value 0 without a jump; leaving the button lets a running
+/// turn finish instead of snapping back.
+/// A finished turn is taken off the transform: an animation that has ended still counts as
+/// "animated" for WPF, and the next mouse-over would otherwise take it for a running turn.
 /// The turn sits on the button's content (a RotateTransform about its centre). Keyboard focus does not
 /// turn it (only the mouse raises MouseEnter); animations off (setting or Windows): no turn.
 /// </summary>
 public static class GearMotion
 {
     public const double Tooth = 45;
-    private static readonly Duration Turn = new(TimeSpan.FromMilliseconds(320));
-    private static readonly IEasingFunction EaseOut = Frozen(new CubicEase { EasingMode = EasingMode.EaseOut });
+    public const double Angle = 2 * Tooth;
+    private static readonly Duration Turn = new(TimeSpan.FromMilliseconds(400));
+    private static readonly IEasingFunction EaseInOut = Frozen(new CubicEase { EasingMode = EasingMode.EaseInOut });
 
     public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached(
         "IsEnabled", typeof(bool), typeof(GearMotion), new PropertyMetadata(false, OnIsEnabledChanged));
+
+    /// <summary>The running turn of a transform; null at rest.</summary>
+    private static readonly DependencyProperty RunningProperty = DependencyProperty.RegisterAttached(
+        "Running", typeof(AnimationClock), typeof(GearMotion), new PropertyMetadata(null));
 
     public static bool GetIsEnabled(DependencyObject d) => (bool)d.GetValue(IsEnabledProperty);
     public static void SetIsEnabled(DependencyObject d, bool value) => d.SetValue(IsEnabledProperty, value);
@@ -41,6 +49,10 @@ public static class GearMotion
 
     private static void OnMouseEnter(object sender, MouseEventArgs e) => Play((ContentControl)sender, ThemeManager.AnimationsOn);
 
+    /// <summary>Whether a turn is running on the button's symbol.</summary>
+    public static bool IsTurning(ContentControl button) =>
+        button.Content is UIElement { RenderTransform: RotateTransform turn } && turn.GetValue(RunningProperty) is not null;
+
     /// <summary>
     /// Starts one turn (<paramref name="move"/> = true; a running turn is left to finish) or stops any turn
     /// so the gear stands at rest. Returns whether it turns.
@@ -50,12 +62,24 @@ public static class GearMotion
         if (button.Content is not UIElement { RenderTransform: RotateTransform turn }) return false;
         if (!move)
         {
-            turn.BeginAnimation(RotateTransform.AngleProperty, null);
+            Rest(turn);
             return false;
         }
-        if (turn.HasAnimatedProperties) return true;
-        turn.BeginAnimation(RotateTransform.AngleProperty,
-            new DoubleAnimation(0, Tooth, Turn) { EasingFunction = EaseOut, FillBehavior = FillBehavior.Stop });
+        if (turn.GetValue(RunningProperty) is not null) return true;
+        var clock = new DoubleAnimation(0, Angle, Turn) { EasingFunction = EaseInOut, FillBehavior = FillBehavior.Stop }.CreateClock();
+        clock.Completed += (_, _) =>
+        {
+            if (ReferenceEquals(turn.GetValue(RunningProperty), clock)) Rest(turn);
+        };
+        turn.SetValue(RunningProperty, clock);
+        turn.ApplyAnimationClock(RotateTransform.AngleProperty, clock);
         return true;
+    }
+
+    /// <summary>Takes the turn off: back to the base value 0, and the next mouse-over turns again.</summary>
+    private static void Rest(RotateTransform turn)
+    {
+        turn.ClearValue(RunningProperty);
+        turn.ApplyAnimationClock(RotateTransform.AngleProperty, null);
     }
 }

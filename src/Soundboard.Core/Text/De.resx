@@ -369,6 +369,7 @@ Entf: Taste löschen</value></data>
   <data name="State.CompareAgain" xml:space="preserve"><value>Neu vergleichen</value></data>
   <data name="State.Devices" xml:space="preserve"><value>Audiogeräte in Windows</value></data>
   <data name="State.Reread" xml:space="preserve"><value>Neu einlesen</value></data>
+  <data name="State.Reading" xml:space="preserve"><value>Wird eingelesen …</value></data>
   <data name="State.NotPresentTip" xml:space="preserve"><value>Windows merkt sich früher benutzte Geräte. Sie sind ausgeblendet, damit die Liste übersichtlich bleibt.</value></data>
   <data name="Devices.Header" xml:space="preserve"><value>Aktiv: {0} Wiedergabe, {1} Aufnahme. Nur angezeigt – hier wird nichts verändert.</value></data>
   <data name="Devices.ShowNotPresent" xml:space="preserve"><value>Auch nicht mehr vorhandene Geräte zeigen ({0})</value></data>

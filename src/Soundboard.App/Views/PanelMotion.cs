@@ -1,13 +1,15 @@
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 
 namespace Soundboard.App.Views;
 
 /// <summary>
 /// Opening and closing of the settings panel, starting from the gear at the top right: it grows from
 /// 96 % at its top right corner, slides in a little from the right and fades in (200 ms, ease-out);
-/// closing runs the way back in 140 ms and only then hides the panel.
+/// closing runs the way back in 140 ms and only then hides the panel. Opening waits in its start look
+/// until the panel is laid out, so the whole motion is seen even when a tab takes long to build.
 /// Everything is a render transform and opacity, so the pads behind are not laid out again, and every
 /// open animation ends on the base values (scale 1, shift 0, opacity 1): open, it looks exactly as without motion.
 /// Without motion (not shown yet, keyboard, animations off) the panel is shown or hidden at once.
@@ -68,11 +70,22 @@ public static class PanelMotion
         {
             panel.Visibility = Visibility.Visible;
             panel.IsHitTestVisible = true;
-            // From the seen values back to the base values; afterwards the base values hold again.
-            scale.BeginAnimation(ScaleTransform.ScaleXProperty, To(s, 1, Open, EaseOut, FillBehavior.Stop));
-            scale.BeginAnimation(ScaleTransform.ScaleYProperty, To(s, 1, Open, EaseOut, FillBehavior.Stop));
-            shift.BeginAnimation(TranslateTransform.XProperty, To(x, 0, Open, EaseOut, FillBehavior.Stop));
-            panel.BeginAnimation(UIElement.OpacityProperty, To(o, 1, Open, EaseOut, FillBehavior.Stop));
+            // The seen values hold until the panel has been laid out, and only then it moves: the first
+            // layout of a tab (tables) can take longer than a frame, and that time would otherwise be cut
+            // from the start of the motion.
+            Animate(panel, scale, shift, Hold(s), Hold(x), Hold(o));
+            panel.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+            {
+                if ((int)panel.GetValue(RunProperty) != run) return;
+                // From the seen values back to the base values; afterwards the base values hold again, and the
+                // finished animations are taken off (an ended one still counts as "animated" for WPF).
+                var appear = To(o, 1, Open, EaseOut, FillBehavior.Stop);
+                appear.Completed += (_, _) =>
+                {
+                    if ((int)panel.GetValue(RunProperty) == run) Stop(panel, scale, shift);
+                };
+                Animate(panel, scale, shift, To(s, 1, Open, EaseOut, FillBehavior.Stop), To(x, 0, Open, EaseOut, FillBehavior.Stop), appear);
+            });
             return true;
         }
 
@@ -100,6 +113,17 @@ public static class PanelMotion
         shift.BeginAnimation(TranslateTransform.XProperty, null);
         panel.BeginAnimation(UIElement.OpacityProperty, null);
     }
+
+    private static void Animate(UIElement panel, ScaleTransform scale, TranslateTransform shift, DoubleAnimation s, DoubleAnimation x, DoubleAnimation o)
+    {
+        scale.BeginAnimation(ScaleTransform.ScaleXProperty, s);
+        scale.BeginAnimation(ScaleTransform.ScaleYProperty, s);
+        shift.BeginAnimation(TranslateTransform.XProperty, x);
+        panel.BeginAnimation(UIElement.OpacityProperty, o);
+    }
+
+    /// <summary>Stays on <paramref name="value"/> until replaced.</summary>
+    private static DoubleAnimation Hold(double value) => new(value, value, Duration.Forever) { FillBehavior = FillBehavior.HoldEnd };
 
     private static DoubleAnimation To(double from, double to, Duration d, IEasingFunction ease, FillBehavior fill) =>
         new(from, to, d) { EasingFunction = ease, FillBehavior = fill };

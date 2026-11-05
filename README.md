@@ -13,7 +13,7 @@ ganze Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.4 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.14.5 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -27,7 +27,10 @@ In 0.14.3: Schalter (etwa „Mithören“) gleiten beim Umschalten, die Farbe bl
 ausgeschalteten Animationen springen sie wie bisher. In 0.14.4: Gerätewahl, Suchfeld, „Stop“ und Zahnrad
 in der Kopfzeile sind gleich hoch (36 px) und stehen auf einer Linie; das Zahnrad dreht sich beim Darüberfahren
 um einen Zahn, die Einstellungen gleiten vom Zahnrad aus auf und wieder zu (mit der Tastatur und mit
-ausgeschalteten Animationen sofort).
+ausgeschalteten Animationen sofort). In 0.14.5: Die Einstellungen gehen sofort auf; die Geräteliste
+(über eine Sekunde bei vielen alten Geräten) wird danach im Hintergrund gelesen, ebenso nach Geräteänderungen
+und beim Zurückholen des Fensters. Das Zahnrad dreht sich bei jedem Darüberfahren um zwei Zähne,
+nicht mehr nur beim ersten Mal.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).

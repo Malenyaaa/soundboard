@@ -1012,10 +1012,13 @@
                                 <TextBlock Text="{t:T State.Devices}" Style="{StaticResource H2}" Margin="0,28,0,4" />
                                 <TextBlock Text="{Binding DevicesHeader}" Style="{StaticResource Sub}" />
                                 <WrapPanel Margin="0,10,0,8">
-                                    <Button Content="{t:T State.Reread}" Command="{Binding RefreshDevicesCommand}" Margin="0,0,16,0" />
+                                    <Button Content="{t:T State.Reread}" Command="{Binding ReadDevicesCommand}" Margin="0,0,16,0" />
                                     <CheckBox VerticalAlignment="Center" IsChecked="{Binding ShowNotPresent}"
                                               Content="{Binding NotPresentText}"
                                               ToolTip="{t:T State.NotPresentTip}" />
+                                    <!-- The read runs in the background; the list shows the previous one meanwhile. -->
+                                    <TextBlock Text="{t:T State.Reading}" Style="{StaticResource Sub}" VerticalAlignment="Center" Margin="16,0,0,0"
+                                               Visibility="{Binding DevicesReading, Converter={StaticResource BoolToVis}}" />
                                 </WrapPanel>
                                 <!-- No height limit: the page scrolls, not the table. The ID is in the tooltip of each row. -->
                                 <DataGrid ItemsSource="{Binding Devices}">

@@ -84,7 +84,7 @@ public class PanelMotionTests
     });
 
     [TestMethod]
-    public void Gear_turns_one_tooth_and_rests_at_zero() => OnSta(() =>
+    public void Gear_turns_two_teeth_and_rests_at_zero() => OnSta(() =>
     {
         var turn = new RotateTransform();
         var button = new Button { Content = new Border { RenderTransform = turn } };
@@ -92,12 +92,80 @@ public class PanelMotionTests
         Assert.IsFalse(turn.HasAnimatedProperties);
         Assert.IsTrue(GearMotion.Play(button, move: true));
         Assert.IsTrue(turn.HasAnimatedProperties);
+        Assert.IsTrue(GearMotion.IsTurning(button));
         Assert.IsTrue(GearMotion.Play(button, move: true)); // a running turn finishes, no restart
         Assert.IsFalse(GearMotion.Play(button, move: false));
+        Assert.IsFalse(GearMotion.IsTurning(button));
+        Assert.IsFalse(turn.HasAnimatedProperties);
         Assert.AreEqual(0, turn.Angle);
-        Assert.AreEqual(45, GearMotion.Tooth); // eight teeth: one tooth further looks the same as at rest
+        // Eight teeth: a whole number of teeth further looks the same as at rest.
+        Assert.AreEqual(0, GearMotion.Angle % GearMotion.Tooth);
+        Assert.IsTrue(GearMotion.Angle >= 90);
 
         // Without a turnable symbol nothing happens.
         Assert.IsFalse(GearMotion.Play(new Button { Content = "x" }, move: true));
     });
+
+    /// <summary>
+    /// The turn really moves the symbol, ends at rest and is taken off, so the next mouse-over turns
+    /// again (before, a finished turn still counted as running and the gear turned only once).
+    /// Shown in an invisible window: the animation clock only ticks for something rendered.
+    /// </summary>
+    [TestMethod]
+    public void Gear_turns_through_and_again_on_the_next_mouse_over() => OnSta(() =>
+    {
+        var turn = new RotateTransform();
+        var button = new Button { Content = new Border { Width = 20, Height = 20, RenderTransform = turn } };
+        var window = new Window
+        {
+            Content = button,
+            WindowStyle = WindowStyle.None,
+            ShowInTaskbar = false,
+            ShowActivated = false,
+            WindowStartupLocation = WindowStartupLocation.Manual,
+            Left = -30000,
+            Top = -30000,
+            Width = 60,
+            Height = 60,
+        };
+        window.Show();
+        try
+        {
+            for (int round = 0; round < 2; round++)
+            {
+                var angles = new List<double>();
+                EventHandler sample = (_, _) => angles.Add(turn.Angle);
+                CompositionTarget.Rendering += sample;
+                Assert.IsTrue(GearMotion.Play(button, move: true));
+                Pump(TimeSpan.FromMilliseconds(900), () => !GearMotion.IsTurning(button));
+                CompositionTarget.Rendering -= sample;
+
+                Assert.IsFalse(GearMotion.IsTurning(button), $"round {round}: the turn has ended");
+                Assert.IsFalse(turn.HasAnimatedProperties, $"round {round}: taken off");
+                Assert.AreEqual(0, turn.Angle);
+                Assert.IsTrue(angles.Any(a => a > 10 && a < GearMotion.Angle - 10), $"round {round}: seen in between ({string.Join(" ", angles)})");
+            }
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    private static void Pump(TimeSpan max, Func<bool> done)
+    {
+        var until = DateTime.UtcNow + max;
+        var frame = new System.Windows.Threading.DispatcherFrame();
+        var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(15) };
+        timer.Tick += (_, _) =>
+        {
+            if (done() || DateTime.UtcNow > until)
+            {
+                timer.Stop();
+                frame.Continue = false;
+            }
+        };
+        timer.Start();
+        System.Windows.Threading.Dispatcher.PushFrame(frame);
+    }
 }

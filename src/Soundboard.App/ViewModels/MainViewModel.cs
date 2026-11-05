@@ -32,6 +32,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly DispatcherTimer _progressTimer;
     private readonly DispatcherTimer _saveTimer;
     private readonly DispatcherTimer _deviceTimer;
+    private readonly BackgroundRead<AudioStateReport> _deviceRead;
     private readonly SoundBank _bank;
     private PlayerGroup _player;
     private IAudioOutput? _sink;
@@ -73,6 +74,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _deviceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
         _deviceTimer.Tick += (_, _) => { _deviceTimer.Stop(); OnDevicesChanged(); };
 
+        _deviceRead = new BackgroundRead<AudioStateReport>(_audio.ReadState, a => _dispatcher.BeginInvoke(a));
         _state = _audio.ReadState();
         _audio.DevicesChanged += (_, _) => _dispatcher.BeginInvoke(() => { _deviceTimer.Stop(); _deviceTimer.Start(); });
         _audio.StartWatching();
@@ -220,18 +222,65 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // ---------------------------------------------------------------- devices
 
-    [RelayCommand]
+    /// <summary>
+    /// Reads the devices now, on this thread – for actions whose result needs the fresh state at once
+    /// (save, compare, restore, exit). A read still on its way in the background is dropped.
+    /// </summary>
     private void RefreshDevices()
     {
+        bool followUp = _deviceFollowUpPending;
+        _deviceRead.Cancel();
+        _deviceViewsPending = _deviceFollowUpPending = false;
+        DevicesReading = false;
         _state = _audio.ReadState();
         RefreshDeviceViews();
         CompareNow();
+        if (followUp) AfterDevicesChanged();
+    }
+
+    /// <summary>A device list is being read in the background (the lists show the previous one meanwhile).</summary>
+    [ObservableProperty]
+    private bool _devicesReading;
+
+    private bool _deviceViewsPending, _deviceFollowUpPending;
+
+    /// <summary>"Read again" in the audio state tab.</summary>
+    [RelayCommand]
+    private void ReadDevices() => ReadDevicesInBackground(views: true);
+
+    /// <summary>
+    /// Reads the devices off the UI thread (one read takes over a second with many old endpoints) and
+    /// then updates the comparison, with <paramref name="views"/> also the lists, with
+    /// <paramref name="followUp"/> also monitor and cable. Overtaken reads keep their wishes: the newest
+    /// one does all that was asked for.
+    /// </summary>
+    private void ReadDevicesInBackground(bool views, bool followUp = false)
+    {
+        _deviceViewsPending |= views;
+        _deviceFollowUpPending |= followUp;
+        DevicesReading = true;
+        _deviceRead.Start(state =>
+        {
+            DevicesReading = false;
+            if (_disposed) return;
+            bool v = _deviceViewsPending, f = _deviceFollowUpPending;
+            _deviceViewsPending = _deviceFollowUpPending = false;
+            _state = state;
+            if (v) RefreshDeviceViews();
+            CompareNow();
+            if (f) AfterDevicesChanged();
+        }, failed: () => DevicesReading = false);
     }
 
     private void OnDevicesChanged()
     {
         if (_disposed) return;
-        RefreshDevices();
+        ReadDevicesInBackground(views: true, followUp: true);
+    }
+
+    /// <summary>After a device change has been read: the monitor and the cable follow it.</summary>
+    private void AfterDevicesChanged()
+    {
         if (MonitorEnabled && _sink is null) EnsureMonitor();
         else UpdateMonitorStatus();
         if (_mixPurpose == MixPurpose.None) EnsureCable();
@@ -959,8 +1008,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var now = DateTime.UtcNow;
         if (now - _lastAudioRecheck < TimeSpan.FromSeconds(2)) return;
         _lastAudioRecheck = now;
-        _state = _audio.ReadState();
-        CompareNow();
+        ReadDevicesInBackground(views: false);
     }
 
     /// <summary>Puts the default devices back to the saved ones (and only those).</summary>
@@ -1541,10 +1589,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool IsSetupStep2 => SetupStep == 2;
     public bool IsSetupStep3 => SetupStep == 3;
 
+    /// <summary>
+    /// Opens at once; the device lists (kept current by the device events) are read again in the
+    /// background for what raises no event (volume, mute) and follow when the read is done.
+    /// </summary>
     public void OpenSettings(string tab)
     {
-        RefreshDevices();
-        RefreshAutostart(); // the installer or another copy may have changed the entry
+        ReadDevicesInBackground(views: true);
+        RefreshAutostart(); // the installer or another copy may have changed the entry (a registry value: instant)
         if (tab == SettingsTabs.Setup)
         {
             ClearNotice("cable"); // the setup says the same in detail

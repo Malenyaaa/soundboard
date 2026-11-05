@@ -369,6 +369,7 @@ Delete: remove key</value></data>
   <data name="State.CompareAgain" xml:space="preserve"><value>Compare again</value></data>
   <data name="State.Devices" xml:space="preserve"><value>Audio devices in Windows</value></data>
   <data name="State.Reread" xml:space="preserve"><value>Read again</value></data>
+  <data name="State.Reading" xml:space="preserve"><value>Reading …</value></data>
   <data name="State.NotPresentTip" xml:space="preserve"><value>Windows remembers devices used earlier. They are hidden to keep the list short.</value></data>
   <data name="Devices.Header" xml:space="preserve"><value>Active: {0} playback, {1} recording. Shown only – nothing is changed here.</value></data>
   <data name="Devices.ShowNotPresent" xml:space="preserve"><value>Also show devices that are no longer there ({0})</value></data>

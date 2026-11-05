@@ -31,6 +31,7 @@ public interface IAudioSystem : IDisposable
 
     void StartWatching();
 
+    /// <summary>Reads all endpoints and defaults. Slow with many old endpoints (over a second); may be called on any thread.</summary>
     AudioStateReport ReadState();
 
     /// <summary>Mix format of an active endpoint, or null.</summary>
@@ -57,7 +58,15 @@ public sealed class WasapiAudioSystem : IAudioSystem
 
     public void StartWatching() => _catalog.StartWatching();
 
-    public AudioStateReport ReadState() => _catalog.ReadState();
+    /// <summary>
+    /// With its own enumerator on the calling thread, so it may run off the UI thread: the shared one
+    /// was made on the UI thread, and a call from elsewhere would be carried back to it.
+    /// </summary>
+    public AudioStateReport ReadState()
+    {
+        using var catalog = new DeviceCatalog();
+        return catalog.ReadState();
+    }
 
     public MixFormatInfo? ReadMixFormat(string id)
     {
