@@ -239,10 +239,12 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   Kopie), steht der Schalter auf an, und darunter steht, welche Datei er startet, mit
   „Auf diese Kopie umstellen“. Verweigert Windows die Änderung (Richtlinie, Rechte), springt
   der Schalter zurück und ein Hinweis nennt den Grund.
-- **Absturz:** Ein kleiner Wächter-Prozess merkt, wenn das Programm unerwartet endet. Ein
-  Fenster zeigt er nur, wenn dadurch etwas nicht geht: Das Kabel lief (Discord-Mikrofon jetzt
-  stumm) oder Windows-Audio hat ein Problem wie oben. Dann mit „Neu starten“ und, falls es
-  hilft, „Standardgerät zurückstellen“. Sonst bleibt er still.
+- **Absturz:** Ein kleiner Wächter-Prozess merkt, wenn das Programm endet. Er stellt **still und
+  ohne Rückfrage** zurück, was das Programm für diesen Lauf an Windows geändert hatte (Ducking; das
+  Kabel-Format bleibt, Standardgeräte waren schon die gesicherten). Ein Fenster zeigt er nur, wenn
+  das Programm unerwartet endete, während das Kabel lief – dann ist das Mikrofon in Discord jetzt
+  stumm –, mit „Soundboard neu starten“. Sonst bleibt er still. Lief auch der Wächter nicht mehr
+  (Stromausfall), stellt der nächste Start zurück.
 
 ### Einstellungen (Zahnrad)
 

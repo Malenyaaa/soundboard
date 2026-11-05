@@ -447,7 +447,6 @@ Entf: Taste löschen</value></data>
   <data name="Tray.StillRunning" xml:space="preserve"><value>Mikrofon und Sounds gehen weiter ans Kabel. Öffnen und Beenden über das Soundboard-Symbol im Infobereich.</value></data>
   <data name="Watch.Restart" xml:space="preserve"><value>Soundboard neu starten</value></data>
   <data name="Watch.StartFailed" xml:space="preserve"><value>Das Soundboard ließ sich nicht starten ({0}). Starte es bitte von Hand.</value></data>
-  <data name="Watch.NoSnapshot" xml:space="preserve"><value>Es gibt keine Sicherung, auf die sich zurückstellen ließe.</value></data>
   <data name="Uninstall.Title" xml:space="preserve"><value>Soundboard entfernen</value></data>
   <data name="Uninstall.Intro" xml:space="preserve"><value>Diese Anleitung führt durch den Rückbau: Audio-Zustand prüfen, die eigenen Daten des Soundboards löschen und das virtuelle Kabel entfernen. Nichts davon passiert still – jeder Schritt startet erst auf deinen Klick.</value></data>
   <data name="Uninstall.Running" xml:space="preserve"><value>Das Soundboard läuft noch. Beende es zuerst: Rechtsklick auf das Soundboard-Symbol im Infobereich → „Beenden …“. Diese Anleitung merkt es von selbst.</value></data>
@@ -607,7 +606,6 @@ Entf: Taste löschen</value></data>
   <data name="Health.CableCapture" xml:space="preserve"><value>{0}: Das virtuelle Kabel „{1}“ ist Standardmikrofon geworden – Programme mit „Standard“ hören das Soundboard statt deines Mikrofons.</value></data>
   <data name="Health.Muted" xml:space="preserve"><value>{0}: „{1}“ ist in Windows stumm geschaltet.</value></data>
   <data name="Health.Silent" xml:space="preserve"><value>{0}: Die Lautstärke von „{1}“ steht in Windows ganz unten.</value></data>
-  <data name="Crash.AudioProblem" xml:space="preserve"><value>Windows-Audio geht nicht überall (das Soundboard hat das nicht verursacht):</value></data>
   <data name="Exit.Problem" xml:space="preserve"><value>Windows-Audio: Etwas geht nicht:</value></data>
   <data name="State.AdviceProblem" xml:space="preserve"><value>Anders als gesichert: {0}.</value></data>
   <data name="State.HintRestore" xml:space="preserve"><value>„Standardgerät zurückstellen“ unten stellt die Standardgeräte auf die gesicherten zurück.</value></data>
@@ -650,4 +648,5 @@ Entf: Taste löschen</value></data>
   <data name="Changes.FormatNoAccess" xml:space="preserve"><value>hier kein Zugriff auf Geräteformate</value></data>
   <data name="Changes.FormatNotActive" xml:space="preserve"><value>Das Gerät ist gerade deaktiviert oder nicht angeschlossen.</value></data>
   <data name="Changes.Intro" xml:space="preserve"><value>Windows-Einstellungen, die das Soundboard zur Erleichterung geändert hat, jeweils mit dem Wert davor. Die Anruf-Einstellung geht beim Beenden zurück, auch nach einem Absturz; das Kabel-Format beim Entfernen des Soundboards.</value></data>
+  <data name="Crash.Restored" xml:space="preserve"><value>Die Windows-Einstellungen, die das Soundboard geändert hatte, sind schon zurückgestellt.</value></data>
 </root>

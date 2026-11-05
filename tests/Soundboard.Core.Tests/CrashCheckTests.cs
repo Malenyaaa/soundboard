@@ -1,4 +1,3 @@
-using Soundboard.Core.Audio;
 using Soundboard.Core.SystemState;
 
 namespace Soundboard.Core.Tests;
@@ -6,78 +5,81 @@ namespace Soundboard.Core.Tests;
 [TestClass]
 public sealed class CrashCheckTests
 {
-    private static AudioStateReport State(string? renderDefault, bool spkMuted = false)
-    {
-        var devices = new List<AudioDeviceInfo>
-        {
-            new("spk", "Lautsprecher", DeviceFlow.Render, DeviceStatus.Active, [], 0.5f, spkMuted, null),
-            new("head", "Headset", DeviceFlow.Render, DeviceStatus.Active, [], 0.5f, false, null),
-        };
-        var name = devices.FirstOrDefault(d => d.Id == renderDefault)?.Name;
-        var defaults = new[] { DeviceRoleKind.Console, DeviceRoleKind.Multimedia, DeviceRoleKind.Communications }
-            .Select(r => new DefaultEndpoint(DeviceFlow.Render, r, renderDefault, name)).ToList();
-        return new AudioStateReport(DateTime.Now, defaults, devices);
-    }
+    private static readonly UndoResult Nothing = UndoResult.Empty;
 
-    private static readonly AudioSnapshot Saved = AudioSnapshot.From(State("spk"), "1.0");
+    private static UndoResult OneRestored => new()
+    {
+        Steps = [new UndoStep(new ChangeEntry { Key = SystemChanges.DuckingKey, Kind = ChangeKind.Ducking, NewValue = 3 }, UndoOutcome.Restored, null)],
+    };
 
     [TestMethod]
-    public void Normal_exit_reports_nothing()
+    public void Normal_exit_shows_no_window()
     {
-        bool read = false;
-        var r = CrashCheck.Evaluate(null, 42, Saved, () => { read = true; return State("spk"); });
-        Assert.IsNull(r);
-        Assert.IsFalse(read, "nothing is read after a normal exit");
+        Assert.IsNull(CrashCheck.Evaluate(null, 42, OneRestored));
     }
 
     [TestMethod]
     public void Flag_of_another_instance_is_ignored()
     {
-        Assert.IsNull(CrashCheck.Evaluate(new DirtyInfo(7, DateTime.Now, true), 42, Saved, () => State("spk")));
+        Assert.IsNull(CrashCheck.Evaluate(new DirtyInfo(7, DateTime.Now, true), 42, Nothing));
     }
 
     [TestMethod]
     public void Crash_with_cable_explains_discord_silence_and_way_back()
     {
-        var r = CrashCheck.Evaluate(new DirtyInfo(42, DateTime.Now, true), 42, Saved, () => State("spk"))!;
+        var r = CrashCheck.Evaluate(new DirtyInfo(42, DateTime.Now, true), 42, Nothing)!;
         var text = string.Join("\n", r.Lines("In Discord wieder „Headset-Mikro“ wählen."));
         StringAssert.Contains(text, "niemand füttert es");
         StringAssert.Contains(text, "Headset-Mikro");
-        Assert.AreEqual(0, r.Problems.Count);
-        Assert.IsFalse(r.CanRestore);
-        Assert.IsFalse(text.Contains("Windows-Audio"), "nothing to say about working Windows audio");
+        Assert.IsFalse(text.Contains("zurückgestellt"), "nothing was put back, so nothing is said about it");
     }
 
     [TestMethod]
-    public void Crash_with_a_working_other_default_stays_silent()
+    public void Crash_with_cable_mentions_what_was_put_back()
     {
-        // The user chose the headset himself: it works, so no window.
-        Assert.IsNull(CrashCheck.Evaluate(new DirtyInfo(42, DateTime.Now, false), 42, Saved, () => State("head")));
+        var r = CrashCheck.Evaluate(new DirtyInfo(42, DateTime.Now, true), 42, OneRestored)!;
+        StringAssert.Contains(string.Join("\n", r.Lines("x")), "schon zurückgestellt");
     }
 
     [TestMethod]
-    public void Crash_without_cable_but_without_default_device_shows_the_problem()
+    public void Crash_without_cable_stays_silent_even_after_putting_things_back()
     {
-        var r = CrashCheck.Evaluate(new DirtyInfo(42, DateTime.Now, false), 42, Saved, () => State(null))!;
-        Assert.IsNotNull(r);
-        Assert.IsTrue(r.CanRestore);
-        var text = string.Join("\n", r.Lines("x"));
-        Assert.IsFalse(text.Contains("niemand füttert es"));
-        StringAssert.Contains(text, "„Lautsprecher“ ist nicht mehr da");
+        Assert.IsNull(CrashCheck.Evaluate(new DirtyInfo(42, DateTime.Now, false), 42, OneRestored));
     }
 
     [TestMethod]
-    public void Crash_with_muted_default_shows_the_problem_without_restore()
+    public void Unreadable_flag_says_nothing_without_cable()
     {
-        var r = CrashCheck.Evaluate(new DirtyInfo(42, DateTime.Now, false), 42, Saved, () => State("spk", spkMuted: true))!;
-        Assert.AreEqual(AudioProblemKind.Muted, r.Problems.Single().Kind);
-        Assert.IsFalse(r.CanRestore, "the defaults are as saved – restoring would not help");
+        Assert.IsNull(CrashCheck.Evaluate(new DirtyInfo(0, DateTime.MinValue, false), 42, Nothing));
+        Assert.IsNotNull(CrashCheck.Evaluate(new DirtyInfo(0, DateTime.MinValue, true), 42, Nothing));
     }
 
+    /// <summary>The watcher's whole job after a crash, with the journal and a fake registry.</summary>
     [TestMethod]
-    public void Unreadable_flag_counts_as_crash_but_says_nothing_when_all_works()
+    public void Watcher_puts_back_the_crashed_runs_ducking_silently_and_leaves_the_cable_format()
     {
-        Assert.IsNull(CrashCheck.Evaluate(new DirtyInfo(0, DateTime.MinValue, false), 42, null, () => State("spk")));
-        Assert.IsNotNull(CrashCheck.Evaluate(new DirtyInfo(0, DateTime.MinValue, true), 42, null, () => State("spk")));
+        var dir = Path.Combine(Path.GetTempPath(), "sb-watch-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var journal = new ChangeJournal(Path.Combine(dir, "changes.json"));
+            var reg = new FakeRegistry();
+            var formats = new FakeFormats();
+            formats.Add("cin", "CABLE Input (VB-Audio Virtual Cable)", Audio.DeviceFlow.Render, 44100);
+            var app = new SystemChanges(journal, reg, formats);
+            app.ApplyDucking(new ChangeOwner(42, DateTime.Now));
+            app.EnsureCableFormat(new Audio.CableInfo(
+                new Audio.AudioDeviceInfo("cin", "CABLE Input (VB-Audio Virtual Cable)", Audio.DeviceFlow.Render, Audio.DeviceStatus.Active, [], 1f, false, null), null));
+            // Another run is alive and has its own (none here); the crashed one was 42.
+            var watcher = new SystemChanges(new ChangeJournal(journal.Path), reg, formats);
+            var undone = watcher.UndoSession(42);
+            Assert.AreEqual(1, undone.RestoredCount);
+            Assert.IsNull(reg.Value, "ducking value deleted again (it was missing before)");
+            Assert.AreEqual(48000, formats.RateOf("cin"), "the cable format stays until removal");
+            Assert.IsNull(CrashCheck.Evaluate(new DirtyInfo(42, DateTime.Now, false), 42, undone), "no cable: no window");
+        }
+        finally
+        {
+            try { Directory.Delete(dir, true); } catch (DirectoryNotFoundException) { }
+        }
     }
 }

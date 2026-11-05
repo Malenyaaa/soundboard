@@ -13,8 +13,6 @@
         <TextBlock x:Name="Result" TextWrapping="Wrap" Margin="0,10,0,0" Visibility="Collapsed" />
         <WrapPanel Margin="0,16,0,0">
             <Button x:Name="RestartButton" Content="{t:T Watch.Restart}" Style="{StaticResource PrimaryButton}" Padding="12,5" Margin="0,0,8,4" Click="OnRestart" IsDefault="True" />
-            <Button x:Name="RestoreButton" Content="{t:T Action.Restore}" Padding="12,5" Margin="0,0,8,4" Click="OnRestore"
-                    ToolTip="{t:T Restore.Tip}" />
             <Button Content="{t:T Common.Close}" Padding="12,5" Margin="0,0,8,4" Click="OnClose" IsCancel="True" />
         </WrapPanel>
     </StackPanel>
