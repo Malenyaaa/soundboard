@@ -170,6 +170,8 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   angleichen“ / „Alle Pads angleichen“, umbenennen (F2), „Farbe ▸“ (automatisch nach
   Reihenfolge oder eine der sieben Pad-Farben), „Bild ▸“ (wählen, entfernen, Bilder-Ordner
   öffnen), im Sound-Ordner zeigen, Pad entfernen (Entf, mit „Rückgängig“).
+  Beim Umbenennen gilt der neue Name mit Enter oder einem Klick irgendwohin daneben (auch auf
+  freie Fläche oder die Kopfzeile); Esc behält den alten, ein leerer Name ebenfalls.
   **Strg + Mausrad** über einem Pad ändert seine Lautstärke in 5-%-Schritten.
 - **Tastatur im Pad-Raster:** Tab springt einmal ins Raster, die Pfeiltasten wandern zwischen
   den Pads, Leertaste/Enter spielt, F2 benennt um, Entf entfernt, Umschalt+F10 öffnet das

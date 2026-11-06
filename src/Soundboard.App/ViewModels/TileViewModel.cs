@@ -77,7 +77,7 @@ public sealed class PadColorChoice(string name, Brush? swatch, bool isChecked, S
 }
 
 /// <summary>One sound pad.</summary>
-public sealed partial class TileViewModel : ObservableObject, IKeyTarget
+public sealed partial class TileViewModel : ObservableObject, IKeyTarget, Views.IInlineRenamable
 {
     private readonly MainViewModel _owner;
     private Action? _issueAction;

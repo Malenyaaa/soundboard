@@ -526,7 +526,8 @@ der Fremdtreiber kommt.
 2. ~~**Kategorie-Kopf:**~~ Erledigt in 0.17.1 für die vorhandenen Gruppen („Favoriten“, „Weitere
    Pads“): kleiner Text, dünne Linie bis zum Rand. Offen, bis es eigene Kategorien gibt (1): Pfeil
    zum Zuklappen, Klick auf den Namen macht ihn bearbeitbar.
-3. **Umbenennen bestätigen** (Pad und Kategorie): mit Enter **oder** Klick irgendwohin, Esc bricht ab.
+3. ~~**Umbenennen bestätigen**~~ Erledigt in 0.17.1 für Pads: Enter **oder** Klick irgendwohin,
+   Esc bricht ab, leer behält den alten Namen (für Kategorien mit Punkt 1).
 4. **Pad ziehen animiert:** Das Pad hängt beim Ziehen am Mauszeiger, die anderen Pads gleiten zur
    Seite, beim Loslassen gleitet es in die Lücke, statt zu springen.
 5. **Kräftigere Farben, zufällig ohne Muster:** sattere Pad-Palette (Text bleibt lesbar); neue

@@ -394,46 +394,21 @@ public partial class MainWindow : Window
         _vm.CancelKeyCapture();
     }
 
-    // ---- inline rename on a tile
+    // ---- inline rename on a tile: Enter, Esc and leaving the box are handled by InlineRename
 
-    private void OnRenameVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    /// <summary>A press anywhere in the window outside the open rename box keeps the typed name (also where no focus goes).</summary>
+    private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is TextBox box && box.IsVisible)
+        foreach (var tile in _vm.Tiles)
         {
-            box.Text = (box.DataContext as TileViewModel)?.Name ?? box.Text;
-            Dispatcher.BeginInvoke(() =>
-            {
-                box.Focus();
-                box.SelectAll();
-            });
+            if (!tile.IsRenaming) continue;
+            InlineRename.ConfirmIfOutside(RenameBox(tile), e.OriginalSource as DependencyObject);
+            break;
         }
     }
 
-    private void OnRenameKeyDown(object sender, KeyEventArgs e)
-    {
-        if (sender is not TextBox box || box.DataContext is not TileViewModel tile) return;
-        if (e.Key == Key.Enter)
-        {
-            Commit(box, tile);
-            e.Handled = true;
-        }
-        else if (e.Key == Key.Escape)
-        {
-            tile.IsRenaming = false; // discard: the explicit binding is not updated
-            e.Handled = true;
-        }
-    }
-
-    private void OnRenameLostFocus(object sender, KeyboardFocusChangedEventArgs e)
-    {
-        if (sender is TextBox box && box.DataContext is TileViewModel tile && tile.IsRenaming)
-            Commit(box, tile);
-    }
-
-    private static void Commit(TextBox box, TileViewModel tile)
-    {
-        if (!string.IsNullOrWhiteSpace(box.Text))
-            box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-        tile.IsRenaming = false;
-    }
+    private TextBox? RenameBox(TileViewModel tile) =>
+        PadList.ItemContainerGenerator.ContainerFromItem(tile) is ContentPresenter { ContentTemplate: { } template } cp
+            ? template.FindName("RenameBox", cp) as TextBox
+            : null;
 }

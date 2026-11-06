@@ -8,7 +8,7 @@
         Background="{DynamicResource WindowBg}" Foreground="{DynamicResource TextBrush}"
         FontFamily="{DynamicResource FontText}" FontSize="{DynamicResource SizeText}"
         TextOptions.TextFormattingMode="Display"
-        AllowDrop="True" DragOver="OnDragOver" DragLeave="OnDragLeave" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown"
+        AllowDrop="True" DragOver="OnDragOver" DragLeave="OnDragLeave" Drop="OnDrop" PreviewKeyDown="OnPreviewKeyDown" PreviewMouseDown="OnPreviewMouseDown"
         PreviewMouseMove="OnWindowMouseMove" PreviewMouseLeftButtonUp="OnWindowMouseUp"
         SizeChanged="OnSizeChanged" Closed="OnClosed">
 
@@ -381,9 +381,9 @@
                         Visibility="{Binding IsJustAdded, Converter={StaticResource BoolToVis}}" />
 
                 <!-- Rename in place -->
-                <TextBox x:Name="RenameBox" Text="{Binding Name, UpdateSourceTrigger=Explicit}" VerticalAlignment="Bottom" Margin="8"
-                         Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}"
-                         KeyDown="OnRenameKeyDown" LostKeyboardFocus="OnRenameLostFocus" IsVisibleChanged="OnRenameVisibleChanged" />
+                <!-- Enter or a click anywhere else keeps the name, Esc the old one (InlineRename). -->
+                <TextBox x:Name="RenameBox" VerticalAlignment="Bottom" Margin="8" views:InlineRename.IsEnabled="True"
+                         Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}" />
 
                 <!-- Waiting for a key -->
                 <Border CornerRadius="10" Background="{DynamicResource FieldBg}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2" Padding="12,10"
