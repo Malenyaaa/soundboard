@@ -515,7 +515,8 @@ der Fremdtreiber kommt.
    PTT gehalten", oder soll eine zweite Discord-PTT-Taste empfohlen werden?
 4. Soll das Mikro während eines Sounds optional stumm sein („Stimme blockieren") — in v1 oder
    später?
-5. Soll `release/0.17.0` in `main` zusammengeführt werden? `main` steht noch auf 0.15.0.
+5. ~~Soll `release/0.17.0` in `main` zusammengeführt werden?~~ Erledigt 06.11.2026: `main` ist wieder
+   der aktuelle Stand.
 
 ### 8.1 Offene Wünsche nach dem ersten Testtag (Stand 0.17.0, noch nicht begonnen)
 
