@@ -518,7 +518,7 @@ der Fremdtreiber kommt.
 5. ~~Soll `release/0.17.0` in `main` zusammengeführt werden?~~ Erledigt 06.11.2026: `main` ist wieder
    der aktuelle Stand.
 
-### 8.1 Offene Wünsche nach dem ersten Testtag (Stand 0.17.1: 2, 3 und 5 erledigt, der Rest offen)
+### 8.1 Offene Wünsche nach dem ersten Testtag (Stand 0.17.1: 2, 3 und 5 erledigt, 7 geändert, der Rest offen)
 
 1. **Eigene Kategorien wie Favoriten, zuklappbar:** anlegen, Pads hineinschieben, umsortieren,
    löschen mit Rückgängig; Zustand „zugeklappt“ gespeichert; Suche über alle Kategorien;
@@ -535,9 +535,30 @@ der Fremdtreiber kommt.
    davor, möglichst keine der letzten sechs; frühere automatische Farben einmal neu gewürfelt.
 6. **Abspielleiste unten:** Wellenform aus dünnen senkrechten Strichen, darunter dünne Leiste
    mit hellem gespieltem Teil und rundem Knopf, links vergangene Zeit, rechts Gesamtzeit
-   (mm:ss), Name des Sounds klein dazu; für den zuletzt gestarteten Sound; Klick springt im Sound.
-7. **Stop-Knopf neu gestalten:** gefällt noch nicht. Erst mehrere Entwürfe zeigen (Ruhe und
-   Spielen, hell und dunkel), dann den gewählten einbauen.
+   (mm:ss), Name des Sounds klein dazu; für den zuletzt gestarteten Sound. **Im Sound springen
+   per Klick und per Ziehen an der Leiste** (Knopf ziehen = vor- und zurückspulen).
+7. ~~Stop-Knopf neu gestalten~~ Geändert (06.11.2026): **Der Stop-Knopf kommt ganz weg.** Die
+   globale Taste „Alles stoppen“ bleibt und bleibt im Reiter Tasten belegbar.
+
+### 8.2 Weitere offene Wünsche (06.11.2026, noch nicht begonnen)
+
+1. **Suchfeld:** Platzhalter nur noch „Search“ / „Suchen“; Text etwas weiter nach rechts, weil
+   die Schreibmarke beim Hineinklicken über dem ersten Buchstaben steht.
+2. **Einstellungen ohne „Schließen“-Knopf:** schließen über das Zahnrad (schaltet schon um) und Esc.
+3. **Reiter neu ordnen:** 1 Mikrofon & Kabel · 2 Tasten · 3 Darstellung · 4 Audio-Zustand ·
+   5 Einrichtung.
+4. **Einrichtung als „?“ statt Reiter (zu prüfen):** Die Einrichtung (Kabel installieren, Discord,
+   Rauschunterdrückung) braucht man selten. Vorschlag: kein eigener Reiter, sondern ein kleines
+   „?“ an passender Stelle (z. B. neben „Kabel“ im Reiter Mikrofon & Kabel oder an „Kein Kabel“
+   in der Statuszeile), das die drei Schritte öffnet.
+5. **Reiter Audio-Zustand – braucht es ihn?** Er zeigt: die gesicherten Windows-Standardgeräte
+   gegen die jetzigen, die Liste „Vom Soundboard geändert“ (Ducking, Kabel 48 kHz) mit „Alle
+   Änderungen zurücknehmen“, „Standardgerät zurückstellen“ bei einem Problem und die
+   Geräteliste von Windows. Gebraucht wird davon im Alltag nur der Weg vom „! Audio“ in der
+   Statuszeile zum Zurückstellen. Vorschlag: Reiter streichen; „! Audio“ öffnet stattdessen
+   einen kleinen Kasten mit Grund und „Zurückstellen“; „Alle Änderungen zurücknehmen“ wandert
+   ans Ende von Mikrofon & Kabel; Vergleichstabelle und Geräteliste fallen weg (zeigt Windows
+   selbst). Entscheidung offen.
 
 ---
 
