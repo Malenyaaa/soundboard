@@ -545,20 +545,17 @@ der Fremdtreiber kommt.
 1. **Suchfeld:** Platzhalter nur noch „Search“ / „Suchen“; Text etwas weiter nach rechts, weil
    die Schreibmarke beim Hineinklicken über dem ersten Buchstaben steht.
 2. **Einstellungen ohne „Schließen“-Knopf:** schließen über das Zahnrad (schaltet schon um) und Esc.
-3. **Reiter neu ordnen:** 1 Mikrofon & Kabel · 2 Tasten · 3 Darstellung · 4 Audio-Zustand ·
-   5 Einrichtung.
-4. **Einrichtung als „?“ statt Reiter (zu prüfen):** Die Einrichtung (Kabel installieren, Discord,
-   Rauschunterdrückung) braucht man selten. Vorschlag: kein eigener Reiter, sondern ein kleines
-   „?“ an passender Stelle (z. B. neben „Kabel“ im Reiter Mikrofon & Kabel oder an „Kein Kabel“
-   in der Statuszeile), das die drei Schritte öffnet.
-5. **Reiter Audio-Zustand – braucht es ihn?** Er zeigt: die gesicherten Windows-Standardgeräte
-   gegen die jetzigen, die Liste „Vom Soundboard geändert“ (Ducking, Kabel 48 kHz) mit „Alle
-   Änderungen zurücknehmen“, „Standardgerät zurückstellen“ bei einem Problem und die
-   Geräteliste von Windows. Gebraucht wird davon im Alltag nur der Weg vom „! Audio“ in der
-   Statuszeile zum Zurückstellen. Vorschlag: Reiter streichen; „! Audio“ öffnet stattdessen
-   einen kleinen Kasten mit Grund und „Zurückstellen“; „Alle Änderungen zurücknehmen“ wandert
-   ans Ende von Mikrofon & Kabel; Vergleichstabelle und Geräteliste fallen weg (zeigt Windows
-   selbst). Entscheidung offen.
+3. **Reiter danach (entschieden):** nur noch drei — 1 Mikrofon & Kabel · 2 Tasten ·
+   3 Darstellung. Einrichtung und Audio-Zustand sind keine eigenen Reiter mehr (4 und 5).
+4. **Einrichtung als „?“ (entschieden):** kein eigener Reiter; ein kleines „?“ **neben „Kabel“ im
+   Reiter Mikrofon & Kabel** öffnet die drei Schritte (Kabel installieren, Discord,
+   Rauschunterdrückung). Wege, die heute zum Reiter Einrichtung führen („Kein Kabel“ in der
+   Statuszeile, Tray „Einrichtung“, erster Start), öffnen dieselben Schritte.
+5. **Reiter Audio-Zustand fällt weg (entschieden):** „! Audio“ in der Statuszeile öffnet
+   stattdessen einen kleinen Kasten mit dem Grund und „Zurückstellen“; „Alle Änderungen
+   zurücknehmen“ (Ducking, Kabel 48 kHz) wandert ans Ende von Mikrofon & Kabel;
+   Vergleichstabelle und Geräteliste fallen weg (zeigt Windows selbst). Das Sichern und
+   Prüfen im Hintergrund bleibt unverändert.
 
 ---
 
