@@ -18,7 +18,7 @@ Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.17.0 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.17.1 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -167,8 +167,8 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   („…Umschalt+F12“) – die Taste selbst wird nie gekürzt, die volle Belegung steht im Tooltip.
   Eine Lautstärke unter 100 % steht unten rechts.
 - **Rechtsklick auf ein Pad:** Taste belegen oder entfernen, Lautstärke (Regler), „Lautstärke
-  angleichen“ / „Alle Pads angleichen“, umbenennen (F2), „Farbe ▸“ (automatisch nach
-  Reihenfolge oder eine der sieben Pad-Farben), „Bild ▸“ (wählen, entfernen, Bilder-Ordner
+  angleichen“ / „Alle Pads angleichen“, umbenennen (F2), „Farbe ▸“ („Zufällig“
+  oder eine der zwölf Pad-Farben), „Bild ▸“ (wählen, entfernen, Bilder-Ordner
   öffnen), im Sound-Ordner zeigen, Pad entfernen (Entf, mit „Rückgängig“).
   Beim Umbenennen gilt der neue Name mit Enter oder einem Klick irgendwohin daneben (auch auf
   freie Fläche oder die Kopfzeile); Esc behält den alten, ein leerer Name ebenfalls.
@@ -179,7 +179,6 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
 - **Sortieren:** Ein Pad mit der Maus auf eine andere Stelle ziehen (das Ziehen beginnt erst
   nach ein paar Pixeln, ein Klick bleibt ein Klick); ein Balken zeigt die Einfügestelle, Esc
   bricht ab. Mit der Tastatur verschiebt **Strg + Pfeil links/rechts** das fokussierte Pad.
-  Automatische Farben folgen dem Platz.
 - **Suche:** Das Feld „Sounds suchen“ steht immer in der Kopfzeile; **Strg+F** springt hinein,
   Esc leert es. Gesucht wird in Name und Taste („air“, „num 3“), jedes Wort muss passen. Ohne
   Treffer steht dort ein Satz mit „Suche leeren“.
@@ -312,10 +311,14 @@ Grund mindestens 4,5 : 1 Kontrast haben. Muss eine eigene Farbe dafür abgedunke
 aufgehellt werden, sagt eine leise Zeile unter dem Farbwähler, zu welchem Wert. Die
 Windows-Akzentfarbe wird nicht benutzt.
 
-**Pad-Farben:** neue Pads bekommen der Reihe nach Blau, Orange, Grün, Pink, Petrol, Violett und
-Grau („automatisch“: die Farbe folgt dem Platz, auch nach Verschieben und Entfernen). Rechtsklick
-→ „Farbe ▸“ gibt einem Pad eine feste Farbe. Profile bis Version 0.13 werden umgestellt, ohne
-dass sich eine Farbe ändert: Pads, deren Farbe nicht zu ihrem Platz passt, gelten als gewählt. Profile aus Version 0.10 werden beim ersten Start umgestellt: Die alten Farben nach Sanzo
+**Pad-Farben:** zwölf kräftige Töne rund um den Farbkreis (Rot, Orange, Bernstein, Gelbgrün, Grün,
+Petrol, Cyan, Blau, Indigo, Violett, Magenta, Rosa), hell und dunkel je eigens abgestimmt; die
+Schrift auf dem Pad ist dunkel oder hell, je nachdem, was auf der Farbe besser lesbar ist (mindestens
+4,5 : 1). Neue Pads bekommen eine zufällige Farbe – nie dieselbe oder eine im Farbkreis benachbarte
+wie das Pad davor, und möglichst keine der letzten sechs. Rechtsklick → „Farbe ▸“ wählt eine der
+zwölf oder „Zufällig“ (würfelt neu). Seit 0.17.1 gibt es keine Farben nach Reihenfolge mehr: Pads,
+die ihre Farbe automatisch nach dem Platz hatten, bekommen beim ersten Start einmal eine zufällige
+neue; selbst gewählte Farben bleiben (sie werden nur kräftiger dargestellt). Profile aus Version 0.10 werden beim ersten Start umgestellt: Die alten Farben nach Sanzo
 Wada wandern auf die nächste neue (Pfauenblau → Petrol, Olympiablau → Blau, Blauviolett →
 Violett, Purpur → Pink, Olivgelb und Grün → Grün, Schiefer → Blau bzw. bei Pads Grau); eine
 eigene Akzentfarbe und selbst gewählte Pad-Farben bleiben.

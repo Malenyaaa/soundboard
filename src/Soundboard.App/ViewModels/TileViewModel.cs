@@ -135,7 +135,7 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget, Views.
         OnPropertyChanged(nameof(ColorMenu));
     }
 
-    /// <summary>"Colour" submenu: automatic (by order), the seven pad colours, and in accent mode a line that says why nothing changes.</summary>
+    /// <summary>"Colour" submenu: a new random colour, the twelve pad colours, and in accent mode a line that says why nothing changes.</summary>
     public IReadOnlyList<PadColorChoice> ColorMenu
     {
         get
@@ -143,12 +143,12 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget, Views.
             var list = new List<PadColorChoice>();
             if (ThemeManager.PadMode == PadColorModes.Accent)
                 list.Add(new PadColorChoice(L.Get("Pad.ColourAccentMode"), null, false, new RelayCommand(_owner.ShowAppearance)));
-            list.Add(new PadColorChoice(L.Get("Pad.ColourAuto"), null, !Config.ColorChosen, new RelayCommand(() => _owner.SetTileColor(this, null))));
+            list.Add(new PadColorChoice(L.Get("Pad.ColourRandom"), null, false, new RelayCommand(() => _owner.SetTileColor(this, null))));
             foreach (var (name, hex) in PadPalette.Hues)
             {
-                var swatch = new SolidColorBrush(ThemeManager.ToColor(PadPalette.Derive(Rgb.Parse(hex), ThemeManager.IsDark).Lit));
+                var swatch = new SolidColorBrush(ThemeManager.ToColor(PadPalette.Derive(Rgb.Parse(hex), ThemeManager.IsDark).Face));
                 swatch.Freeze();
-                list.Add(new PadColorChoice(L.Get("PadColour." + name), swatch, Config.ColorChosen && PadPalette.SameHex(Config.Color, hex),
+                list.Add(new PadColorChoice(L.Get("PadColour." + name), swatch, PadPalette.SameHex(Config.Color, hex),
                     new RelayCommand(() => _owner.SetTileColor(this, hex))));
             }
             return list;

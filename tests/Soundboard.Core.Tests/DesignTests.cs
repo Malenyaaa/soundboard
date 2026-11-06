@@ -132,14 +132,6 @@ public sealed class DesignTests
             }
     }
 
-    [TestMethod]
-    public void New_pads_cycle_through_the_hues()
-    {
-        Assert.AreEqual(PadPalette.Hues[0].Hex, PadPalette.ForIndex(0));
-        Assert.AreEqual(PadPalette.Hues[0].Hex, PadPalette.ForIndex(PadPalette.Hues.Count));
-        Assert.AreEqual(PadPalette.Hues[3].Hex, PadPalette.ForIndex(3));
-    }
-
     private static void AssertAccent(AccentColors a, bool dark, string what)
     {
         var t = ThemeTokens.For(dark);
@@ -213,7 +205,7 @@ public sealed class ProfileMigrationTests
         Assert.AreEqual(AppearanceModes.System, p.Appearance);
         Assert.AreEqual(AccentPalette.DefaultId, p.AccentId);
         Assert.AreEqual(PadColorModes.Colorful, p.PadColors);
-        Assert.AreEqual(PadPalette.ForIndex(0), p.Tiles[0].Color);
+        Assert.IsTrue(PadPalette.Hues.Any(h => h.Hex == p.Tiles[0].Color), "a broken colour becomes one of the pad colours");
     }
 
     [TestMethod]

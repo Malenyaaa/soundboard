@@ -518,7 +518,7 @@ der Fremdtreiber kommt.
 5. ~~Soll `release/0.17.0` in `main` zusammengeführt werden?~~ Erledigt 06.11.2026: `main` ist wieder
    der aktuelle Stand.
 
-### 8.1 Offene Wünsche nach dem ersten Testtag (Stand 0.17.0, noch nicht begonnen)
+### 8.1 Offene Wünsche nach dem ersten Testtag (Stand 0.17.1: 2, 3 und 5 erledigt, der Rest offen)
 
 1. **Eigene Kategorien wie Favoriten, zuklappbar:** anlegen, Pads hineinschieben, umsortieren,
    löschen mit Rückgängig; Zustand „zugeklappt“ gespeichert; Suche über alle Kategorien;
@@ -530,8 +530,9 @@ der Fremdtreiber kommt.
    Esc bricht ab, leer behält den alten Namen (für Kategorien mit Punkt 1).
 4. **Pad ziehen animiert:** Das Pad hängt beim Ziehen am Mauszeiger, die anderen Pads gleiten zur
    Seite, beim Loslassen gleitet es in die Lücke, statt zu springen.
-5. **Kräftigere Farben, zufällig ohne Muster:** sattere Pad-Palette (Text bleibt lesbar); neue
-   Pads bekommen eine zufällige Farbe, nicht dieselbe wie das Pad daneben.
+5. ~~**Kräftigere Farben, zufällig ohne Muster:**~~ Erledigt in 0.17.1: zwölf kräftige Töne, Schrift
+   je Farbe hell oder dunkel (≥ 4,5 : 1); neue Pads zufällig, nie gleich oder benachbart wie das Pad
+   davor, möglichst keine der letzten sechs; frühere automatische Farben einmal neu gewürfelt.
 6. **Abspielleiste unten:** Wellenform aus dünnen senkrechten Strichen, darunter dünne Leiste
    mit hellem gespieltem Teil und rundem Knopf, links vergangene Zeit, rechts Gesamtzeit
    (mm:ss), Name des Sounds klein dazu; für den zuletzt gestarteten Sound; Klick springt im Sound.

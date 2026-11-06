@@ -691,7 +691,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 Name = Path.GetFileNameWithoutExtension(file),
                 FileName = fileName,
                 Volume = 1f,
-                Color = Soundboard.Core.Design.PadPalette.ForIndex(_profile.Tiles.Count),
+                Color = _profile.NewColor(_profile.Tiles.Count),
             };
             _profile.Tiles.Add(config);
             var tile = new TileViewModel(this, config);
@@ -737,7 +737,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _paths.ReleaseImage(tile.Config.Image); // deleted later unless "Undo" brings the pad back
         _hotkeys.Remove(tile.Config.Id.ToString());
         ClearNotice("hotkey-" + tile.Config.Id);
-        RecolorAutomatic();
         RefreshHotkeyViews();
         ScheduleSave();
 
@@ -751,7 +750,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ = LoadTileAsync(restored);
             _ = LoadTileImageAsync(restored);
             _hotkeys.Set(restored.Config.Id.ToString(), HotkeyGesture.Parse(restored.Config.Hotkey));
-            RecolorAutomatic();
             restored.RefreshTheme();
             KeepFavoritesFirst();
             RefreshHotkeyViews();
@@ -759,28 +757,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
     }
 
-    /// <summary>Right-click → Colour: one of the pad colours, or null for automatic (by order).</summary>
+    /// <summary>Right-click → Colour: one of the pad colours, or null for a new random one (not the current one, not that of the neighbours).</summary>
     public void SetTileColor(TileViewModel tile, string? hex)
     {
-        if (hex is null)
-        {
-            tile.Config.ColorChosen = false;
-        }
-        else
-        {
-            tile.Config.ColorChosen = true;
-            tile.Config.Color = hex;
-        }
-        RecolorAutomatic();
+        int i = _profile.Tiles.IndexOf(tile.Config);
+        hex ??= Soundboard.Core.Design.PadPalette.Random(Random.Shared,
+            [tile.Config.Color, i > 0 ? _profile.Tiles[i - 1].Color : null, i >= 0 && i + 1 < _profile.Tiles.Count ? _profile.Tiles[i + 1].Color : null],
+            _profile.Tiles.Take(Math.Max(i, 0)).TakeLast(Soundboard.Core.Design.PadPalette.AvoidRecent).Select(t => t.Color));
+        tile.Config.ColorChosen = true;
+        tile.Config.Color = hex;
         tile.RefreshTheme();
         ScheduleSave();
-    }
-
-    /// <summary>Automatic pads take the colour of their place again (after adding, removing, moving).</summary>
-    private void RecolorAutomatic()
-    {
-        foreach (int i in Soundboard.Core.Design.PadPalette.Recolor(_profile.Tiles))
-            Tiles.FirstOrDefault(t => ReferenceEquals(t.Config, _profile.Tiles[i]))?.RefreshTheme();
     }
 
     /// <summary>The settings on the "Appearance" tab (pad colours, pad size, profile).</summary>

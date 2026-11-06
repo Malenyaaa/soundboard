@@ -206,7 +206,6 @@ public sealed partial class MainViewModel
         }
         KeepFavoritesFirst();
         ApplyAllHotkeys();
-        RecolorAutomatic();
         ScheduleSave();
     }
 

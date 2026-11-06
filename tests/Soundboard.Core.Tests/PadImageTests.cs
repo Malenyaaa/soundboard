@@ -36,7 +36,7 @@ public sealed class PadImageTests
 
         Assert.IsNull(loaded.Problem);
         Assert.AreEqual(Profile.CurrentVersion, loaded.Profile.Version);
-        Assert.AreEqual(5, Profile.CurrentVersion);
+        Assert.AreEqual(6, Profile.CurrentVersion);
         Assert.IsNull(loaded.Profile.Tiles[0].Image);
     }
 

@@ -173,23 +173,31 @@ public static class AccentPalette
 public sealed record PadColors(Rgb Face, Rgb Line, Rgb Text, Rgb CapBg, Rgb CapLine, Rgb Lit, Rgb LitLine, Rgb LitPlayed, Rgb LitText, Rgb Edge);
 
 /// <summary>
-/// Pad colours: seven calm, familiar hues (blue, orange, green, pink, teal, violet, grey). Idle the pad shows its colour dimmed,
-/// playing it lights up in full (like an LED pad) with dark ink on it in both modes.
+/// Pad colours: twelve strong hues around the colour wheel. Idle the pad shows its colour (full, not
+/// washed out), playing it lights up brighter (like an LED pad). The text on a pad is dark or light,
+/// whichever reads better on that colour. New pads get a random hue that differs from the pad before.
 /// </summary>
 public static class PadPalette
 {
-    public static IReadOnlyList<(string Name, string Hex)> Hues { get; } =
+    /// <summary>Name (text key "PadColour.&lt;name&gt;") and OKLCH hue of the twelve pad colours, in the order of the colour wheel.</summary>
+    private static readonly (string Name, double Hue)[] Wheel =
     [
-        ("Blue", "#3A78D4"),
-        ("Orange", "#E8822A"),
-        ("Green", "#3D9A50"),
-        ("Pink", "#D2457F"),
-        ("Teal", "#16968F"),
-        ("Violet", "#7D55D0"),
-        ("Grey", "#7A8288"),
+        ("Red", 25), ("Orange", 50), ("Amber", 75), ("Lime", 115), ("Green", 145), ("Teal", 180),
+        ("Cyan", 215), ("Blue", 255), ("Indigo", 280), ("Violet", 305), ("Magenta", 335), ("Pink", 0),
     ];
 
-    /// <summary>Pad colours of versions up to 0.10 (after Sanzo Wada) and the new hue that replaces each.</summary>
+    /// <summary>The twelve pad colours as stored (#RRGGBB); only their hue counts, the shades come from <see cref="Derive"/>.</summary>
+    public static IReadOnlyList<(string Name, string Hex)> Hues { get; } =
+        Wheel.Select(w => (w.Name, ColorMath.FromOklch(new Oklch(0.65, 0.15, w.Hue)).ToHex())).ToList();
+
+    /// <summary>The seven pad colours of versions 0.11 to 0.17, in their old order (needed to read old profiles).</summary>
+    public static IReadOnlyList<string> LegacyHues { get; } =
+        ["#3A78D4", "#E8822A", "#3D9A50", "#D2457F", "#16968F", "#7D55D0", "#7A8288"];
+
+    /// <summary>Colour an automatic pad had at place <paramref name="n"/> up to version 0.17.</summary>
+    public static string LegacyForIndex(int n) => LegacyHues[((n % LegacyHues.Count) + LegacyHues.Count) % LegacyHues.Count];
+
+    /// <summary>Pad colours of versions up to 0.10 (after Sanzo Wada) and the 0.11 colour that replaced each.</summary>
     public static IReadOnlyDictionary<string, string> OldHues { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
         ["#00939B"] = "#16968F", // Peacock Blue → teal
@@ -206,61 +214,106 @@ public static class PadPalette
     public static string Migrate(string hex) =>
         Rgb.TryParse(hex, out var c) && OldHues.TryGetValue(c.ToHex(), out var now) ? now : hex;
 
-    /// <summary>Colour stored for the n-th new pad.</summary>
-    public static string ForIndex(int n) => Hues[((n % Hues.Count) + Hues.Count) % Hues.Count].Hex;
-
     /// <summary>Same colour, whatever the spelling ("#3a78d4", "3A78D4").</summary>
     public static bool SameHex(string? a, string? b) =>
         Rgb.TryParse(a, out var x) && Rgb.TryParse(b, out var y) && x == y;
 
-    /// <summary>
-    /// Colour of every pad in order: automatic pads take the colour of their place, chosen ones keep theirs.
-    /// Returns the indices whose colour changed.
-    /// </summary>
-    public static List<int> Recolor(IList<Config.TileConfig> tiles)
+    /// <summary>Index of the pad colour whose hue is nearest to <paramref name="hex"/>; -1 for a grey or no colour.</summary>
+    public static int Nearest(string? hex)
     {
-        var changed = new List<int>();
-        for (int i = 0; i < tiles.Count; i++)
+        if (!Rgb.TryParse(hex, out var c)) return -1;
+        var o = ColorMath.ToOklch(c);
+        if (o.C < 0.03) return -1;
+        int best = -1;
+        double bestD = double.MaxValue;
+        for (int i = 0; i < Wheel.Length; i++)
         {
-            if (tiles[i].ColorChosen) continue;
-            var want = ForIndex(i);
-            if (SameHex(tiles[i].Color, want)) continue;
-            tiles[i].Color = want;
-            changed.Add(i);
+            double d = Math.Abs(((o.H - Wheel[i].Hue) % 360 + 540) % 360 - 180);
+            if (d < bestD)
+            {
+                bestD = d;
+                best = i;
+            }
         }
-        return changed;
+        return best;
     }
+
+    /// <summary>How many of the last pads of a group a new random colour tries not to repeat.</summary>
+    public const int AvoidRecent = 6;
+
+    /// <summary>
+    /// A random pad colour for a new pad (or "Random" in the menu). Never the hue of a pad in
+    /// <paramref name="neighbours"/> (the pad before and after it) nor the hues next to it on the wheel;
+    /// if possible none of <paramref name="recent"/> either (the last pads of its group).
+    /// </summary>
+    public static string Random(Random rng, IEnumerable<string?> neighbours, IEnumerable<string?> recent)
+    {
+        var banned = new HashSet<int>();
+        foreach (var n in neighbours)
+        {
+            int i = Nearest(n);
+            if (i < 0) continue;
+            banned.Add(i);
+            banned.Add((i + 1) % Wheel.Length);
+            banned.Add((i + Wheel.Length - 1) % Wheel.Length);
+        }
+        var soft = recent.Select(Nearest).Where(i => i >= 0).ToHashSet();
+        var allowed = Enumerable.Range(0, Wheel.Length).Where(i => !banned.Contains(i)).ToList();
+        if (allowed.Count == 0) allowed = Enumerable.Range(0, Wheel.Length).ToList();
+        var fresh = allowed.Where(i => !soft.Contains(i)).ToList();
+        var from = fresh.Count > 0 ? fresh : allowed;
+        return Hues[from[rng.Next(from.Count)]].Hex;
+    }
+
+    private static readonly Rgb Ink = Rgb.Parse("#111314");
+    private static readonly Rgb Paper = Rgb.Parse("#F4F6F6");
+
+    /// <summary>Dark or light text, whichever has more contrast on all of <paramref name="grounds"/>.</summary>
+    public static Rgb ReadableOn(params Rgb[] grounds) =>
+        grounds.Min(g => ColorMath.Contrast(Ink, g)) >= grounds.Min(g => ColorMath.Contrast(Paper, g)) ? Ink : Paper;
 
     public static PadColors Derive(Rgb color, bool dark)
     {
-        var h = ColorMath.ToOklch(color).H;
-        double chroma = Math.Max(ColorMath.ToOklch(color).C, 0.0);
-        bool grey = chroma < 0.02;
+        var o = ColorMath.ToOklch(color);
+        double h = o.H;
+        bool grey = o.C < 0.02;
         double Cx(double c) => grey ? Math.Min(c, 0.025) : c;
         Rgb At(double l, double c) => ColorMath.FromOklch(new Oklch(l, Cx(c), h));
-        var ink = Rgb.Parse("#111314");
-        return dark
-            ? new PadColors(
-                Face: At(0.285, 0.045),
-                Line: At(0.60, 0.085),
-                Text: Rgb.Parse("#E9ECEC"),
-                CapBg: At(0.20, 0.03),
-                CapLine: At(0.60, 0.085),
-                Lit: At(0.82, 0.13),
-                LitLine: At(0.92, 0.07),
-                LitPlayed: At(0.73, 0.14),
-                LitText: ink,
-                Edge: At(0.215, 0.045))
-            : new PadColors(
-                Face: At(0.935, 0.032),
-                Line: At(0.56, 0.09),
-                Text: ink,
-                CapBg: Rgb.Parse("#FBFCFC"),
-                CapLine: At(0.56, 0.09),
-                Lit: At(0.82, 0.13),
-                LitLine: At(0.48, 0.12),
-                LitPlayed: At(0.73, 0.14),
-                LitText: ink,
-                Edge: At(0.47, 0.10));
+        if (dark)
+        {
+            var face = At(0.42, 0.105);
+            var cap = At(0.22, 0.04);
+            var lit = At(0.83, 0.15);
+            var played = At(0.74, 0.16);
+            return new PadColors(
+                Face: face,
+                Line: At(0.64, 0.12),
+                Text: ReadableOn(face, cap),
+                CapBg: cap,
+                CapLine: At(0.64, 0.12),
+                Lit: lit,
+                LitLine: At(0.93, 0.07),
+                LitPlayed: played,
+                LitText: ReadableOn(lit, played),
+                Edge: At(0.31, 0.08));
+        }
+        else
+        {
+            var face = At(0.85, 0.11);
+            var cap = Rgb.Parse("#FBFCFC");
+            var lit = At(0.80, 0.17);
+            var played = At(0.71, 0.17);
+            return new PadColors(
+                Face: face,
+                Line: At(0.55, 0.13),
+                Text: ReadableOn(face, cap),
+                CapBg: cap,
+                CapLine: At(0.55, 0.13),
+                Lit: lit,
+                LitLine: At(0.47, 0.13),
+                LitPlayed: played,
+                LitText: ReadableOn(lit, played),
+                Edge: At(0.47, 0.12));
+        }
     }
 }

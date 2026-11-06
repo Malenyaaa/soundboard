@@ -135,7 +135,15 @@ public sealed class Profile
     /// <summary>Language of the interface: "en" or "de". New profiles start in English; profiles from before version 4 keep German.</summary>
     public string Language { get; set; } = Text.L.English;
 
-    public const int CurrentVersion = 5;
+    public const int CurrentVersion = 6;
+
+    /// <summary>
+    /// A random pad colour for the pad at <paramref name="index"/> of <see cref="Tiles"/> (or for a new pad at the end):
+    /// never that of its neighbours, if possible none of the last pads before it.
+    /// </summary>
+    public string NewColor(int index) => Design.PadPalette.Random(Random.Shared,
+        [index > 0 && index - 1 < Tiles.Count ? Tiles[index - 1].Color : null, index + 1 < Tiles.Count ? Tiles[index + 1].Color : null],
+        Tiles.Take(index).TakeLast(Design.PadPalette.AvoidRecent).Select(t => t.Color));
 
     /// <summary>
     /// Brings an older or hand-edited profile up to date: missing design values get their
@@ -158,7 +166,14 @@ public sealed class Profile
             // Version 5: pad colours can be automatic (by order) or chosen. A pad whose colour is not the
             // one of its place keeps it as chosen, so nothing changes colour with the update.
             for (int i = 0; i < Tiles.Count; i++)
-                Tiles[i].ColorChosen = !Design.PadPalette.SameHex(Tiles[i].Color, Design.PadPalette.ForIndex(i));
+                Tiles[i].ColorChosen = !Design.PadPalette.SameHex(Tiles[i].Color, Design.PadPalette.LegacyForIndex(i));
+        }
+        if (Version < 6)
+        {
+            // Version 6: no colours by order any more. Pads that had the colour of their place get a random one of
+            // the stronger palette (never the same as the pad before); chosen colours stay.
+            for (int i = 0; i < Tiles.Count; i++)
+                if (!Tiles[i].ColorChosen) Tiles[i].Color = NewColor(i);
         }
         if (Version < CurrentVersion)
         {
@@ -204,7 +219,7 @@ public sealed class Profile
         {
             if (!Design.Rgb.TryParse(t.Color, out _))
             {
-                t.Color = Design.PadPalette.ForIndex(Tiles.IndexOf(t));
+                t.Color = NewColor(Tiles.IndexOf(t));
                 changed = true;
             }
             // Only a plain file name inside the picture folder; anything else (folder parts, "..") is dropped.

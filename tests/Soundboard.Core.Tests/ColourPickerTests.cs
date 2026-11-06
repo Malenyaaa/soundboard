@@ -99,7 +99,7 @@ public sealed class ColourMigrationTests
     [TestMethod]
     public void Every_old_pad_colour_moves_to_a_new_hue_and_others_stay()
     {
-        var hues = PadPalette.Hues.Select(h => h.Hex).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var hues = PadPalette.LegacyHues.ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var (old, now) in PadPalette.OldHues)
         {
             Assert.IsTrue(hues.Contains(now), $"{old} → {now} is no pad hue");
@@ -132,7 +132,7 @@ public sealed class ColourMigrationTests
 
         Assert.AreEqual(Profile.CurrentVersion, p.Version);
         Assert.AreEqual("blue", p.AccentId);
-        Assert.AreEqual("#3A78D4", p.Tiles[0].Color);
+        Assert.IsTrue(PadPalette.Hues.Any(h => h.Hex == p.Tiles[0].Color), "blue by place was automatic: a colour of the new palette");
         Assert.AreEqual("#3D9A50", p.Tiles[1].Color);
         Assert.AreEqual("#FFE3C2", p.Tiles[2].Color);
         Assert.AreEqual(Text.L.German, p.Language);

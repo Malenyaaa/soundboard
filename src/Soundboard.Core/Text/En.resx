@@ -498,7 +498,6 @@ Delete: remove key</value></data>
   <data name="Key.IsFunctionKey" xml:space="preserve"><value>{0} is already the key for “{1}”. Choose another key for this pad.</value></data>
   <data name="Pad.Colour" xml:space="preserve"><value>Colour</value></data>
   <data name="Pad.Picture" xml:space="preserve"><value>Picture</value></data>
-  <data name="Pad.ColourAuto" xml:space="preserve"><value>Automatic (by order)</value></data>
   <data name="Pad.ColourAccentMode" xml:space="preserve"><value>All pads use the accent colour – change under Appearance…</value></data>
   <data name="PadColour.Blue" xml:space="preserve"><value>Blue</value></data>
   <data name="PadColour.Orange" xml:space="preserve"><value>Orange</value></data>
@@ -506,7 +505,6 @@ Delete: remove key</value></data>
   <data name="PadColour.Pink" xml:space="preserve"><value>Pink</value></data>
   <data name="PadColour.Teal" xml:space="preserve"><value>Teal</value></data>
   <data name="PadColour.Violet" xml:space="preserve"><value>Violet</value></data>
-  <data name="PadColour.Grey" xml:space="preserve"><value>Grey</value></data>
   <data name="Key.DelShort" xml:space="preserve"><value>Del</value></data>
   <data name="Keys.MuteMic" xml:space="preserve"><value>Mute microphone</value></data>
   <data name="Status.MicMuted" xml:space="preserve"><value>Microphone: muted</value></data>
@@ -673,4 +671,11 @@ Delete: remove key</value></data>
   <data name="Notice.Unfavorited" xml:space="preserve"><value>“{0}” is no longer a favourite.</value></data>
   <data name="Pads.Favorites" xml:space="preserve"><value>Favourites</value></data>
   <data name="Pads.Others" xml:space="preserve"><value>Other pads</value></data>
+  <data name="Pad.ColourRandom" xml:space="preserve"><value>Random</value></data>
+  <data name="PadColour.Red" xml:space="preserve"><value>Red</value></data>
+  <data name="PadColour.Amber" xml:space="preserve"><value>Amber</value></data>
+  <data name="PadColour.Lime" xml:space="preserve"><value>Lime</value></data>
+  <data name="PadColour.Cyan" xml:space="preserve"><value>Cyan</value></data>
+  <data name="PadColour.Indigo" xml:space="preserve"><value>Indigo</value></data>
+  <data name="PadColour.Magenta" xml:space="preserve"><value>Magenta</value></data>
 </root>

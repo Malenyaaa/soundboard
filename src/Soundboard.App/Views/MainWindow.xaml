@@ -241,7 +241,7 @@
                         <MenuItem Header="{t:T Pad.Trim}" Command="{Binding TrimCommand}" />
                         <Separator />
                         <MenuItem Header="{t:T Pad.Rename}" Command="{Binding RenameCommand}" InputGestureText="F2" />
-                        <!-- Colour: automatic (by order) or one of the seven pad colours, each with its swatch. -->
+                        <!-- Colour: a new random one or one of the twelve pad colours, each with its swatch. -->
                         <MenuItem Header="{t:T Pad.Colour}" ItemsSource="{Binding ColorMenu}">
                             <MenuItem.ItemContainerStyle>
                                 <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">

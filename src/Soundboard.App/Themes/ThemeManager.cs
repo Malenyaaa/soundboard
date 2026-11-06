@@ -159,7 +159,7 @@ public static class ThemeManager
     {
         Rgb source;
         if (PadMode == PadColorModes.Accent) source = AccentPalette.Resolve(AccentId, CustomAccent, false).Fill;
-        else if (!Rgb.TryParse(hex, out source)) source = Rgb.Parse(PadPalette.ForIndex(0));
+        else if (!Rgb.TryParse(hex, out source)) source = Rgb.Parse(PadPalette.Hues[0].Hex);
         return PadPalette.Derive(source, IsDark);
     }
 

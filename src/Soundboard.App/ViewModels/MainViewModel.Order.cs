@@ -66,7 +66,6 @@ public sealed partial class MainViewModel
         // The profile follows the order on screen.
         int cfgFrom = _profile.Tiles.IndexOf(tile.Config);
         if (cfgFrom >= 0) PadOrder.Move(_profile.Tiles, cfgFrom, Tiles.IndexOf(tile));
-        RecolorAutomatic();
         ScheduleSave();
     }
 }
