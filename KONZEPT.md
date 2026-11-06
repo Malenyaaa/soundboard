@@ -515,6 +515,25 @@ der Fremdtreiber kommt.
    PTT gehalten", oder soll eine zweite Discord-PTT-Taste empfohlen werden?
 4. Soll das Mikro während eines Sounds optional stumm sein („Stimme blockieren") — in v1 oder
    später?
+5. Soll `release/0.17.0` in `main` zusammengeführt werden? `main` steht noch auf 0.15.0.
+
+### 8.1 Offene Wünsche nach dem ersten Testtag (Stand 0.17.0, noch nicht begonnen)
+
+1. **Eigene Kategorien wie Favoriten, zuklappbar:** anlegen, Pads hineinschieben, umsortieren,
+   löschen mit Rückgängig; Zustand „zugeklappt“ gespeichert; Suche über alle Kategorien;
+   Export/Import nimmt sie mit; Favoriten wird die erste Kategorie.
+2. **Kategorie-Kopf:** schlichter kleiner Text mit Trennlinie bis zum Rand und kleinem Pfeil
+   zum Zuklappen. Klick auf den Namen macht ihn bearbeitbar.
+3. **Umbenennen bestätigen** (Pad und Kategorie): mit Enter **oder** Klick irgendwohin, Esc bricht ab.
+4. **Pad ziehen animiert:** Das Pad hängt beim Ziehen am Mauszeiger, die anderen Pads gleiten zur
+   Seite, beim Loslassen gleitet es in die Lücke, statt zu springen.
+5. **Kräftigere Farben, zufällig ohne Muster:** sattere Pad-Palette (Text bleibt lesbar); neue
+   Pads bekommen eine zufällige Farbe, nicht dieselbe wie das Pad daneben.
+6. **Abspielleiste unten:** Wellenform aus dünnen senkrechten Strichen, darunter dünne Leiste
+   mit hellem gespieltem Teil und rundem Knopf, links vergangene Zeit, rechts Gesamtzeit
+   (mm:ss), Name des Sounds klein dazu; für den zuletzt gestarteten Sound; Klick springt im Sound.
+7. **Stop-Knopf neu gestalten:** gefällt noch nicht. Erst mehrere Entwürfe zeigen (Ruhe und
+   Spielen, hell und dunkel), dann den gewählten einbauen.
 
 ---
 
