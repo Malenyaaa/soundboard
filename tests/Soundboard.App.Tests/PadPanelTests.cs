@@ -31,12 +31,14 @@ public class PadPanelTests
         panel.Measure(new Size(430, double.PositiveInfinity));
         panel.Arrange(new Rect(panel.DesiredSize));
 
-        double rowStep = pads[0].RenderSize.Height + 10;
-        Assert.AreEqual(0, At(pads[1]).Y, "favourites side by side in the first row");
+        double h = pads[0].RenderSize.Height, head = PadPanel.HeadHeight + PadPanel.HeadGap;
+        Assert.AreEqual(head, At(pads[0]).Y, 0.5, "the favourites' head line comes first");
+        Assert.AreEqual(head, At(pads[1]).Y, 0.5, "favourites side by side in the first row");
         Assert.AreEqual(0, At(pads[2]).X, "the others start at the left of a new row");
-        Assert.AreEqual(rowStep + 12, At(pads[2]).Y, 0.5, "one row further, plus the group gap");
+        Assert.AreEqual(head + h + 16 + head, At(pads[2]).Y, 0.5, "below the favourites: group gap and the others' head line");
         Assert.AreEqual(At(pads[2]).Y, At(pads[4]).Y, "the three others fit one row");
-        Assert.AreEqual(2 * pads[0].RenderSize.Height + 10 + 12, panel.DesiredSize.Height, 0.5);
+        Assert.AreEqual(2 * h + 2 * head + 16, panel.DesiredSize.Height, 0.5);
+        Assert.AreEqual((0.0, head + h + 16), panel.HeadTops);
     });
 
     [TestMethod]
@@ -49,5 +51,6 @@ public class PadPanelTests
         panel.Arrange(new Rect(panel.DesiredSize));
         Assert.AreEqual(0, At(pads[3]).Y);
         Assert.AreEqual(pads[0].RenderSize.Height + 10, At(pads[4]).Y, 0.5, "fifth pad wraps normally, no group gap");
+        Assert.IsTrue(double.IsNaN(panel.HeadTops.Favorites) && double.IsNaN(panel.HeadTops.Others), "no head lines without favourites");
     });
 }

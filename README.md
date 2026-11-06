@@ -65,6 +65,8 @@ die Datei bleibt unverändert; Strg+Z nimmt den Schnitt zurück.
 In 0.17: Favoriten – Rechtsklick auf ein Pad → „Favorit“. Favoriten stehen immer vorne in einer
 eigenen Reihe (mit etwas Abstand zu den anderen) und tragen unten rechts einen kleinen Stern;
 verschieben geht innerhalb der eigenen Gruppe; Strg+Z nimmt es zurück.
+In 0.17.1: Gibt es Favoriten, tragen beide Gruppen einen schlichten Kopf – „Favoriten“ und
+„Weitere Pads“ in kleiner Schrift mit dünner Linie bis zum rechten Rand.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).

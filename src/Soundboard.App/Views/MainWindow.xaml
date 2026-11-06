@@ -625,7 +625,9 @@
                               KeyboardNavigation.TabNavigation="Once" KeyboardNavigation.DirectionalNavigation="None">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <views:PadPanel MinPadWidth="160" Gap="12" Compact="{Binding CompactPads}" />
+                            <views:PadPanel MinPadWidth="160" Gap="12" Compact="{Binding CompactPads}"
+                                            FavoritesHead="{t:T Pads.Favorites}" OthersHead="{t:T Pads.Others}"
+                                            HeadBrush="{DynamicResource SubTextBrush}" RuleBrush="{DynamicResource LineSoft}" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemContainerStyle>

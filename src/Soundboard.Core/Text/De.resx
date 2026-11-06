@@ -671,4 +671,6 @@ Entf: Taste löschen</value></data>
   <data name="Pad.Favorite" xml:space="preserve"><value>Favorit</value></data>
   <data name="Notice.Favorited" xml:space="preserve"><value>„{0}“ ist jetzt Favorit.</value></data>
   <data name="Notice.Unfavorited" xml:space="preserve"><value>„{0}“ ist kein Favorit mehr.</value></data>
+  <data name="Pads.Favorites" xml:space="preserve"><value>Favoriten</value></data>
+  <data name="Pads.Others" xml:space="preserve"><value>Weitere Pads</value></data>
 </root>

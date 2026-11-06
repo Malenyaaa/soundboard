@@ -671,4 +671,6 @@ Delete: remove key</value></data>
   <data name="Pad.Favorite" xml:space="preserve"><value>Favourite</value></data>
   <data name="Notice.Favorited" xml:space="preserve"><value>“{0}” is now a favourite.</value></data>
   <data name="Notice.Unfavorited" xml:space="preserve"><value>“{0}” is no longer a favourite.</value></data>
+  <data name="Pads.Favorites" xml:space="preserve"><value>Favourites</value></data>
+  <data name="Pads.Others" xml:space="preserve"><value>Other pads</value></data>
 </root>
