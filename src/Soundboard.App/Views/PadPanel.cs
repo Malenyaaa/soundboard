@@ -1,18 +1,21 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace Soundboard.App.Views;
 
 /// <summary>
 /// Lays the pads out like the grid of a pad sampler: as many columns as fit with at least
 /// <see cref="MinPadWidth"/>, all pads equally wide and filling the row, almost square.
-/// Hidden pads (search) take no place. <see cref="Compact"/> makes them smaller and flatter.
-/// Favourites come first (the view model keeps that order). When a favourite is shown, each group
-/// gets a quiet head line: its name in small text and a thin rule to the right edge
-/// (<see cref="FavoritesHead"/>, <see cref="OthersHead"/>); without favourites there are no heads.
+/// Hidden children (search, collapsed group) take no place. <see cref="Compact"/> makes the pads smaller and flatter.
+/// A group head (a child whose data is a <see cref="ViewModels.CategoryViewModel"/>) takes a row of its own over
+/// the full width and starts a new row of pads; before every head but the first there is a little more space.
+///
+/// Dragging: <see cref="BeginDrag"/> lifts one child out of the order and puts it where <see cref="SetDropBefore"/>
+/// says; the others make room. The lifted child is drawn at <see cref="DragTopLeft"/> (under the mouse).
+/// Whenever children change place – while dragging, after a drop, a move by key, a favourite – they glide from the
+/// old place to the new one instead of jumping (only when animations are on and the grid kept its size).
 /// </summary>
 public sealed class PadPanel : Panel
 {
@@ -27,22 +30,6 @@ public sealed class PadPanel : Panel
     public static readonly DependencyProperty CompactProperty = DependencyProperty.Register(
         nameof(Compact), typeof(bool), typeof(PadPanel),
         new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsMeasure));
-
-    public static readonly DependencyProperty FavoritesHeadProperty = DependencyProperty.Register(
-        nameof(FavoritesHead), typeof(string), typeof(PadPanel),
-        new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.AffectsRender));
-
-    public static readonly DependencyProperty OthersHeadProperty = DependencyProperty.Register(
-        nameof(OthersHead), typeof(string), typeof(PadPanel),
-        new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.AffectsRender));
-
-    public static readonly DependencyProperty HeadBrushProperty = DependencyProperty.Register(
-        nameof(HeadBrush), typeof(Brush), typeof(PadPanel),
-        new FrameworkPropertyMetadata(Brushes.Gray, FrameworkPropertyMetadataOptions.AffectsRender));
-
-    public static readonly DependencyProperty RuleBrushProperty = DependencyProperty.Register(
-        nameof(RuleBrush), typeof(Brush), typeof(PadPanel),
-        new FrameworkPropertyMetadata(Brushes.LightGray, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public double MinPadWidth
     {
@@ -63,49 +50,29 @@ public sealed class PadPanel : Panel
         set => SetValue(CompactProperty, value);
     }
 
-    /// <summary>Head of the favourites ("Favourites").</summary>
-    public string FavoritesHead
-    {
-        get => (string)GetValue(FavoritesHeadProperty);
-        set => SetValue(FavoritesHeadProperty, value);
-    }
-
-    /// <summary>Head of the pads after the favourites ("Other pads").</summary>
-    public string OthersHead
-    {
-        get => (string)GetValue(OthersHeadProperty);
-        set => SetValue(OthersHeadProperty, value);
-    }
-
-    /// <summary>Colour of the head text.</summary>
-    public Brush HeadBrush
-    {
-        get => (Brush)GetValue(HeadBrushProperty);
-        set => SetValue(HeadBrushProperty, value);
-    }
-
-    /// <summary>Colour of the thin rule after the head text.</summary>
-    public Brush RuleBrush
-    {
-        get => (Brush)GetValue(RuleBrushProperty);
-        set => SetValue(RuleBrushProperty, value);
-    }
-
     /// <summary>Height = width × this, at most <see cref="MaxPadHeight"/>.</summary>
     public double Aspect { get; set; } = 0.86;
 
     public double MaxPadHeight { get; set; } = 168;
 
-    /// <summary>Height of a head line (small text).</summary>
-    public const double HeadHeight = 18;
+    /// <summary>Height of a head row (arrow and name, 28 px to click).</summary>
+    public const double HeadHeight = 28;
 
-    /// <summary>Space between a head line and its pads.</summary>
-    public const double HeadGap = 8;
+    /// <summary>Space between a head and its pads.</summary>
+    public const double HeadGap = 4;
 
-    private const double HeadFontSize = 12;
+    /// <summary>How long a child glides to its new place.</summary>
+    public static readonly Duration GlideTime = new(TimeSpan.FromMilliseconds(200));
 
-    /// <summary>Tops of the head lines of the last arrangement; NaN = not shown.</summary>
-    private double _favoritesHeadTop = double.NaN, _othersHeadTop = double.NaN;
+    /// <summary>Glide even when Windows animations are off (tests); null = follow the setting.</summary>
+    public bool? AnimateOverride { get; set; }
+
+    private bool Animate => AnimateOverride ?? Themes.ThemeManager.AnimationsOn;
+
+    private UIElement? _dragged, _dropBefore, _settling;
+    private Point _dragTopLeft;
+    private readonly Dictionary<UIElement, Rect> _last = [];
+    private (double Width, double PadW, double PadH) _lastGrid;
 
     private (int Cols, double W, double H) Grid(double width)
     {
@@ -120,55 +87,50 @@ public sealed class PadPanel : Panel
 
     private double CurrentGap => Compact ? 8 : Gap;
 
-    /// <summary>Extra space before the head of the pads after the favourites.</summary>
+    /// <summary>Extra space before a head that follows other children.</summary>
     private double GroupGap => Compact ? 12 : 16;
 
-    private static bool IsFavorite(UIElement child) =>
-        child is FrameworkElement { DataContext: ViewModels.TileViewModel { IsFavorite: true } };
+    public static bool IsHead(UIElement child) => child is FrameworkElement { DataContext: ViewModels.CategoryViewModel };
 
-    /// <summary>
-    /// Box of every shown pad (in order) and the tops of the head lines. Heads appear only when a
-    /// favourite is shown: one above the favourites and one above the pads after them (if any).
-    /// Returns the height used.
-    /// </summary>
-    private double Layout(double width, Action<UIElement, Rect>? place, out double favoritesHead, out double othersHead)
+    /// <summary>The children in the order they are laid out: the dragged one at its drop place.</summary>
+    public List<UIElement> Order()
+    {
+        var list = new List<UIElement>(InternalChildren.Count);
+        foreach (UIElement child in InternalChildren)
+            if (!ReferenceEquals(child, _dragged)) list.Add(child);
+        if (_dragged is not null && InternalChildren.Contains(_dragged))
+        {
+            int at = _dropBefore is null ? -1 : list.IndexOf(_dropBefore);
+            list.Insert(at < 0 ? list.Count : at, _dragged);
+        }
+        return list;
+    }
+
+    /// <summary>Box of every shown child in layout order. Returns the height used.</summary>
+    private double Layout(double width, Action<UIElement, Rect> place)
     {
         var (cols, w, h) = Grid(width);
         double gap = CurrentGap;
-        favoritesHead = othersHead = double.NaN;
-        bool heads = false;
-        foreach (UIElement child in InternalChildren)
-        {
-            if (child.Visibility != Visibility.Collapsed && IsFavorite(child))
-            {
-                heads = true;
-                break;
-            }
-        }
-
         double y = 0, bottom = 0;
         int col = 0;
-        bool started = false, others = false;
-        foreach (UIElement child in InternalChildren)
+        bool started = false;
+        foreach (var child in Order())
         {
             if (child.Visibility == Visibility.Collapsed) continue;
-            if (heads && !started)
+            if (IsHead(child))
             {
-                favoritesHead = 0;
-                y = HeadHeight + HeadGap;
-            }
-            if (heads && !others && !IsFavorite(child))
-            {
-                // The favourites' last row ends here; then the head of the others.
-                y = (started ? bottom + GroupGap : y);
+                if (started) y = bottom + GroupGap;
+                place(child, new Rect(0, y, width, HeadHeight));
+                bottom = y + HeadHeight;
+                y = bottom + HeadGap;
                 col = 0;
-                othersHead = y;
-                y += HeadHeight + HeadGap;
-                others = true;
+                started = true;
+                continue;
             }
-            started = true;
-            place?.Invoke(child, new Rect(col * (w + gap), y, w, h));
+            if (col == 0 && started && bottom > y) y = bottom + gap; // a new row below the last one
+            place(child, new Rect(col * (w + gap), y, w, h));
             bottom = y + h;
+            started = true;
             if (++col == cols)
             {
                 col = 0;
@@ -181,54 +143,163 @@ public sealed class PadPanel : Panel
     protected override Size MeasureOverride(Size available)
     {
         var (cols, w, h) = Grid(available.Width);
-        foreach (UIElement child in InternalChildren) child.Measure(new Size(w, h));
         double gap = CurrentGap;
         double width = double.IsInfinity(available.Width) ? cols * w + (cols - 1) * gap : available.Width;
-        return new Size(width, Layout(width, null, out _, out _));
+        foreach (UIElement child in InternalChildren) child.Measure(IsHead(child) ? new Size(width, HeadHeight) : new Size(w, h));
+        return new Size(width, Layout(width, (_, _) => { }));
     }
 
     protected override Size ArrangeOverride(Size final)
     {
-        foreach (UIElement child in InternalChildren)
-            if (child.Visibility == Visibility.Collapsed) child.Arrange(new Rect(0, 0, 0, 0));
-        Layout(final.Width, (child, rect) => child.Arrange(rect), out double fav, out double others);
-        if (!fav.Equals(_favoritesHeadTop) || !others.Equals(_othersHeadTop))
+        var (_, w, h) = Grid(final.Width);
+        // Glide only when the grid kept its size (a resize or another pad size just lays out anew).
+        bool glide = Animate && _lastGrid == (final.Width, w, h);
+        _lastGrid = (final.Width, w, h);
+        var shown = new HashSet<UIElement>();
+        Layout(final.Width, (child, rect) =>
         {
-            _favoritesHeadTop = fav;
-            _othersHeadTop = others;
-            InvalidateVisual();
+            shown.Add(child);
+            child.Arrange(rect);
+            Place(child, rect, glide);
+        });
+        foreach (UIElement child in InternalChildren)
+        {
+            if (shown.Contains(child)) continue;
+            child.Arrange(new Rect(0, 0, 0, 0));
+            _last.Remove(child); // comes back where it is laid out, without gliding from an old place
+            if (ReferenceEquals(child, _settling) || ReferenceEquals(child, _dragged))
+            {
+                // Dropped into a collapsed group: no drag offset may stay for when the group opens again.
+                Still(Shift(child));
+                child.ClearValue(ZIndexProperty);
+            }
         }
+        foreach (var gone in _last.Keys.Where(k => !InternalChildren.Contains(k)).ToList()) _last.Remove(gone);
+        _settling = null;
         return final;
     }
 
-    /// <summary>Top of the favourites' head line and of the others' (NaN = not shown), after layout.</summary>
-    public (double Favorites, double Others) HeadTops => (_favoritesHeadTop, _othersHeadTop);
-
-    protected override void OnRender(DrawingContext dc)
+    /// <summary>After a child is arranged at <paramref name="rect"/>: follow the mouse, or glide from where it was.</summary>
+    private void Place(UIElement child, Rect rect, bool glide)
     {
-        base.OnRender(dc);
-        DrawHead(dc, _favoritesHeadTop, FavoritesHead);
-        DrawHead(dc, _othersHeadTop, OthersHead);
-    }
-
-    private void DrawHead(DrawingContext dc, double top, string text)
-    {
-        if (double.IsNaN(top) || string.IsNullOrEmpty(text) || ActualWidth <= 0) return;
-        var ft = new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection,
-            new Typeface(TextElement.GetFontFamily(this), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal), HeadFontSize, HeadBrush,
-            VisualTreeHelper.GetDpi(this).PixelsPerDip)
+        var shift = Shift(child);
+        if (ReferenceEquals(child, _dragged))
         {
-            MaxLineCount = 1,
-            Trimming = TextTrimming.CharacterEllipsis,
-            MaxTextWidth = Math.Max(1, ActualWidth - 24),
-        };
-        dc.DrawText(ft, new Point(0, top + (HeadHeight - ft.Height) / 2));
-        double x = Math.Round(ft.WidthIncludingTrailingWhitespace + 10);
-        if (x >= ActualWidth) return;
-        // A hairline on whole pixels, level with the middle of the small letters.
-        double lineY = Math.Round(top + HeadHeight / 2 + 1) + 0.5;
-        var pen = new Pen(RuleBrush, 1);
-        pen.Freeze();
-        dc.DrawLine(pen, new Point(x, lineY), new Point(ActualWidth, lineY));
+            shift.BeginAnimation(TranslateTransform.XProperty, null);
+            shift.BeginAnimation(TranslateTransform.YProperty, null);
+            shift.X = _dragTopLeft.X - rect.X;
+            shift.Y = _dragTopLeft.Y - rect.Y;
+        }
+        else if (_last.TryGetValue(child, out var old) && (old.TopLeft != rect.TopLeft || ReferenceEquals(child, _settling)))
+        {
+            // Where it is seen now (old place plus a glide still running), relative to the new place.
+            double fromX = old.X - rect.X + shift.X, fromY = old.Y - rect.Y + shift.Y;
+            if (glide || ReferenceEquals(child, _settling) && Animate) GlideFrom(child, shift, fromX, fromY);
+            else
+            {
+                shift.BeginAnimation(TranslateTransform.XProperty, null);
+                shift.BeginAnimation(TranslateTransform.YProperty, null);
+                shift.X = shift.Y = 0;
+            }
+        }
+        _last[child] = rect;
     }
+
+    private void GlideFrom(UIElement child, TranslateTransform shift, double fromX, double fromY)
+    {
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        var x = new DoubleAnimation(fromX, 0, GlideTime) { EasingFunction = ease };
+        var y = new DoubleAnimation(fromY, 0, GlideTime) { EasingFunction = ease };
+        // A dropped pad stays on top until it has landed; every glide ends that (also one that replaced the first).
+        y.Completed += (_, _) =>
+        {
+            if (!ReferenceEquals(child, _dragged)) child.ClearValue(ZIndexProperty);
+        };
+        shift.BeginAnimation(TranslateTransform.XProperty, x);
+        shift.BeginAnimation(TranslateTransform.YProperty, y);
+    }
+
+    /// <summary>Stops a glide and holds the shift at where it is seen now (a finished glide would otherwise pin it at 0).</summary>
+    private static void Hold(TranslateTransform shift)
+    {
+        double x = shift.X, y = shift.Y;
+        shift.BeginAnimation(TranslateTransform.XProperty, null);
+        shift.BeginAnimation(TranslateTransform.YProperty, null);
+        shift.X = x;
+        shift.Y = y;
+    }
+
+    private static void Still(TranslateTransform shift)
+    {
+        shift.BeginAnimation(TranslateTransform.XProperty, null);
+        shift.BeginAnimation(TranslateTransform.YProperty, null);
+        shift.X = shift.Y = 0;
+    }
+
+    private static TranslateTransform Shift(UIElement child)
+    {
+        if (child.RenderTransform is TranslateTransform t && !t.IsFrozen) return t;
+        t = new TranslateTransform();
+        child.RenderTransform = t;
+        return t;
+    }
+
+    // ---------------------------------------------------------------- dragging
+
+    /// <summary>The child being dragged, null while none is.</summary>
+    public UIElement? Dragged => _dragged;
+
+    /// <summary>Lifts <paramref name="child"/> out of the order: it stays where it is until <see cref="SetDropBefore"/>.</summary>
+    public void BeginDrag(UIElement child)
+    {
+        var order = Order();
+        int i = order.IndexOf(child);
+        _dragged = child;
+        _dropBefore = i >= 0 && i + 1 < order.Count ? order[i + 1] : null;
+        // From where it is seen (also mid-glide); from now on only the mouse moves it.
+        var shift = Shift(child);
+        Hold(shift);
+        _dragTopLeft = _last.TryGetValue(child, out var r) ? new Point(r.X + shift.X, r.Y + shift.Y) : new Point();
+        SetZIndex(child, 100);
+    }
+
+    /// <summary>Where the dragged child would go: in front of <paramref name="before"/> (null = at the very end).</summary>
+    public void SetDropBefore(UIElement? before)
+    {
+        if (_dragged is null || ReferenceEquals(before, _dropBefore) || ReferenceEquals(before, _dragged)) return;
+        _dropBefore = before;
+        InvalidateArrange();
+    }
+
+    /// <summary>Top left of the dragged child in this panel's coordinates (it follows the mouse).</summary>
+    public Point DragTopLeft
+    {
+        get => _dragTopLeft;
+        set
+        {
+            _dragTopLeft = value;
+            if (_dragged is null || !_last.TryGetValue(_dragged, out var r)) return;
+            var shift = Shift(_dragged);
+            shift.X = value.X - r.X;
+            shift.Y = value.Y - r.Y;
+        }
+    }
+
+    /// <summary>
+    /// Lets go of the dragged child: it is laid out in the order of the children again (after a drop the caller has
+    /// moved it there already) and glides from under the mouse into its place.
+    /// </summary>
+    public void EndDrag()
+    {
+        if (_dragged is not { } child) return;
+        _dragged = null;
+        _dropBefore = null;
+        _settling = child;
+        if (!Animate) child.ClearValue(ZIndexProperty);
+        InvalidateArrange();
+    }
+
+    /// <summary>Box of every shown child after the last layout (panel coordinates), in layout order.</summary>
+    public IReadOnlyList<(UIElement Child, Rect Box)> Boxes() =>
+        Order().Where(c => c.Visibility != Visibility.Collapsed && _last.ContainsKey(c)).Select(c => (c, _last[c])).ToList();
 }

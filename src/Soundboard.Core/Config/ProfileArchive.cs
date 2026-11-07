@@ -11,6 +11,12 @@ public sealed class ProfileArchiveException(string message, Exception? inner = n
 public sealed record ArchivePreview(string FileName, int PadCount, int MissingSounds);
 
 /// <summary>
+/// Pads taken from an archive and their own categories, all with new IDs (the pads point to the new
+/// category IDs). The favourites flag comes along.
+/// </summary>
+public sealed record ImportedPads(List<TileConfig> Tiles, List<CategoryConfig> Categories);
+
+/// <summary>
 /// Pads as a ZIP file to take along: config.json plus the sounds and pictures they use.
 /// Reading trusts nothing in the file: only "config.json", "Sounds/&lt;name&gt;" and
 /// "Bilder/&lt;name&gt;" are opened, every name must be a plain file name (no folder, no ".."), and
@@ -94,7 +100,7 @@ public static class ProfileArchive
     /// the copies. Pads whose sound is missing or unsafe are left out; a picture that cannot be used
     /// is dropped from its pad.
     /// </summary>
-    public static List<TileConfig> Import(string zipPath, AppPaths paths)
+    public static ImportedPads Import(string zipPath, AppPaths paths)
     {
         using var zip = Open(zipPath);
         var profile = ReadProfile(zip);
@@ -108,6 +114,8 @@ public static class ProfileArchive
         try
         {
             var result = new List<TileConfig>();
+            // New IDs for the categories, so they never clash with those already here.
+            var categories = profile.Categories.Select(c => (Old: c.Id, New: new CategoryConfig { Name = c.Name.Trim(), Collapsed = c.Collapsed })).ToList();
             foreach (var t in profile.Tiles.Take(MaxPads))
             {
                 var sound = Extract(zip, SoundsPrefix, t.FileName, temp);
@@ -128,9 +136,11 @@ public static class ProfileArchive
                     ColorChosen = t.ColorChosen,
                     Hotkey = t.Hotkey,
                     Image = image,
+                    Favorite = t.Favorite,
+                    Category = categories.FirstOrDefault(c => c.Old == t.Category).New?.Id,
                 });
             }
-            return result;
+            return new ImportedPads(result, categories.Select(c => c.New).ToList());
         }
         finally
         {

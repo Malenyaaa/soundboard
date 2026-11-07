@@ -18,7 +18,7 @@ Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.17.1 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.18.0 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -67,6 +67,12 @@ eigenen Reihe (mit etwas Abstand zu den anderen) und tragen unten rechts einen k
 verschieben geht innerhalb der eigenen Gruppe; Strg+Z nimmt es zurück.
 In 0.17.1: Gibt es Favoriten, tragen beide Gruppen einen schlichten Kopf – „Favoriten“ und
 „Weitere Pads“ in kleiner Schrift mit dünner Linie bis zum rechten Rand.
+In 0.18: Eigene Kategorien (zuklappbar, umbenennbar per Klick auf den Namen, Pads hineinziehen,
+löschen mit Strg+Z); Pads gleiten beim Ziehen zur Seite, das gezogene Pad hängt am Mauszeiger;
+Abspielleiste unten mit Wellenform, Zeit und Springen per Klick oder Ziehen. Der Stop-Knopf ist
+weg (die Stopp-Taste bleibt), die Einstellungen haben nur noch drei Reiter, die Einrichtung
+öffnet das „?“ neben dem Kabel-Schalter, und „Audio“ in der Statuszeile öffnet einen kleinen
+Kasten statt eines Reiters.
 Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
 Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
 **noch ungetestet** (siehe unten).
@@ -85,11 +91,11 @@ Standardmikrofon und seine Standardwiedergabe.
 
 ## Einrichtung
 
-Die Einrichtung öffnet sich beim ersten Start und ist jederzeit über den Knopf
-„Einstellungen“ (Zahnrad) → „Einrichtung“ erreichbar. Fehlt das Kabel, steht in der Statuszeile
-unten links „Kabel fehlt“ mit Warnzeichen; ein Klick darauf öffnet die Einrichtung. (Die Namen
-der Knöpfe stehen hier auf Deutsch; in der englischen Oberfläche heißen sie entsprechend, z. B.
-„Settings“ → „Setup“.)
+Die Einrichtung öffnet sich beim ersten Start und ist jederzeit über das **„?“ neben
+„Mikrofon und Sounds ans Kabel senden“** erreichbar (Zahnrad → „Mikrofon & Kabel“), außerdem über
+„Einrichtung“ im Infobereich-Menü. Fehlt das Kabel, steht in der Statuszeile unten links „Kabel
+fehlt“ mit Warnzeichen; ein Klick darauf öffnet die Einrichtung. (Die Namen der Knöpfe stehen hier
+auf Deutsch; in der englischen Oberfläche heißen sie entsprechend, z. B. „Settings“ → „Setup“.)
 
 ### 1. Virtuelles Kabel (VB-CABLE)
 
@@ -103,11 +109,12 @@ wenn Geräte dazukommen, etwa das Kabel); dafür muss man nichts tun.
    vergleicht mit der Sicherung. Hat das Setup das Kabel zum Standardgerät gemacht (Windows macht
    neue Audiotreiber manchmal zum Standard), stellt das Soundboard **sofort und ohne Rückfrage** das
    gesicherte Gerät zurück – je Rolle (Konsole, Multimedia, Kommunikation), für Wiedergabe und
-   Aufnahme, nur wenn das gesicherte Gerät angeschlossen und aktiv ist. Im Reiter „Audio-Zustand“
+   Aufnahme, nur wenn das gesicherte Gerät angeschlossen und aktiv ist. Unter „Mikrofon & Kabel“
    steht danach leise „Windows hatte das Kabel zum Standardgerät gemacht – auf dein Gerät
    zurückgestellt“; ist das Fenster gerade nicht vorn, kommt dazu eine stille Windows-Benachrichtigung.
    Fehlt das gesicherte Gerät, wird nichts umgestellt, und unten in der Statuszeile steht **„Audio“
-   mit Warnzeichen**; ein Klick öffnet den Reiter mit **„Standardgerät zurückstellen“**.
+   mit Warnzeichen**; ein Klick öffnet einen kleinen Kasten mit dem Grund und
+   **„Standardgerät zurückstellen“**.
 4. Prüfen: Beim Sprechen schlägt „Das sendet dein Kabel gerade“ aus. Gegenprobe ohne
    Discord: Systemsteuerung → Sound → Registerkarte „Aufnahme“ → bei „CABLE Output“
    bewegt sich die Anzeige. „Testton senden“ schickt eine Sekunde 440 Hz nur ins Kabel.
@@ -142,20 +149,29 @@ Discords Dateien.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ (●) Mithören [Kopfhörer v]  ◁) ━━●── 80 %      [Sounds suchen …]    [■ Stop] [⚙] │
+│ (●) Mithören [Kopfhörer v]  ◁) ━━●── 80 %              [Suchen          ]      [⚙] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ ⚠ Nicht übernommen: notiz.txt. Möglich sind MP3, WAV, OGG und FLAC.      [Schließen] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
-│ ┌Num 1───1,2 s┐ ┌Num 2─■ −2,0 s┐ ┌Num 3───6,0 s┐ ┌⚠ Num 3─1,8 s┐ ┌────────12,4 s┐ │
-│ │             │ │▓▓▓▓▓ leuchtet│ │             │ │             │ │              │ │
-│ │ Airhorn     │ │Trommelwirbel │ │ Applaus 85 %│ │ Ba-dum-tss  │ │ Grillen      │ │
-│ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁▁┘ │
+│ ˅ Favoriten ─────────────────────────────────────────────────────────────────────│
+│ ┌Num 1───1,2 s┐ ┌Num 2─■ −2,0 s┐                                                  │
+│ │ Airhorn    ★│ │▓▓▓▓▓ leuchtet│                                                  │
+│ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁▁┘                                                  │
+│ › Memes (4) ──────────────────────────────────────────────────────────────────────│
+│ ˅ Weitere Pads ──────────────────────────────────────────────────────────────────│
+│ ┌Num 3───6,0 s┐ ┌⚠ Num 3─1,8 s┐ ┌────────12,4 s┐                                  │
+│ │ Applaus 85 %│ │ Ba-dum-tss  │ │ Grillen      │                                  │
+│ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁▁┘                                  │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│    Trommelwirbel                                                                 │
+│ 0:01 ┃┃▌┃┃┃▌┃┃┃▌▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌ 0:03 │
+│      ━━━━━━━━━●───────────────────────────────────────────────────────────────    │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Kabel: sendet ▬▬▭   Mikrofon: an   Tasten: 6 aktiv                  Sound-Ordner │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Ist das Fenster schmaler, rücken Lautstärke und Suche in eine zweite Zeile; Mithören, Stop und
+Ist das Fenster schmaler, rücken Lautstärke und Suche in eine zweite Zeile; Mithören und
 das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenfolge durch.
 
 - **Pads:** Jeder Sound ist ein Pad – eine Taste mit dicker Unterkante, gedrückt sinkt sie ein.
@@ -177,9 +193,31 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   den Pads, Leertaste/Enter spielt, F2 benennt um, Entf entfernt, Umschalt+F10 öffnet das
   Rechtsklick-Menü. Bildschirmleser hören „spielt“ als Zustand.
 - **Sortieren:** Ein Pad mit der Maus auf eine andere Stelle ziehen (das Ziehen beginnt erst
-  nach ein paar Pixeln, ein Klick bleibt ein Klick); ein Balken zeigt die Einfügestelle, Esc
-  bricht ab. Mit der Tastatur verschiebt **Strg + Pfeil links/rechts** das fokussierte Pad.
-- **Suche:** Das Feld „Sounds suchen“ steht immer in der Kopfzeile; **Strg+F** springt hinein,
+  nach ein paar Pixeln, ein Klick bleibt ein Klick). Das Pad hängt am Mauszeiger, die anderen
+  gleiten zur Seite und machen die Lücke frei, wo es landen würde; beim Loslassen gleitet es
+  hinein. In eine andere Gruppe ziehen (auch auf ihren Kopf, selbst wenn sie zugeklappt oder leer
+  ist) legt es dort ab; der Kopf der Zielgruppe bekommt dabei eine Linie in der Akzentfarbe. Esc
+  bricht ab. Mit der Tastatur verschiebt **Strg + Pfeil links/rechts** das fokussierte Pad
+  innerhalb seiner Gruppe. Bei ausgeschalteten Animationen springen die Pads statt zu gleiten.
+- **Kategorien:** Rechtsklick auf die freie Fläche oder einen Kopf → „Neue Kategorie“, oder
+  Rechtsklick auf ein Pad → „Verschieben nach ▸ Neue Kategorie …“ (das Pad kommt gleich hinein).
+  Der Name ist dann zum Tippen offen; ein Klick auf einen Namen benennt später um (Enter oder
+  Klick daneben übernimmt, Esc nicht, leer behält den alten). Der Pfeil vor dem Namen klappt
+  die Gruppe zu – dann steht die Zahl der Pads dahinter; der Zustand bleibt gespeichert.
+  „Verschieben nach ▸“ im Rechtsklick eines Pads nennt alle Gruppen. Rechtsklick auf einen Kopf:
+  Umbenennen, Zugeklappt, Nach oben/Nach unten, Kategorie löschen (die Pads gehen nach „Weitere
+  Pads“, Strg+Z holt die Kategorie samt Pads zurück). Favoriten sind die erste Gruppe, „Weitere
+  Pads“ die letzte; ein Favorit, der keiner mehr ist, kehrt in seine Kategorie zurück. Köpfe gibt
+  es erst, sobald es eine Kategorie oder einen Favoriten gibt. Die Suche findet in allen Gruppen,
+  auch zugeklappten; Gruppen ohne Treffer verschwinden solange. Profil-Export und -Import nehmen
+  die Kategorien mit (beim Hinzufügen landen Pads einer gleichnamigen Kategorie in der vorhandenen).
+- **Abspielleiste:** unten über der Statuszeile, für den zuletzt gestarteten Sound: Name, die
+  Wellenform aus dünnen Strichen, darunter eine dünne Leiste mit dem gespielten Teil in der
+  Akzentfarbe und einem runden Knopf, links die gespielte Zeit, rechts die ganze Länge (m:ss).
+  Ein Klick springt an die Stelle, Ziehen spult vor und zurück; ist der Sound schon zu Ende,
+  startet er dort neu. Mit der Tastatur: Pfeil links/rechts 5 %, Pos1/Ende. Die Leiste steht
+  immer da (vor dem ersten Sound leer), damit beim Abspielen nichts verrutscht.
+- **Suche:** Das Feld „Suchen“ steht immer in der Kopfzeile; **Strg+F** springt hinein,
   Esc leert es. Gesucht wird in Name und Taste („air“, „num 3“), jedes Wort muss passen. Ohne
   Treffer steht dort ein Satz mit „Suche leeren“.
 - **Rückgängig:** Entfernen, Verschieben, Angleichen und Importieren landen auf einem Stapel.
@@ -227,8 +265,8 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   „Mikrofon stumm“ (Standard: keine Taste) schaltet die Stimme im Mix aus und wieder ein; die
   Sounds gehen weiter aufs Kabel. Diese beiden Tasten teilt das Programm mit niemandem.
 - **Mithören:** Schalter und Gerät, auf dem du die Sounds selbst hörst (per ID gemerkt).
-- **Stop:** stoppt alle laufenden Sounds. Solange nichts spielt, ist er ein ruhiger Knopf mit
-  rotem Quadrat; rot wird er, sobald etwas spielt.
+- **Alles stoppen:** über die Stopp-Taste (Standard **Pause**, im Reiter „Tasten“ änderbar); einen
+  Knopf dafür gibt es nicht mehr. Ein einzelnes Pad stoppt ein Klick darauf.
 - **Regler** (Lautstärke aller Sounds, Mikro-Lautstärke, Pad-Lautstärke im Rechtsklick-Menü):
   Ein Klick auf eine Stelle der Leiste setzt den Wert dort, und ohne loszulassen lässt sich
   gleich weiterziehen. Mit der Tastatur: Pfeiltasten (1 %), Bild auf/ab (10 %).
@@ -242,8 +280,11 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   Standardgerät (Wiedergabe oder Aufnahme, Multimedia oder Kommunikation) fehlt, ist deaktiviert
   oder abgezogen; das Kabel ist Standard-Wiedergabegerät (dann hört man nichts) oder neu
   Standardmikrofon geworden; das Standard-Wiedergabegerät ist stumm oder auf 0 %. Der Tooltip
-  nennt den Grund, ein Klick öffnet „Audio-Zustand“. Ein anderes, funktionierendes Standardgerät
-  (z. B. selbst auf Kopfhörer umgestellt) ist kein Problem und steht nur leise im Reiter.
+  nennt den Grund, ein Klick öffnet darüber einen kleinen Kasten mit dem Grund und – wenn ein
+  Standardgerät von der Sicherung abweicht – „Standardgerät zurückstellen“ und „Jetzigen Zustand
+  als normal sichern“; Esc oder ein Klick daneben schließt ihn, und er geht von selbst zu, sobald
+  wieder alles geht. Ein anderes, funktionierendes Standardgerät (z. B. selbst auf Kopfhörer
+  umgestellt) ist kein Problem und wird nicht gemeldet.
   Ist das Kabel Standardgerät geworden und das gesicherte Gerät da, stellt das Soundboard es still
   zurück (siehe Einrichtung); höchstens zweimal je Rolle und Lauf – macht etwas das Kabel immer
   wieder zum Standard (ein anderes Programm oder du selbst mit Absicht), hört es auf, dagegen
@@ -278,17 +319,16 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
 
 ### Einstellungen (Zahnrad)
 
-Die Einstellungen legen sich über die Pads; Kopfzeile und „Stop“ bleiben. Esc, „Schließen“ oder
-ein zweiter Klick aufs Zahnrad führt zurück. Das Zahnrad öffnet sie immer auf „Mikrofon & Kabel“; die
-Einrichtung beim ersten Start, „Kabel fehlt“, „Audio“ mit Warnzeichen und die Tasten-Warnung öffnen ihren
-eigenen Reiter.
+Die Einstellungen legen sich über die Pads; die Kopfzeile bleibt. Esc oder ein zweiter Klick aufs
+Zahnrad führt zurück (einen „Schließen“-Knopf gibt es nicht). Das Zahnrad öffnet sie immer auf
+„Mikrofon & Kabel“; die Tasten-Warnung öffnet „Tasten“. Die Einrichtung ist kein Reiter: das „?“
+neben dem Kabel-Schalter, „Kabel fehlt“, der erste Start und das Infobereich-Menü öffnen ihre drei
+Schritte an derselben Stelle (dann ist kein Reiter markiert; ein Klick auf einen Reiter führt zurück).
 
 | Reiter | Inhalt |
 |---|---|
-| Mikrofon & Kabel | ans Kabel senden; Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; „Kabel auf 48 kHz stellen“ (Standard an; darunter, mit welcher Rate das Kabel läuft); „Andere Töne bei Anrufen nicht leiser stellen“ (Windows-Ducking aus, solange das Soundboard läuft; Standard an); 10-Sekunden-Test als WAV im Ordner `Aufnahmen` |
-| Einrichtung | die drei Schritte: Kabel, Discord, Rauschunterdrückung (siehe oben) |
+| Mikrofon & Kabel | ans Kabel senden, daneben „?“ für die Einrichtung (Kabel, Discord, Rauschunterdrückung); Mikrofon; Mikro-Lautstärke (wirkt nur im Soundboard, nicht in Windows); Pegel und Testton; Puffer klein/mittel/groß (größer wählen, wenn die Stimme knackt); Stimme stumm, solange ein Sound läuft; „Kabel auf 48 kHz stellen“ (Standard an; darunter, mit welcher Rate das Kabel läuft); „Andere Töne bei Anrufen nicht leiser stellen“ (Windows-Ducking aus, solange das Soundboard läuft; Standard an); 10-Sekunden-Test als WAV im Ordner `Aufnahmen`; am Ende „Vom Soundboard geändert“ mit Liste und „Alle Änderungen zurücknehmen“ |
 | Tasten | Tasten pausieren; „Alle Sounds stoppen“, „Mikrofon stumm“ und alle Pads mit Taste, nur Abweichungen stehen dabei, Ausweg bei Konflikten; Sounds überlagern (aus: ein neuer Sound stoppt den laufenden); „Dieselbe Taste, während der Sound läuft“: Stoppen oder Von vorn spielen |
-| Audio-Zustand | oben, nur bei einem Problem, was in Windows-Audio nicht geht; Vergleich „gesichert – jetzt“ für Standardgeräte, Geräte, Lautstärken; „Standardgerät zurückstellen“ (bei abweichendem Standardgerät), „Jetzigen Zustand als normal sichern“ (z. B. nach eigenem Umstellen), „Neu vergleichen“; leise, falls das Kabel eben als Standardgerät zurückgestellt wurde; „Vom Soundboard geändert“ mit Liste und „Alle Änderungen zurücknehmen“; darunter die Audiogeräte in Windows (nur angezeigt, die Endpunkt-ID im Tooltip der Zeile) |
 | Darstellung | Sprache (English, Deutsch); hell oder dunkel (wie Windows, hell, dunkel); Akzentfarbe; Pad-Farben (bunt oder alle in der Akzentfarbe); Pad-Größe (groß, kompakt); weiches Aufleuchten an/aus; Profil exportieren/importieren; mit Windows starten (nur im Infobereich) |
 
 **Profil:** „Profil exportieren …“ speichert alle Pads mit ihren Sounds und Bildern als eine
@@ -381,7 +421,7 @@ und vom Rückbau nicht gelöscht; seine alten Werte stellt das Soundboard dann a
 zurück (von Hand über Sound → Kommunikation bzw. die Kabel-Eigenschaften). `--restore` und der
 Rückbau schalten außerdem die beiden Schalter in den Einstellungen aus, damit ein späterer Start (etwa
 per Autostart) nichts wieder umstellt. Der Wächter erkennt seinen Prozess an ID und Startzeit, damit
-eine wiederverwendete Prozess-ID nicht die Änderungen eines neuen Laufs zurückstellt. Im Reiter „Audio-Zustand“ zeigt
+eine wiederverwendete Prozess-ID nicht die Änderungen eines neuen Laufs zurückstellt. Am Ende von „Mikrofon & Kabel“ zeigt
 **„Vom Soundboard geändert“** die Liste („Andere Töne bei Anrufen: volle Lautstärke, vorher um
 80 % leiser“) mit **„Alle Änderungen zurücknehmen“**: stellt alles sofort zurück und schaltet
 die Schalter aus, die es gesetzt haben.

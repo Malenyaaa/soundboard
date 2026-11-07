@@ -116,7 +116,7 @@ public sealed class LanguageTests
         L.Changed += h;
         try
         {
-            Assert.AreEqual("Stop", L.Get("Main.Stop"));
+            Assert.AreEqual("Keys", L.Get("Tab.Keys"));
             Assert.AreEqual("Settings", L.Get("Settings.Title"));
             Assert.AreEqual("Ctrl+Alt+Num 1", HotkeyGesture.Parse("Ctrl+Alt+NumPad1")!.Value.Display);
             Assert.AreEqual("80%", L.Percent(0.8));

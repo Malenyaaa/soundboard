@@ -155,9 +155,6 @@
   <data name="Main.SettingsTip" xml:space="preserve"><value>Settings: microphone &amp; cable, setup, keys, audio state, appearance</value></data>
   <data name="Main.CloseSettings" xml:space="preserve"><value>Close settings</value></data>
   <data name="Main.CloseSettingsTip" xml:space="preserve"><value>Close settings (Esc)</value></data>
-  <data name="Main.Stop" xml:space="preserve"><value>Stop</value></data>
-  <data name="Main.StopTip" xml:space="preserve"><value>Stops all playing sounds at once.</value></data>
-  <data name="Main.StopTipKey" xml:space="preserve"><value>Stops all playing sounds at once. Key: {0} – works everywhere, even when a game is in front.</value></data>
   <data name="Main.ChosenDevice" xml:space="preserve"><value>Chosen device</value></data>
   <data name="Main.TheChosenDevice" xml:space="preserve"><value>The chosen device</value></data>
   <data name="Main.TheMonitorDevice" xml:space="preserve"><value>the monitor device</value></data>
@@ -280,11 +277,10 @@ Delete: remove key</value></data>
   <data name="Key.StatePaused" xml:space="preserve"><value>paused</value></data>
   <data name="Key.None" xml:space="preserve"><value>none</value></data>
   <data name="Settings.Title" xml:space="preserve"><value>Settings</value></data>
-  <data name="Settings.CloseTip" xml:space="preserve"><value>Back to the pads (Esc)</value></data>
   <data name="Tab.Setup" xml:space="preserve"><value>Setup</value></data>
+  <data name="Setup.HelpTip" xml:space="preserve"><value>Setup: install the cable, Discord, noise suppression</value></data>
   <data name="Tab.Cable" xml:space="preserve"><value>Microphone &amp; cable</value></data>
   <data name="Tab.Keys" xml:space="preserve"><value>Keys</value></data>
-  <data name="Tab.State" xml:space="preserve"><value>Audio state</value></data>
   <data name="Tab.Appearance" xml:space="preserve"><value>Appearance</value></data>
   <data name="Setup.Step1" xml:space="preserve"><value>1  Cable</value></data>
   <data name="Setup.Step2" xml:space="preserve"><value>2  Discord</value></data>
@@ -359,24 +355,9 @@ Delete: remove key</value></data>
   <data name="Keys.Playing" xml:space="preserve"><value>Playback</value></data>
   <data name="Keys.Overlay" xml:space="preserve"><value>Overlap sounds</value></data>
   <data name="Keys.OverlayHint" xml:space="preserve"><value>Off: a new sound stops the one playing. On: several sounds play at the same time.</value></data>
-  <data name="State.NotSaved" xml:space="preserve"><value>Audio state: not saved yet</value></data>
-  <data name="State.Same" xml:space="preserve"><value>Audio state: as saved on {0}</value></data>
-  <data name="State.Diff.One" xml:space="preserve"><value>Audio state: 1 difference since the save on {1}</value></data>
-  <data name="State.Diff.Other" xml:space="preserve"><value>Audio state: {0} differences since the save on {1}</value></data>
-  <data name="State.Unchanged.One" xml:space="preserve"><value>1 more device is unchanged.</value></data>
-  <data name="State.Unchanged.Other" xml:space="preserve"><value>{0} more devices are unchanged.</value></data>
   <data name="State.Advice" xml:space="preserve"><value>A Windows default device differs from the saved state: {0}. If you changed it yourself, all is well – “Save current state as normal” takes it over. “Restore default device” sets it back.</value></data>
   <data name="State.SavedNow" xml:space="preserve"><value>Saved on {0}. The previous save is in the data folder as “audio-snapshot.vorher.json”.</value></data>
-  <data name="State.ComparedSame" xml:space="preserve"><value>Compared: everything as saved.</value></data>
-  <data name="State.ComparedDiff" xml:space="preserve"><value>Compared: the differences are in the list.</value></data>
   <data name="State.SaveTip" xml:space="preserve"><value>Takes the current Windows audio setup as normal, e.g. after you chose other default devices yourself. Otherwise the soundboard saves by itself.</value></data>
-  <data name="State.CompareAgain" xml:space="preserve"><value>Compare again</value></data>
-  <data name="State.Devices" xml:space="preserve"><value>Audio devices in Windows</value></data>
-  <data name="State.Reread" xml:space="preserve"><value>Read again</value></data>
-  <data name="State.Reading" xml:space="preserve"><value>Reading …</value></data>
-  <data name="State.NotPresentTip" xml:space="preserve"><value>Windows remembers devices used earlier. They are hidden to keep the list short.</value></data>
-  <data name="Devices.Header" xml:space="preserve"><value>Active: {0} playback, {1} recording. Shown only – nothing is changed here.</value></data>
-  <data name="Devices.ShowNotPresent" xml:space="preserve"><value>Also show devices that are no longer there ({0})</value></data>
   <data name="Device.NotConnected" xml:space="preserve"><value>{0} (not connected)</value></data>
   <data name="Device.WindowsDefault" xml:space="preserve"><value>{0} (Windows default)</value></data>
   <data name="Restore.NothingToDo" xml:space="preserve"><value>The default devices are already as saved – there was nothing to do.</value></data>
@@ -386,16 +367,6 @@ Delete: remove key</value></data>
   <data name="Restore.Short.One" xml:space="preserve"><value>1 default device set back.</value></data>
   <data name="Restore.Short.Other" xml:space="preserve"><value>{0} default devices set back.</value></data>
   <data name="Restore.ByHandShort" xml:space="preserve"><value>Not everything worked automatically. By hand:</value></data>
-  <data name="Grid.What" xml:space="preserve"><value>What</value></data>
-  <data name="Grid.Saved" xml:space="preserve"><value>Saved</value></data>
-  <data name="Grid.Now" xml:space="preserve"><value>Now</value></data>
-  <data name="Grid.Result" xml:space="preserve"><value>Result</value></data>
-  <data name="Grid.Flow" xml:space="preserve"><value>Direction</value></data>
-  <data name="Grid.Name" xml:space="preserve"><value>Name</value></data>
-  <data name="Grid.Status" xml:space="preserve"><value>Status</value></data>
-  <data name="Grid.Default" xml:space="preserve"><value>Windows default for</value></data>
-  <data name="Grid.Volume" xml:space="preserve"><value>Volume</value></data>
-  <data name="Grid.Format" xml:space="preserve"><value>Mix format</value></data>
   <data name="Design.Language" xml:space="preserve"><value>Language</value></data>
   <data name="Design.Mode" xml:space="preserve"><value>Light and dark</value></data>
   <data name="Design.System" xml:space="preserve"><value>Like Windows</value></data>
@@ -522,7 +493,7 @@ Delete: remove key</value></data>
   <data name="Keys.SameKeyStop" xml:space="preserve"><value>Stop</value></data>
   <data name="Keys.SameKeyRestart" xml:space="preserve"><value>Play from the start</value></data>
   <data name="Keys.SameKeyHint" xml:space="preserve"><value>Only for the keys. A click on a playing pad always stops it.</value></data>
-  <data name="Search.Placeholder" xml:space="preserve"><value>Search sounds</value></data>
+  <data name="Search.Placeholder" xml:space="preserve"><value>Search</value></data>
   <data name="Search.Tip" xml:space="preserve"><value>Finds sounds by name or key (Ctrl+F). Esc empties the search.</value></data>
   <data name="Search.Clear" xml:space="preserve"><value>Clear search</value></data>
   <data name="Search.NoResults" xml:space="preserve"><value>No sound matches “{0}”. The search looks at names and keys.</value></data>
@@ -584,8 +555,6 @@ Delete: remove key</value></data>
   <data name="Uninstall.AdvancedTail" xml:space="preserve"><value>Only needed if the setup leaves something behind.</value></data>
   <data name="Uninstall.AskHeading" xml:space="preserve"><value>Delete the soundboard’s data?</value></data>
   <data name="Uninstall.Delete" xml:space="preserve"><value>Delete</value></data>
-  <data name="State.OnlyCableNew" xml:space="preserve"><value>Audio state: only the cable is new since the save on {0} – as expected.</value></data>
-  <data name="Devices.IdTip" xml:space="preserve"><value>Endpoint ID: {0}</value></data>
   <data name="Setup.FinalLine" xml:space="preserve"><value>Microphone + sounds → cable → Discord. Play a pad to try it.</value></data>
   <data name="Pad.StatusPlaying" xml:space="preserve"><value>playing</value></data>
   <data name="Profile.BackupFailed" xml:space="preserve"><value>The current pads could not be backed up ({0}), so nothing was imported. Is the data folder read-only?</value></data>
@@ -678,4 +647,30 @@ Delete: remove key</value></data>
   <data name="PadColour.Cyan" xml:space="preserve"><value>Cyan</value></data>
   <data name="PadColour.Indigo" xml:space="preserve"><value>Indigo</value></data>
   <data name="PadColour.Magenta" xml:space="preserve"><value>Magenta</value></data>
+  <data name="State.CompareAgain" xml:space="preserve"><value>Compare again</value></data>
+  <data name="Grid.What" xml:space="preserve"><value>What</value></data>
+  <data name="Grid.Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Grid.Now" xml:space="preserve"><value>Now</value></data>
+  <data name="Grid.Result" xml:space="preserve"><value>Result</value></data>
+  <data name="Playback.Nothing" xml:space="preserve"><value>Nothing played yet</value></data>
+  <data name="Playback.Position" xml:space="preserve"><value>Position in the sound</value></data>
+  <data name="Category.DefaultName" xml:space="preserve"><value>Category</value></data>
+  <data name="Category.NewName" xml:space="preserve"><value>New category</value></data>
+  <data name="Category.New" xml:space="preserve"><value>New category</value></data>
+  <data name="Category.NewWithPad" xml:space="preserve"><value>New category …</value></data>
+  <data name="Category.CountCollapsed" xml:space="preserve"><value>({0})</value></data>
+  <data name="Category.EmptyHint" xml:space="preserve"><value>empty – drag pads here</value></data>
+  <data name="Category.Expand" xml:space="preserve"><value>Expand “{0}”</value></data>
+  <data name="Category.Collapse" xml:space="preserve"><value>Collapse “{0}”</value></data>
+  <data name="Category.NameHelp" xml:space="preserve"><value>Click to rename</value></data>
+  <data name="Category.Rename" xml:space="preserve"><value>Rename</value></data>
+  <data name="Category.Collapsed" xml:space="preserve"><value>Collapsed</value></data>
+  <data name="Category.MoveUp" xml:space="preserve"><value>Move up</value></data>
+  <data name="Category.MoveDown" xml:space="preserve"><value>Move down</value></data>
+  <data name="Category.Delete" xml:space="preserve"><value>Delete category</value></data>
+  <data name="Pad.MoveTo" xml:space="preserve"><value>Move to</value></data>
+  <data name="Notice.PadMovedTo" xml:space="preserve"><value>“{0}” moved to “{1}”.</value></data>
+  <data name="Notice.CategoryAdded" xml:space="preserve"><value>Category “{0}” added.</value></data>
+  <data name="Notice.CategoryDeleted" xml:space="preserve"><value>Category “{0}” deleted.</value></data>
+  <data name="Notice.CategoryMoved" xml:space="preserve"><value>Category “{0}” moved.</value></data>
 </root>

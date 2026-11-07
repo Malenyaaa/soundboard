@@ -31,6 +31,55 @@ public sealed class SoundPlayerTests
         Assert.IsNotNull(p.GetProgress(clip.Handle));
     }
 
+    /// <summary>A clip whose sample value is its frame number / 100 000 (below the soft clip), so the position can be read from the output.</summary>
+    private static SoundClip Ramp(int frames) =>
+        new(Enumerable.Range(0, frames).SelectMany(f => new[] { f / 100_000f, f / 100_000f }).ToArray(), Stereo);
+
+    [TestMethod]
+    public void Play_can_start_in_the_middle()
+    {
+        var p = new SoundPlayer(Stereo);
+        var clip = Ramp(1000);
+
+        p.Play(clip, 1f, startAt: 0.5);
+        var buf = Pull(p, 400);
+
+        Assert.AreEqual(899 / 100_000f, buf[2 * 399], 1e-6f, "after the fade-in the frames follow on from the middle");
+        Assert.AreEqual(0.9, p.GetProgress(clip.Handle)!.Value, 0.002);
+    }
+
+    [TestMethod]
+    public void Seek_jumps_a_playing_clip_back_and_forth()
+    {
+        var p = new SoundPlayer(Stereo);
+        var clip = Ramp(10000);
+        p.Play(clip, 1f);
+        Pull(p, 1000);
+        Assert.AreEqual(0.1, p.GetProgress(clip.Handle)!.Value, 0.002);
+
+        p.Seek(clip.Handle, 0.8);
+        var buf = Pull(p, 500);
+        Assert.AreEqual(8499 / 100_000f, buf[2 * 499], 1e-6f, "continues at 80 %");
+        Assert.IsTrue(Math.Abs(buf[0]) < 0.001f, "comes in from silence, no click");
+        Assert.AreEqual(0.85, p.GetProgress(clip.Handle)!.Value, 0.002);
+
+        p.Seek(clip.Handle, 0.2);
+        Pull(p, 100);
+        Assert.AreEqual(0.21, p.GetProgress(clip.Handle)!.Value, 0.002, "and back");
+    }
+
+    [TestMethod]
+    public void Seek_to_the_end_lets_the_clip_finish()
+    {
+        var p = new SoundPlayer(Stereo);
+        var clip = Ramp(1000);
+        p.Play(clip, 1f);
+        Pull(p, 10);
+        p.Seek(clip.Handle, 1.0);
+        Pull(p, 10);
+        Assert.IsNull(p.GetProgress(clip.Handle));
+    }
+
     [TestMethod]
     public void Clip_ends_and_is_no_longer_playing()
     {

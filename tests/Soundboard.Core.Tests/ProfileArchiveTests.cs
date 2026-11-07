@@ -28,7 +28,10 @@ public sealed class ProfileArchiveTests
         File.WriteAllBytes(Path.Combine(from.ImagesDir, "pic.png"), TinyPng);
         var profile = new Profile { MicDeviceId = "mic-id", MicDeviceName = "My microphone", DiscordPreviousMic = "Headset" };
         profile.Tiles.Add(new TileConfig { Name = "Horn", FileName = "horn.wav", Volume = 0.7f, Hotkey = "NumPad1", Image = "pic.png", Color = "#7D55D0", ColorChosen = true });
-        profile.Tiles.Add(new TileConfig { Name = "Drum", FileName = "drum.wav" });
+        profile.Tiles.Add(new TileConfig { Name = "Drum", FileName = "drum.wav", Favorite = true });
+        var memes = new CategoryConfig { Name = "Memes", Collapsed = true };
+        profile.Categories.Add(memes);
+        profile.Tiles[0].Category = memes.Id;
         var zip = dir.File("profile.zip");
 
         ProfileArchive.Export(profile, from, zip);
@@ -44,8 +47,15 @@ public sealed class ProfileArchiveTests
         Assert.AreEqual(0, preview.MissingSounds);
 
         var to = Board(dir, "to");
-        var pads = ProfileArchive.Import(zip, to);
+        var imported = ProfileArchive.Import(zip, to);
+        var pads = imported.Tiles;
         Assert.AreEqual(2, pads.Count);
+        Assert.AreEqual(1, imported.Categories.Count, "the categories come along");
+        Assert.AreEqual("Memes", imported.Categories[0].Name);
+        Assert.IsTrue(imported.Categories[0].Collapsed);
+        Assert.AreNotEqual(memes.Id, imported.Categories[0].Id, "with a new ID");
+        Assert.AreEqual(imported.Categories[0].Id, pads[0].Category, "the pad points to the new category");
+        Assert.IsTrue(pads[1].Favorite, "favourites stay favourites");
         Assert.AreEqual("Horn", pads[0].Name);
         Assert.AreEqual(0.7f, pads[0].Volume);
         Assert.AreEqual("NumPad1", pads[0].Hotkey);
@@ -56,7 +66,7 @@ public sealed class ProfileArchiveTests
         CollectionAssert.AreEqual(File.ReadAllBytes(Path.Combine(from.SoundsDir, "drum.wav")), File.ReadAllBytes(Path.Combine(to.SoundsDir, pads[1].FileName)));
 
         // Importing again reuses identical files instead of piling up copies.
-        var again = ProfileArchive.Import(zip, to);
+        var again = ProfileArchive.Import(zip, to).Tiles;
         Assert.AreEqual(pads[0].FileName, again[0].FileName);
         Assert.AreEqual(2, Directory.GetFiles(to.SoundsDir).Length);
     }
@@ -84,7 +94,7 @@ public sealed class ProfileArchiveTests
         var (_, preview) = ProfileArchive.Read(zip);
         Assert.AreEqual(2, preview.MissingSounds, "the unsafe names count as missing");
 
-        var pads = ProfileArchive.Import(zip, to);
+        var pads = ProfileArchive.Import(zip, to).Tiles;
         Assert.AreEqual(1, pads.Count);
         Assert.AreEqual("good.wav", pads[0].FileName);
         Assert.IsNull(pads[0].Image);

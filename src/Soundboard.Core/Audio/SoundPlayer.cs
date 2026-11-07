@@ -55,13 +55,23 @@ public sealed class SoundPlayer : ISampleProvider
         set => Volatile.Write(ref _overlap, (int)value);
     }
 
-    /// <summary>Starts a clip. The clip must be in this player's format.</summary>
-    public void Play(SoundClip clip, float volume)
+    /// <summary>
+    /// Starts a clip, from the beginning or at <paramref name="startAt"/> (0..1 of its length). The clip
+    /// must be in this player's format.
+    /// </summary>
+    public void Play(SoundClip clip, float volume, double startAt = 0)
     {
         if (clip.Format != Format)
             throw new ArgumentException($"Clip format {clip.Format} does not match the player format {Format}.", nameof(clip));
-        _commands.Enqueue(new Command(CommandKind.Play, clip, clip.Handle, Math.Clamp(volume, 0f, 2f)));
+        _commands.Enqueue(new Command(CommandKind.Play, clip, clip.Handle, Math.Clamp(volume, 0f, 2f), Math.Clamp(startAt, 0, 1)));
     }
+
+    /// <summary>
+    /// Jumps every voice playing this clip to <paramref name="position"/> (0..1 of its length). The sound
+    /// comes in with the short ramp, so a jump does not click.
+    /// </summary>
+    public void Seek(int clipHandle, double position) =>
+        _commands.Enqueue(new Command(CommandKind.Seek, null, clipHandle, 0f, Math.Clamp(position, 0, 1)));
 
     /// <summary>Stops every voice playing this clip.</summary>
     public void Stop(int clipHandle) => _commands.Enqueue(new Command(CommandKind.Stop, null, clipHandle, 0f));
@@ -193,6 +203,12 @@ public sealed class SoundPlayer : ISampleProvider
                     }
                     var slot = FindFreeVoice();
                     slot.Start(cmd.Clip!, cmd.Value, ++_startCounter, MasterVolume);
+                    if (cmd.Position > 0) slot.JumpTo(cmd.Position);
+                    break;
+
+                case CommandKind.Seek:
+                    foreach (var v in _voices)
+                        if (v.Clip is not null && v.Handle == cmd.Handle && !v.Stopping) v.JumpTo(cmd.Position);
                     break;
 
                 case CommandKind.Stop:
@@ -229,9 +245,10 @@ public sealed class SoundPlayer : ISampleProvider
         Stop,
         StopAll,
         SetVolume,
+        Seek,
     }
 
-    private readonly record struct Command(CommandKind Kind, SoundClip? Clip, int Handle, float Value);
+    private readonly record struct Command(CommandKind Kind, SoundClip? Clip, int Handle, float Value, double Position = 0);
 
     /// <summary>One playing instance. Owned by the audio thread; Published* fields are for the UI.</summary>
     private sealed class Voice
@@ -258,6 +275,16 @@ public sealed class SoundPlayer : ISampleProvider
             Stopping = false;
             StartOrder = order;
             CurrentGain = gain * master; // no fade-in: the sound starts at full level
+            Publish(clip.FrameCount);
+        }
+
+        /// <summary>Continues at <paramref name="position"/> (0..1), on a whole frame, fading in from silence.</summary>
+        public void JumpTo(double position)
+        {
+            var clip = Clip!;
+            int frame = Math.Min((int)(position * clip.FrameCount), Math.Max(clip.FrameCount - 1, 0));
+            Position = frame * clip.Format.Channels;
+            CurrentGain = 0f;
             Publish(clip.FrameCount);
         }
 

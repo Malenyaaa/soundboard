@@ -123,7 +123,7 @@ public sealed partial class MainViewModel
         _importPath = null;
 
         string backup;
-        List<TileConfig> imported;
+        ImportedPads result;
         try
         {
             backup = BackupProfile();
@@ -135,7 +135,7 @@ public sealed partial class MainViewModel
         }
         try
         {
-            imported = ProfileArchive.Import(path, _paths);
+            result = ProfileArchive.Import(path, _paths);
         }
         catch (ProfileArchiveException ex)
         {
@@ -147,6 +147,7 @@ public sealed partial class MainViewModel
             ProfileErrorText = L.F("Profile.ImportFailed", Path.GetFileName(path), ex.Message);
             return;
         }
+        var imported = result.Tiles;
         if (imported.Count == 0)
         {
             ProfileErrorText = L.F("Archive.NoPads", Path.GetFileName(path));
@@ -162,11 +163,13 @@ public sealed partial class MainViewModel
             if (HotkeyGesture.Parse(c.Hotkey) is { } g && !used.Add(g)) c.Hotkey = null;
 
         var before = _profile.Tiles.ToList();
-        SetTiles(replace ? imported : [.. before, .. imported]);
+        var beforeCategories = _profile.Categories.ToList();
+        var categories = replace ? result.Categories : MergeCategories(beforeCategories, result.Categories, imported);
+        SetTiles(replace ? imported : [.. before, .. imported], categories);
         var added = Tiles.Where(t => imported.Contains(t.Config)).ToList();
         int n = added.Count;
         var backupName = Path.GetFileName(backup);
-        PushUndo(() => L.Count(replace ? "Notice.ImportedReplace" : "Notice.ImportedAdd", n, backupName), () => SetTiles(before));
+        PushUndo(() => L.Count(replace ? "Notice.ImportedReplace" : "Notice.ImportedAdd", n, backupName), () => SetTiles(before, beforeCategories));
         ProfileResultText = L.Count(replace ? "Notice.ImportedReplace" : "Notice.ImportedAdd", n, backupName);
         ShowAdded(added);
         if (EvenOutOnImport) await EvenOutAsync(added, remember: false);
@@ -181,8 +184,28 @@ public sealed partial class MainViewModel
         return file;
     }
 
-    /// <summary>Replaces every pad (import, undo of an import). Files stay where they are.</summary>
-    private void SetTiles(List<TileConfig> configs)
+    /// <summary>
+    /// Categories after adding imported pads: an imported category with the name of one already here goes into that
+    /// one (its pads are pointed to it), the others are added at the end.
+    /// </summary>
+    private static List<CategoryConfig> MergeCategories(List<CategoryConfig> here, List<CategoryConfig> imported, List<TileConfig> pads)
+    {
+        var merged = here.ToList();
+        foreach (var c in imported)
+        {
+            var same = here.FirstOrDefault(h => string.Equals(h.Name, c.Name, StringComparison.CurrentCultureIgnoreCase));
+            if (same is null)
+            {
+                merged.Add(c);
+                continue;
+            }
+            foreach (var p in pads.Where(p => p.Category == c.Id)) p.Category = same.Id;
+        }
+        return merged;
+    }
+
+    /// <summary>Replaces every pad and the categories (import, undo of an import). Files stay where they are.</summary>
+    private void SetTiles(List<TileConfig> configs, List<CategoryConfig> categories)
     {
         StopAll();
         // Older steps refer to pads that are gone now; only the import itself can be taken back.
@@ -197,6 +220,8 @@ public sealed partial class MainViewModel
         Tiles.Clear();
         _profile.Tiles.Clear();
         _profile.Tiles.AddRange(configs);
+        _profile.Categories = categories.ToList();
+        _profile.Migrate(); // pads pointing to a category that is not there are in none
         foreach (var c in configs)
         {
             var tile = new TileViewModel(this, c);
@@ -204,7 +229,9 @@ public sealed partial class MainViewModel
             _ = LoadTileAsync(tile);
             _ = LoadTileImageAsync(tile);
         }
-        KeepFavoritesFirst();
+        KeepGroupsTogether();
+        RefreshGroups();
+        RefreshMoveMenus();
         ApplyAllHotkeys();
         ScheduleSave();
     }

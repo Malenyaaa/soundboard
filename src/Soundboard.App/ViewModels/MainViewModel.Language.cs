@@ -27,10 +27,6 @@ public sealed partial class MainViewModel
         }
     }
 
-    /// <summary>"Also show devices that are no longer there (3)".</summary>
-    [ObservableProperty]
-    private string _notPresentText = "";
-
     /// <summary>Tooltip of the cable part of the status line.</summary>
     [ObservableProperty]
     private string _statusCableTip = "";
@@ -51,6 +47,8 @@ public sealed partial class MainViewModel
         RefreshDeviceViews();
         UpdateMonitorStatus();
         CompareNow(); // comparison and the "!" texts in the new language
+        RefreshGroups(); // the names of the favourites and "Other pads"
+        RefreshMoveMenus();
         UpdateCableStatus();
         foreach (var f in FunctionKeys) f.RefreshTexts();
         RefreshHotkeyViews();
@@ -72,7 +70,6 @@ public sealed partial class MainViewModel
         foreach (var a in AccentChoices) a.RefreshText();
         UpdateCustomAccentHint();
         UpdateAutostartTexts();
-        OnPropertyChanged(nameof(StopAllToolTip));
         OnPropertyChanged(nameof(StatusMicTip));
         OnPropertyChanged(nameof(GearName));
         OnPropertyChanged(nameof(GearTip));

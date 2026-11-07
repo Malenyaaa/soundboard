@@ -169,7 +169,7 @@ Hintergrund**: beim ersten Start (also vor dem Treiber-Download) und immer dann,
 dazukommen oder wegfallen (z. B. das Kabel nach dem Setup), solange die Standardgeräte noch die
 gesicherten sind und nichts kaputt ist. Ein Standardgerät, das jemand anders umgestellt hat,
 übernimmt sie nie still; das geht nur über den Nebenknopf „Jetzigen Zustand als normal sichern"
-im Reiter „Audio-Zustand“. Gesichert wird:
+im Kasten hinter „Audio“ in der Statuszeile (seit 0.18; vorher Reiter „Audio-Zustand“). Gesichert wird:
 
 1. Standard-Endpunkte für Render und Capture × Rollen eConsole, eMultimedia,
    eCommunications: ID + Anzeigename (`GetDefaultAudioEndpoint`).
@@ -193,7 +193,8 @@ zeigt die App eine Anleitung „so stellst du es von Hand zurück" mit den gesic
 ### 2.3 Wann geprüft und zurückgestellt wird
 
 Gemeldet wird nicht jede Abweichung, sondern nur, **was nicht mehr geht** — klein, als „Audio“
-mit Warnzeichen in der Statuszeile (Tooltip nennt den Grund, Klick öffnet „Audio-Zustand“), nie
+mit Warnzeichen in der Statuszeile (Tooltip nennt den Grund, Klick öffnet einen kleinen Kasten mit
+Grund und „Zurückstellen“), nie
 als Banner. Grund für die ganze Vorsicht: Virtuelle Audio-Software kann Windows-Standardgeräte
 übernehmen; läuft sie nicht, ist gar kein Ton da. „Geht nicht mehr“ heißt, für die Rollen
 Multimedia und Kommunikation:
@@ -204,14 +205,14 @@ Multimedia und Kommunikation:
 - das Standard-Wiedergabegerät ist stumm oder auf 0 %.
 
 Ein anderes, funktionierendes Standardgerät (selbst auf Kopfhörer umgestellt, oder Windows ist
-nach dem Abziehen auf die Lautsprecher gewechselt) ist **kein** Problem und steht nur im Reiter.
+nach dem Abziehen auf die Lautsprecher gewechselt) ist **kein** Problem und wird nicht gemeldet.
 Im Zweifel kein Warnzeichen. Nicht erkennbar ist ein virtuelles Gerät, das aktiv gemeldet wird,
 dessen Software aber nicht läuft. Stumm/Lautstärke lösen kein Geräte-Ereignis aus; die App liest
 sie zusätzlich, wenn ihr Fenster nach vorn kommt.
 
 | Situation | Mechanismus |
 |---|---|
-| Nach Treiberinstallation | Die App vergleicht Snapshot und Ist. Neu: CABLE Input/Output → gut, die Sicherung wird still nachgezogen. Kabel als Standard-Wiedergabe oder -Mikro (für eine Rolle, deren gesichertes Gerät kein Kabel war) → die App stellt **sofort still** per `SetDefaultEndpoint` das gesicherte Gerät zurück, wenn es da und aktiv ist, und vermerkt es leise im Reiter (stille Windows-Benachrichtigung, wenn das Fenster hinten ist). Höchstens zweimal je Rolle und Lauf, damit sie nicht gegen ein anderes Programm oder eine bewusste Wahl ankämpft. Ist das gesicherte Gerät nicht da → kein Umstellen, Warnzeichen „Audio“; im Reiter „Standardgerät zurückstellen". |
+| Nach Treiberinstallation | Die App vergleicht Snapshot und Ist. Neu: CABLE Input/Output → gut, die Sicherung wird still nachgezogen. Kabel als Standard-Wiedergabe oder -Mikro (für eine Rolle, deren gesichertes Gerät kein Kabel war) → die App stellt **sofort still** per `SetDefaultEndpoint` das gesicherte Gerät zurück, wenn es da und aktiv ist, und vermerkt es leise unter „Mikrofon & Kabel“ (stille Windows-Benachrichtigung, wenn das Fenster hinten ist). Höchstens zweimal je Rolle und Lauf, damit sie nicht gegen ein anderes Programm oder eine bewusste Wahl ankämpft. Ist das gesicherte Gerät nicht da → kein Umstellen, Warnzeichen „Audio“; im Kasten dahinter „Standardgerät zurückstellen". |
 | Normales Schließen | Streams schließen, Änderungen „solange es läuft“ aus dem Journal zurückstellen (2.6), dann Dirty-Flag löschen. Die Rückfrage nennt Windows-Audio nur, wenn dort etwas nicht geht. |
 | Absturz | **Wächter**: die App startet sich selbst als `app.exe --watch <pid>`; der Kindprozess wartet auf das Elternende und stellt dann **still** die Änderungen „solange es läuft“ dieses Prozesses aus dem Journal zurück (2.6) — nach einem Absturz wie nach normalem Ende, wo nichts mehr übrig ist. Ein kleines Fenster zeigt er nur, wenn die App unerwartet endete, während das Kabel lief („Discord hört dein Kabel, aber niemand füttert es“, Knopf „Soundboard neu starten“). Sonst still. Lief auch der Wächter nicht (Stromausfall), stellt der nächste Start die Einträge toter Prozesse zurück. Beim nächsten Start kein Banner; ein Problem zeigt das Warnzeichen. Kein Dienst, keine Adminrechte. |
 | Neustart / Windows-Update | Kein erzwungener Autostart. Stattdessen `app.exe --check` und Menüpunkt „Audio-Zustand prüfen". Windows-Updates setzen Geräte gelegentlich um ([Hinweis](https://voicechanger.easeus.com/resources/vb-audio-virtual-cable-not-working.html)) — erkennen und melden. Optional (Häkchen): mit Windows starten, dann greift die Prüfung automatisch. |
@@ -518,44 +519,53 @@ der Fremdtreiber kommt.
 5. ~~Soll `release/0.17.0` in `main` zusammengeführt werden?~~ Erledigt 06.11.2026: `main` ist wieder
    der aktuelle Stand.
 
-### 8.1 Offene Wünsche nach dem ersten Testtag (Stand 0.17.1: 2, 3 und 5 erledigt, 7 geändert, der Rest offen)
+### 8.1 Wünsche nach dem ersten Testtag (alle erledigt, zuletzt in 0.18.0)
 
-1. **Eigene Kategorien wie Favoriten, zuklappbar:** anlegen, Pads hineinschieben, umsortieren,
-   löschen mit Rückgängig; Zustand „zugeklappt“ gespeichert; Suche über alle Kategorien;
-   Export/Import nimmt sie mit; Favoriten wird die erste Kategorie.
-2. ~~**Kategorie-Kopf:**~~ Erledigt in 0.17.1 für die vorhandenen Gruppen („Favoriten“, „Weitere
-   Pads“): kleiner Text, dünne Linie bis zum Rand. Offen, bis es eigene Kategorien gibt (1): Pfeil
-   zum Zuklappen, Klick auf den Namen macht ihn bearbeitbar.
+1. ~~**Eigene Kategorien wie Favoriten, zuklappbar:**~~ Erledigt in 0.18.0: anlegen (Rechtsklick auf
+   freie Fläche oder Kopf, oder „Verschieben nach ▸ Neue Kategorie …“ am Pad), Pads hineinziehen oder
+   per „Verschieben nach“, Kategorien per Rechtsklick nach oben/unten, löschen mit Strg+Z (Pads gehen
+   nach „Weitere Pads“); „zugeklappt“ gespeichert; Suche über alle Gruppen (zugeklappte öffnen sich
+   für Treffer); Export/Import nimmt sie mit (Hinzufügen legt gleichnamige zusammen); Favoriten sind
+   die erste Gruppe, „Weitere Pads“ die letzte. Ein Favorit behält seine Kategorie und kehrt dorthin
+   zurück. Profil: `Categories`, `Category` je Pad, `FavoritesName`, `FavoritesCollapsed`,
+   `OthersCollapsed`.
+2. ~~**Kategorie-Kopf:**~~ Erledigt in 0.17.1 (kleiner Text, dünne Linie bis zum Rand) und 0.18.0:
+   Pfeil zum Zuklappen, Klick auf den Namen macht ihn bearbeitbar („Weitere Pads“ heißt fest so,
+   dort klappt der Klick). Zugeklappt steht die Zahl der Pads dahinter, eine leere Kategorie sagt
+   „leer – Pads hierher ziehen“.
 3. ~~**Umbenennen bestätigen**~~ Erledigt in 0.17.1 für Pads: Enter **oder** Klick irgendwohin,
    Esc bricht ab, leer behält den alten Namen (für Kategorien mit Punkt 1).
-4. **Pad ziehen animiert:** Das Pad hängt beim Ziehen am Mauszeiger, die anderen Pads gleiten zur
-   Seite, beim Loslassen gleitet es in die Lücke, statt zu springen.
+4. ~~**Pad ziehen animiert:**~~ Erledigt in 0.18.0: Das Pad hängt am Mauszeiger, die anderen gleiten
+   zur Seite (200 ms, ease-out), beim Loslassen gleitet es in die Lücke; auch Strg+Pfeil und
+   Favorit gleiten. Ohne Animationen springen sie. Der Einfügestrich ist weg.
 5. ~~**Kräftigere Farben, zufällig ohne Muster:**~~ Erledigt in 0.17.1: zwölf kräftige Töne, Schrift
    je Farbe hell oder dunkel (≥ 4,5 : 1); neue Pads zufällig, nie gleich oder benachbart wie das Pad
    davor, möglichst keine der letzten sechs; frühere automatische Farben einmal neu gewürfelt.
-6. **Abspielleiste unten:** Wellenform aus dünnen senkrechten Strichen, darunter dünne Leiste
-   mit hellem gespieltem Teil und rundem Knopf, links vergangene Zeit, rechts Gesamtzeit
-   (mm:ss), Name des Sounds klein dazu; für den zuletzt gestarteten Sound. **Im Sound springen
-   per Klick und per Ziehen an der Leiste** (Knopf ziehen = vor- und zurückspulen).
+6. ~~**Abspielleiste unten:**~~ Erledigt in 0.18.0: Wellenform aus dünnen Strichen, darunter dünne
+   Leiste mit gespieltem Teil und rundem Knopf in der Akzentfarbe, links vergangene Zeit, rechts
+   Gesamtzeit (m:ss), Name klein darüber; für den zuletzt gestarteten Sound. Klick springt, Ziehen
+   spult; ein beendeter Sound startet an der Stelle neu. Steht immer da (vor dem ersten Sound leer),
+   damit beim Abspielen nichts verrutscht. Der Player kann dafür springen (`Seek`, Start mitten im Sound).
 7. ~~Stop-Knopf neu gestalten~~ Geändert (06.11.2026): **Der Stop-Knopf kommt ganz weg.** Die
-   globale Taste „Alles stoppen“ bleibt und bleibt im Reiter Tasten belegbar.
+   globale Taste „Alles stoppen“ bleibt und bleibt im Reiter Tasten belegbar. Erledigt in 0.18.0.
 
-### 8.2 Weitere offene Wünsche (06.11.2026, noch nicht begonnen)
+### 8.2 Weitere Wünsche (06.11.2026, alle erledigt in 0.18.0)
 
-1. **Suchfeld:** Platzhalter nur noch „Search“ / „Suchen“; Text etwas weiter nach rechts, weil
+1. ~~**Suchfeld:**~~ Platzhalter nur noch „Search“ / „Suchen“; Text etwas weiter nach rechts, weil
    die Schreibmarke beim Hineinklicken über dem ersten Buchstaben steht.
-2. **Einstellungen ohne „Schließen“-Knopf:** schließen über das Zahnrad (schaltet schon um) und Esc.
-3. **Reiter danach (entschieden):** nur noch drei — 1 Mikrofon & Kabel · 2 Tasten ·
+2. ~~**Einstellungen ohne „Schließen“-Knopf:**~~ schließen über das Zahnrad (schaltet schon um) und Esc.
+3. ~~**Reiter danach (entschieden):**~~ nur noch drei — 1 Mikrofon & Kabel · 2 Tasten ·
    3 Darstellung. Einrichtung und Audio-Zustand sind keine eigenen Reiter mehr (4 und 5).
-4. **Einrichtung als „?“ (entschieden):** kein eigener Reiter; ein kleines „?“ **neben „Kabel“ im
+4. ~~**Einrichtung als „?“ (entschieden):**~~ kein eigener Reiter; ein kleines „?“ **neben „Kabel“ im
    Reiter Mikrofon & Kabel** öffnet die drei Schritte (Kabel installieren, Discord,
    Rauschunterdrückung). Wege, die heute zum Reiter Einrichtung führen („Kein Kabel“ in der
    Statuszeile, Tray „Einrichtung“, erster Start), öffnen dieselben Schritte.
-5. **Reiter Audio-Zustand fällt weg (entschieden):** „! Audio“ in der Statuszeile öffnet
+5. ~~**Reiter Audio-Zustand fällt weg (entschieden):**~~ „! Audio“ in der Statuszeile öffnet
    stattdessen einen kleinen Kasten mit dem Grund und „Zurückstellen“; „Alle Änderungen
    zurücknehmen“ (Ducking, Kabel 48 kHz) wandert ans Ende von Mikrofon & Kabel;
    Vergleichstabelle und Geräteliste fallen weg (zeigt Windows selbst). Das Sichern und
-   Prüfen im Hintergrund bleibt unverändert.
+   Prüfen im Hintergrund bleibt unverändert. Im Kasten steht neben „Zurückstellen“ auch
+   „Jetzigen Zustand als normal sichern“ (der einzige Weg, eine bewusste Änderung zu übernehmen).
 
 ---
 

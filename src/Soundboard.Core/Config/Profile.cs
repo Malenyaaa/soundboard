@@ -37,8 +37,25 @@ public sealed class TileConfig
     /// <summary>Cut: the pad ends this many seconds into the file; null = at the end of the file.</summary>
     public double? TrimEnd { get; set; }
 
-    /// <summary>Favourite: pinned to the front of the pads, in a row of its own.</summary>
+    /// <summary>
+    /// Favourite: in the first group ("Favourites"). It wins over <see cref="Category"/>, which is kept, so a pad
+    /// that stops being a favourite goes back to its category.
+    /// </summary>
     public bool Favorite { get; set; }
+
+    /// <summary>Own category (<see cref="CategoryConfig.Id"/>); null or unknown = "Other pads". Since 0.18.</summary>
+    public Guid? Category { get; set; }
+}
+
+/// <summary>An own category of pads: a group with a head that can be collapsed. Since 0.18.</summary>
+public sealed class CategoryConfig
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    public string Name { get; set; } = "";
+
+    /// <summary>Collapsed: only the head shows, with the number of pads.</summary>
+    public bool Collapsed { get; set; }
 }
 
 /// <summary>User settings: tiles and the chosen monitor device. Stored as JSON.</summary>
@@ -111,6 +128,17 @@ public sealed class Profile
     public string? MuteMicHotkey { get; set; }
 
     public List<TileConfig> Tiles { get; set; } = [];
+
+    /// <summary>Own categories, in the order they are shown (after the favourites, before the other pads).</summary>
+    public List<CategoryConfig> Categories { get; set; } = [];
+
+    /// <summary>Own name for the favourites; null = "Favourites" in the language of the interface.</summary>
+    public string? FavoritesName { get; set; }
+
+    public bool FavoritesCollapsed { get; set; }
+
+    /// <summary>The pads in no category ("Other pads") are collapsed.</summary>
+    public bool OthersCollapsed { get; set; }
 
     // ---- design (since version 2); stored as text so an unknown value never breaks loading
 
@@ -215,8 +243,32 @@ public sealed class Profile
             PadColors = PadColorModes.Colorful;
             changed = true;
         }
+        // Categories: no gaps, no doubles, a name for each; a pad pointing to a category that is gone is in none.
+        Categories ??= [];
+        var ids = new HashSet<Guid>();
+        int before = Categories.Count;
+        Categories.RemoveAll(c => c is null || !ids.Add(c.Id));
+        if (Categories.Count != before) changed = true;
+        foreach (var c in Categories)
+        {
+            if (string.IsNullOrWhiteSpace(c.Name))
+            {
+                c.Name = Text.L.Get("Category.DefaultName");
+                changed = true;
+            }
+        }
+        if (FavoritesName is not null && string.IsNullOrWhiteSpace(FavoritesName))
+        {
+            FavoritesName = null;
+            changed = true;
+        }
         foreach (var t in Tiles)
         {
+            if (t.Category is { } cat && !ids.Contains(cat))
+            {
+                t.Category = null;
+                changed = true;
+            }
             if (!Design.Rgb.TryParse(t.Color, out _))
             {
                 t.Color = NewColor(Tiles.IndexOf(t));

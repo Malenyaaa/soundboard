@@ -33,16 +33,21 @@ public static class InlineRename
         if (d is not TextBox box || e.NewValue is not true) return;
         box.PreviewKeyDown += (_, k) => k.Handled = HandleKey(box, k.Key);
         box.LostKeyboardFocus += (_, _) => Confirm(box);
-        box.IsVisibleChanged += (_, _) =>
+        box.IsVisibleChanged += (_, _) => Open(box);
+        // A box that is open from the start (a new category) may become visible before its data arrives.
+        box.Loaded += (_, _) => Open(box);
+    }
+
+    /// <summary>The box just came into view: the current name in it, selected, with the keyboard focus.</summary>
+    private static void Open(TextBox box)
+    {
+        if (!box.IsVisible || box.DataContext is not IInlineRenamable { IsRenaming: true } target) return;
+        box.Text = target.Name;
+        box.Dispatcher.BeginInvoke(() =>
         {
-            if (!box.IsVisible || box.DataContext is not IInlineRenamable target) return;
-            box.Text = target.Name;
-            box.Dispatcher.BeginInvoke(() =>
-            {
-                box.Focus();
-                box.SelectAll();
-            });
-        };
+            box.Focus();
+            box.SelectAll();
+        });
     }
 
     /// <summary>The name that counts: the typed one, trimmed; the old one when nothing is typed.</summary>

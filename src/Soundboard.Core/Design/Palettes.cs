@@ -3,7 +3,7 @@ namespace Soundboard.Core.Design;
 /// <summary>
 /// The fixed colours of the window: a quiet, slightly cool grey housing (neutrals tinted after
 /// Sanzo Wada No. 221, Neutral Gray / Black). Light and dark are composed separately; dark is
-/// derived (same tint, dark ground), not inverted. The only red is "Stop".
+/// derived (same tint, dark ground), not inverted.
 /// </summary>
 public static class ThemeTokens
 {
@@ -21,11 +21,6 @@ public static class ThemeTokens
         ["ButtonHover"] = "#E3E8E9",
         ["ButtonPressed"] = "#D2D9DB",
         ["TrackBg"] = "#C3CBCE",
-        ["StopBg"] = "#B3261E",
-        ["StopHover"] = "#951F18",
-        ["StopPressed"] = "#6E1712",
-        ["OnStopBrush"] = "#FFFFFF",
-        ["StopIcon"] = "#B3261E", // the red square on the quiet "Stop" while nothing plays
         ["OkText"] = "#1E6B34",
         ["DiffText"] = "#8A4B00", // amber: differences and the drawn warning sign
         ["MeterBrush"] = "#2E7D32",
@@ -48,11 +43,6 @@ public static class ThemeTokens
         ["ButtonHover"] = "#30363A",
         ["ButtonPressed"] = "#3A4145",
         ["TrackBg"] = "#3A4245",
-        ["StopBg"] = "#CC372E",
-        ["StopHover"] = "#B5302A",
-        ["StopPressed"] = "#962620",
-        ["OnStopBrush"] = "#FFFFFF",
-        ["StopIcon"] = "#F07A70",
         ["OkText"] = "#6FCF8A",
         ["DiffText"] = "#F0B060", // amber: differences and the drawn warning sign
         ["MeterBrush"] = "#5FC46A",

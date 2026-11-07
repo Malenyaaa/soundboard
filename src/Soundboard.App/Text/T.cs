@@ -8,7 +8,7 @@ using Soundboard.Core.Text;
 namespace Soundboard.App.Text;
 
 /// <summary>
-/// The texts for XAML: <c>{t:T Main.Stop}</c> binds to the text with that key and follows a change
+/// The texts for XAML: <c>{t:T Settings.Title}</c> binds to the text with that key and follows a change
 /// of the interface language at once.
 /// </summary>
 [MarkupExtensionReturnType(typeof(object))]

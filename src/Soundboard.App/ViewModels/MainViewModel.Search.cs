@@ -36,6 +36,7 @@ public sealed partial class MainViewModel
         foreach (var t in Tiles) t.IsFilteredOut = !PadFilter.Matches(t.Name, t.HotkeyText, SearchText);
         SearchHasNoResults = SearchActive && Tiles.Count > 0 && Tiles.All(t => t.IsFilteredOut);
         SearchNoResultsText = SearchHasNoResults ? L.F("Search.NoResults", SearchText.Trim()) : "";
+        RefreshGroups(); // collapsed groups open for their matches, heads without a match go
     }
 
     [RelayCommand]
@@ -66,8 +67,9 @@ public sealed partial class MainViewModel
     private void ShowAdded(IReadOnlyList<TileViewModel> added)
     {
         if (added.Count == 0) return;
-        // New pads must be seen: a search that would hide them is cleared.
+        // New pads must be seen: a search that would hide them is cleared, a collapsed group opens.
         if (SearchActive && added.Any(t => t.IsFilteredOut)) SearchText = "";
+        foreach (var t in added.Where(t => t.IsCollapsedOut).ToList()) Head(GroupOf(t)).IsCollapsed = false;
         foreach (var t in added) t.IsJustAdded = true;
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1600) };
         timer.Tick += (_, _) =>

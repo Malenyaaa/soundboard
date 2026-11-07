@@ -107,7 +107,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Tiles.CollectionChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(HasNoTiles));
-            ApplySearch();
+            ApplySearch(); // also brings the groups and the grid up to date
+            UpdateNowView(); // the pad of the playback bar may be gone
         };
         foreach (var t in _profile.Tiles)
         {
@@ -116,7 +117,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ = LoadTileAsync(tile);
             _ = LoadTileImageAsync(tile);
         }
-        KeepFavoritesFirst();
+        KeepGroupsTogether();
+        RefreshGroups();
 
         InitFunctionKeys();
         _hotkeys = new HotkeyService(services.Hotkeys);
@@ -141,15 +143,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<TileViewModel> Tiles { get; } = [];
     public ObservableCollection<NoticeViewModel> Notices { get; } = [];
-    public ObservableCollection<DeviceRowViewModel> Devices { get; } = [];
     public ObservableCollection<OutputChoice> OutputChoices { get; } = [];
 
     public bool HasNoTiles => Tiles.Count == 0;
 
     public string SoundsDir => _paths.SoundsDir;
-
-    [ObservableProperty]
-    private int _notPresentCount;
 
     [ObservableProperty]
     private OutputChoice? _selectedOutput;
@@ -163,12 +161,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private bool _overlayEnabled;
-
-    [ObservableProperty]
-    private bool _showNotPresent;
-
-    [ObservableProperty]
-    private string _devicesHeader = "";
 
     [ObservableProperty]
     private string _statusMonitor = "";
@@ -232,22 +224,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         bool followUp = _deviceFollowUpPending;
         _deviceRead.Cancel();
         _deviceViewsPending = _deviceFollowUpPending = false;
-        DevicesReading = false;
         _state = _audio.ReadState();
         RefreshDeviceViews();
         CompareNow();
         if (followUp) AfterDevicesChanged();
     }
 
-    /// <summary>A device list is being read in the background (the lists show the previous one meanwhile).</summary>
-    [ObservableProperty]
-    private bool _devicesReading;
-
     private bool _deviceViewsPending, _deviceFollowUpPending;
-
-    /// <summary>"Read again" in the audio state tab.</summary>
-    [RelayCommand]
-    private void ReadDevices() => ReadDevicesInBackground(views: true);
 
     /// <summary>
     /// Reads the devices off the UI thread (one read takes over a second with many old endpoints) and
@@ -259,10 +242,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _deviceViewsPending |= views;
         _deviceFollowUpPending |= followUp;
-        DevicesReading = true;
         _deviceRead.Start(state =>
         {
-            DevicesReading = false;
             if (_disposed) return;
             bool v = _deviceViewsPending, f = _deviceFollowUpPending;
             _deviceViewsPending = _deviceFollowUpPending = false;
@@ -270,7 +251,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (v) RefreshDeviceViews();
             CompareNow();
             if (f) AfterDevicesChanged();
-        }, failed: () => DevicesReading = false);
+        }, failed: () => { });
     }
 
     private void OnDevicesChanged()
@@ -294,15 +275,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void RefreshDeviceViews()
     {
-        Devices.Clear();
-        foreach (var d in _state.Devices.Where(d => ShowNotPresent || d.Status != DeviceStatus.NotPresent))
-            Devices.Add(DeviceRowViewModel.From(d));
-        int render = _state.Devices.Count(d => d.Flow == DeviceFlow.Render && d.Status == DeviceStatus.Active);
-        int capture = _state.Devices.Count(d => d.Flow == DeviceFlow.Capture && d.Status == DeviceStatus.Active);
-        DevicesHeader = L.F("Devices.Header", render, capture);
-        NotPresentCount = _state.Devices.Count(d => d.Status == DeviceStatus.NotPresent);
-        NotPresentText = L.F("Devices.ShowNotPresent", NotPresentCount);
-
         var defaultRender = _state.GetDefault(DeviceFlow.Render, DeviceRoleKind.Multimedia);
         _syncingSelection = true;
         try
@@ -327,8 +299,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshMicChoices();
         RefreshCable();
     }
-
-    partial void OnShowNotPresentChanged(bool value) => RefreshDeviceViews();
 
     partial void OnSelectedOutputChanged(OutputChoice? value)
     {
@@ -572,6 +542,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (!fromKey || SameKeyAgain != SameKeyModes.Restart) return;
         }
 
+        StartTile(tile, 0, fromKey);
+    }
+
+    /// <summary>Starts a ready pad at <paramref name="startAt"/> (0..1); says why when nothing can play.</summary>
+    private void StartTile(TileViewModel tile, double startAt, bool fromKey = false)
+    {
         if (!_player.AnyActive)
         {
             ShowNotice("play", T(MonitorEnabled ? "Notice.NowhereMonitorBroken" : "Notice.NowhereMonitorOff"),
@@ -581,16 +557,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         ClearNotice("play");
 
-        _player.Play(tile.Clip!, tile.Volume);
+        _player.Play(tile.Clip!, tile.Volume, startAt);
         tile.PlayRequestedAt = DateTime.UtcNow;
         tile.IsPlaying = true;
         AnyPlaying = true;
-        tile.Progress = 0;
+        tile.Progress = startAt;
         if (!OverlayEnabled)
         {
             foreach (var other in Tiles)
                 if (!ReferenceEquals(other, tile)) other.IsPlaying = false;
         }
+        SetNowTile(tile);
     }
 
     public void OnTileVolumeChanged(TileViewModel tile)
@@ -626,16 +603,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 continue;
             }
             var p = _player.GetProgress(t.Clip.Handle);
-            if (p is null && (now - t.PlayRequestedAt).TotalMilliseconds < 250 && _player.AnyActive)
+            double sinceStart = (now - t.PlayRequestedAt).TotalMilliseconds;
+            if (p is null && sinceStart < 250 && _player.AnyActive)
                 continue; // the audio thread has not picked up the start yet
+            if (p is not null && t.IsPlaying && sinceStart < 80)
+                continue; // a start or jump in the middle: the audio thread still shows the place before
             t.IsPlaying = p is not null;
             t.Progress = p ?? 0;
         }
         bool any = Tiles.Any(t => t.IsPlaying);
         if (any != AnyPlaying) AnyPlaying = any;
+        UpdateNowView();
     }
 
-    /// <summary>Something plays right now: "Stop" turns red (and so says that something runs).</summary>
+    /// <summary>Something plays right now.</summary>
     [ObservableProperty]
     private bool _anyPlaying;
 
@@ -751,7 +732,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ = LoadTileImageAsync(restored);
             _hotkeys.Set(restored.Config.Id.ToString(), HotkeyGesture.Parse(restored.Config.Hotkey));
             restored.RefreshTheme();
-            KeepFavoritesFirst();
+            KeepGroupsTogether();
             RefreshHotkeyViews();
             ScheduleSave();
         });
@@ -793,14 +774,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private AudioSnapshot? _snapshot;
     private bool _stateReady;
 
-    public ObservableCollection<ComparisonRow> ComparisonRows { get; } = [];
-
-    [ObservableProperty]
-    private string _snapshotHeader = "";
-
-    [ObservableProperty]
-    private string _snapshotInfo = "";
-
     /// <summary>Why the last save failed; null when it worked.</summary>
     private string? _snapshotSaveError;
 
@@ -808,7 +781,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _audioWarn;
 
-    /// <summary>The problems, one per line, for the Audio state tab; empty when all works.</summary>
+    /// <summary>The problems, one per line, for the "! Audio" box; empty when all works.</summary>
     [ObservableProperty]
     private string _audioProblemText = "";
 
@@ -897,7 +870,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // Not worth a banner: the sound works without it. The Audio state tab says why.
+            // Not worth a banner: the sound works without it. "Save current state as normal" says why when clicked.
             _snapshotSaveError = ex.Message;
             return false;
         }
@@ -934,12 +907,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CableResetText = _cableResetAt is { } resetAt ? L.F("State.CableReset", L.DateTimeSeconds(resetAt)) : "";
         SaveInBackgroundIfUseful();
         UpdateAudioHealth();
-        ComparisonRows.Clear();
         if (_snapshot is null)
         {
             Comparison = null;
-            SnapshotHeader = L.Get("State.NotSaved");
-            SnapshotInfo = _snapshotSaveError is null ? "" : L.F("State.SaveFailed", _snapshotSaveError);
             SnapshotAdvice = "";
             UpdateProblemHint(defaultsChanged: false);
             UpdateCableCompare();
@@ -948,16 +918,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var cmp = SnapshotService.Compare(_snapshot, _state);
         Comparison = cmp;
-        foreach (var r in cmp.Rows) ComparisonRows.Add(r);
-        string when = L.DateTime(_snapshot.TakenAt);
-        // New cable devices after the driver setup are expected: say so instead of counting "differences".
-        bool onlyCableNew = !cmp.IsIdentical && !cmp.DefaultsChanged
-            && cmp.Rows.Where(r => r.Kind != ComparisonKind.Same).All(r => r.Kind == ComparisonKind.Added && CableDetector.IsCableName(r.What));
-        SnapshotHeader = cmp.IsIdentical ? L.F("State.Same", when)
-            : onlyCableNew ? L.F("State.OnlyCableNew", when)
-            : L.Count("State.Diff", cmp.DifferenceCount, when);
-        SnapshotInfo = L.Count("State.Unchanged", cmp.UnchangedDevices);
-
         // A different default is only said here, quietly; the status line speaks up only when
         // something no longer works (UpdateAudioHealth). Then "all is well if you did it" would be wrong.
         string changes = string.Join("; ", cmp.DefaultChangeLines);
@@ -981,13 +941,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>When the cable was last set back from being a default (null: not in this run).</summary>
     private DateTime? _cableResetAt;
 
-    /// <summary>Quiet line in the Audio state tab after the cable was set back; empty otherwise.</summary>
+    /// <summary>Quiet line in the Mic &amp; cable tab after the cable was set back; empty otherwise.</summary>
     [ObservableProperty]
     private string _cableResetText = "";
 
     /// <summary>
     /// A quiet message for when the window is behind (title, text). The app turns it into a silent
-    /// Windows notification; in front, the Audio state tab says it.
+    /// Windows notification; in front, the Mic &amp; cable tab says it.
     /// </summary>
     public event Action<string, string>? QuietInfo;
 
@@ -1021,11 +981,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private IReadOnlyList<AudioProblem> _audioProblems = [];
 
-    /// <summary>What helps, under the problems in the Audio state tab; empty if nothing in the app helps.</summary>
+    /// <summary>What helps, under the problems in the "! Audio" box; empty if nothing in the app helps.</summary>
     [ObservableProperty]
     private string _audioProblemHint = "";
 
-    /// <summary>Sets the "!" in the status line and the problem box of the Audio state tab from the current state.</summary>
+    /// <summary>Sets the "!" in the status line and the "! Audio" box from the current state.</summary>
     private void UpdateAudioHealth()
     {
         var problems = AudioHealth.Check(_state, _snapshot);
@@ -1086,13 +1046,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CompareNow();
     }
 
-    [RelayCommand]
-    private void CompareAgain()
-    {
-        _cableResets.Clear(); // "Compare again" may try the silent reset once more
-        RefreshDevices();
-        RestoreResultText = Comparison is null ? "" : L.Get(Comparison.IsIdentical ? "State.ComparedSame" : "State.ComparedDiff");
-    }
+    /// <summary>The "! Audio" box opens fresh, without the result of an earlier click.</summary>
+    public void ClearRestoreResult() => RestoreResultText = "";
 
     // ---------------------------------------------------------------- microphone and mix
 
@@ -1624,7 +1579,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // ---------------------------------------------------------------- settings panel
 
-    /// <summary>The settings cover the pads while open; the header with "Stop" stays.</summary>
+    /// <summary>The settings cover the pads while open; the header stays.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(GearName), nameof(GearTip))]
     private bool _settingsOpen;
@@ -1716,7 +1671,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void FinishSetup()
     {
         CloseSettings();
-        if (Tiles.FirstOrDefault(t => !t.IsFilteredOut) is { } first) ShowAdded([first]);
+        if (Tiles.FirstOrDefault(t => !t.IsHidden) is { } first) ShowAdded([first]);
     }
 
     [RelayCommand]
@@ -1828,10 +1783,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>A key the user just tried to give to a function row, but which belongs to someone else.</summary>
     private readonly Dictionary<string, Func<string>> _refusedKeys = [];
-
-    public string StopAllToolTip => HotkeyGesture.Parse(_profile.StopAllHotkey) is { } g
-        ? L.F("Main.StopTipKey", g.Display)
-        : L.Get("Main.StopTip");
 
     private void InitFunctionKeys()
     {
@@ -2017,7 +1968,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _hotkeys.Set(f.OwnerId, gesture);
         ScheduleSave();
         RefreshHotkeyViews();
-        OnPropertyChanged(nameof(StopAllToolTip));
     }
 
     /// <summary>Gives the key to <paramref name="tile"/> and removes it from the tile that had it.</summary>

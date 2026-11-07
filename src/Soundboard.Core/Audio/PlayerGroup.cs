@@ -68,10 +68,18 @@ public sealed class PlayerGroup
         MixActive = active;
     }
 
-    public void Play(SoundClip clip, float volume)
+    /// <summary>Starts a clip on every running output, from <paramref name="startAt"/> (0..1 of its length).</summary>
+    public void Play(SoundClip clip, float volume, double startAt = 0)
     {
-        if (MonitorActive) Monitor.Play(clip, volume);
-        if (MixActive) Mix.Play(clip, volume);
+        if (MonitorActive) Monitor.Play(clip, volume, startAt);
+        if (MixActive) Mix.Play(clip, volume, startAt);
+    }
+
+    /// <summary>Jumps a playing clip to <paramref name="position"/> (0..1) on every running output.</summary>
+    public void Seek(int clipHandle, double position)
+    {
+        if (MonitorActive) Monitor.Seek(clipHandle, position);
+        if (MixActive) Mix.Seek(clipHandle, position);
     }
 
     public void Stop(int clipHandle)

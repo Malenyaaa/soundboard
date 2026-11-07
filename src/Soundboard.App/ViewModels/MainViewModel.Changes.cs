@@ -18,7 +18,7 @@ public sealed partial class MainViewModel
     private ChangeOwner _owner = null!;
     private bool _changesReady;
 
-    /// <summary>One line per change in the Audio state tab ("Other sounds during calls: …, was …").</summary>
+    /// <summary>One line per change at the end of the Mic &amp; cable tab ("Other sounds during calls: …, was …").</summary>
     public ObservableCollection<string> ChangeLines { get; } = [];
 
     [ObservableProperty]
@@ -84,7 +84,7 @@ public sealed partial class MainViewModel
         _duckingSkipped = outcome == ApplyOutcome.Skipped;
     }
 
-    /// <summary>Re-reads the journal for the list in the Audio state tab.</summary>
+    /// <summary>Re-reads the journal for the list at the end of the Mic &amp; cable tab.</summary>
     private void RefreshChanges()
     {
         if (!_changesReady) return;

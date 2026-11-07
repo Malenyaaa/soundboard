@@ -95,7 +95,16 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget, Views.
 
     /// <summary>Hidden by the search above the pads.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsHidden))]
     private bool _isFilteredOut;
+
+    /// <summary>Hidden because its group is collapsed.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsHidden))]
+    private bool _isCollapsedOut;
+
+    /// <summary>Not on screen: hidden by the search or in a collapsed group.</summary>
+    public bool IsHidden => IsFilteredOut || IsCollapsedOut;
 
     /// <summary>Compact pad size: the name gets two lines instead of three.</summary>
     [ObservableProperty]
@@ -445,6 +454,23 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget, Views.
 
     [RelayCommand]
     private void ToggleFavorite() => _owner.SetFavorite(this, !IsFavorite);
+
+    /// <summary>"Move to" submenu: every group (the own one ticked), then "New category …".</summary>
+    public IReadOnlyList<PadColorChoice> MoveMenu
+    {
+        get
+        {
+            var mine = _owner.GroupOf(this);
+            var list = _owner.MoveTargets()
+                .Select(t => new PadColorChoice(t.Name, null, t.Group == mine,
+                    new RelayCommand(() => _owner.DropTile(this, t.Group, null))))
+                .ToList();
+            list.Add(new PadColorChoice(L.Get("Category.NewWithPad"), null, false, new RelayCommand(() => _owner.AddCategory(this))));
+            return list;
+        }
+    }
+
+    public void RefreshMoveMenu() => OnPropertyChanged(nameof(MoveMenu));
 
     [RelayCommand]
     private void ShowInFolder() => _owner.ShowTileInFolder(this);

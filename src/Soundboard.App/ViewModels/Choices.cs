@@ -4,29 +4,6 @@ using Soundboard.Core.Text;
 
 namespace Soundboard.App.ViewModels;
 
-/// <summary>One row of the read-only device list.</summary>
-public sealed record DeviceRowViewModel(
-    string Flow,
-    string Name,
-    string Status,
-    string Default,
-    string Volume,
-    string Format,
-    string Id)
-{
-    /// <summary>Tooltip of the row: the endpoint ID (too long and too technical for a column).</summary>
-    public string IdTip => L.F("Devices.IdTip", Id);
-
-    public static DeviceRowViewModel From(AudioDeviceInfo d) => new(
-        AudioStateText.Flow(d.Flow),
-        d.Name,
-        AudioStateText.Status(d.Status),
-        AudioStateText.Roles(d.DefaultRoles),
-        AudioStateText.Volume(d),
-        AudioStateText.Mix(d.MixFormat),
-        d.Id);
-}
-
 /// <summary>An entry of the monitor device selection, identified by endpoint ID.</summary>
 public sealed record OutputChoice(string Id, string Name, bool IsAvailable, bool IsDefault)
 {

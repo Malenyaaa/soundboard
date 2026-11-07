@@ -37,7 +37,7 @@ public sealed partial class MainViewModel
     {
         int from = Tiles.IndexOf(tile);
         if (from < 0) return;
-        index = ClampToGroup(tile, Math.Clamp(index, 0, Tiles.Count - 1)); // favourites stay in front
+        index = ClampToGroup(tile, Math.Clamp(index, 0, Tiles.Count - 1)); // the pad stays in its group
         if (index == from) return;
         MoveTileRaw(tile, index);
         // Found again by its settings: removing and restoring or an import makes new pad objects.

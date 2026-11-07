@@ -155,9 +155,6 @@
   <data name="Main.SettingsTip" xml:space="preserve"><value>Einstellungen: Mikrofon &amp; Kabel, Einrichtung, Tasten, Audio-Zustand, Darstellung</value></data>
   <data name="Main.CloseSettings" xml:space="preserve"><value>Einstellungen schließen</value></data>
   <data name="Main.CloseSettingsTip" xml:space="preserve"><value>Einstellungen schließen (Esc)</value></data>
-  <data name="Main.Stop" xml:space="preserve"><value>Stop</value></data>
-  <data name="Main.StopTip" xml:space="preserve"><value>Stoppt alle laufenden Sounds sofort.</value></data>
-  <data name="Main.StopTipKey" xml:space="preserve"><value>Stoppt alle laufenden Sounds sofort. Taste: {0} – wirkt überall, auch wenn ein Spiel im Vordergrund ist.</value></data>
   <data name="Main.ChosenDevice" xml:space="preserve"><value>Gewähltes Gerät</value></data>
   <data name="Main.TheChosenDevice" xml:space="preserve"><value>Das gewählte Gerät</value></data>
   <data name="Main.TheMonitorDevice" xml:space="preserve"><value>das Mithörgerät</value></data>
@@ -280,11 +277,10 @@ Entf: Taste löschen</value></data>
   <data name="Key.StatePaused" xml:space="preserve"><value>pausiert</value></data>
   <data name="Key.None" xml:space="preserve"><value>keine</value></data>
   <data name="Settings.Title" xml:space="preserve"><value>Einstellungen</value></data>
-  <data name="Settings.CloseTip" xml:space="preserve"><value>Zurück zu den Pads (Esc)</value></data>
   <data name="Tab.Setup" xml:space="preserve"><value>Einrichtung</value></data>
+  <data name="Setup.HelpTip" xml:space="preserve"><value>Einrichtung: Kabel installieren, Discord, Rauschunterdrückung</value></data>
   <data name="Tab.Cable" xml:space="preserve"><value>Mikrofon &amp; Kabel</value></data>
   <data name="Tab.Keys" xml:space="preserve"><value>Tasten</value></data>
-  <data name="Tab.State" xml:space="preserve"><value>Audio-Zustand</value></data>
   <data name="Tab.Appearance" xml:space="preserve"><value>Darstellung</value></data>
   <data name="Setup.Step1" xml:space="preserve"><value>1  Kabel</value></data>
   <data name="Setup.Step2" xml:space="preserve"><value>2  Discord</value></data>
@@ -359,24 +355,9 @@ Entf: Taste löschen</value></data>
   <data name="Keys.Playing" xml:space="preserve"><value>Abspielen</value></data>
   <data name="Keys.Overlay" xml:space="preserve"><value>Sounds überlagern</value></data>
   <data name="Keys.OverlayHint" xml:space="preserve"><value>Aus: Ein neuer Sound stoppt den laufenden. An: Mehrere Sounds spielen gleichzeitig.</value></data>
-  <data name="State.NotSaved" xml:space="preserve"><value>Audio-Zustand: noch nicht gesichert</value></data>
-  <data name="State.Same" xml:space="preserve"><value>Audio-Zustand: wie gesichert am {0}</value></data>
-  <data name="State.Diff.One" xml:space="preserve"><value>Audio-Zustand: 1 Abweichung seit der Sicherung am {1}</value></data>
-  <data name="State.Diff.Other" xml:space="preserve"><value>Audio-Zustand: {0} Abweichungen seit der Sicherung am {1}</value></data>
-  <data name="State.Unchanged.One" xml:space="preserve"><value>Ein weiteres Gerät ist unverändert.</value></data>
-  <data name="State.Unchanged.Other" xml:space="preserve"><value>{0} weitere Geräte sind unverändert.</value></data>
   <data name="State.Advice" xml:space="preserve"><value>Ein Windows-Standardgerät weicht von der Sicherung ab: {0}. Hast du es selbst umgestellt, ist alles in Ordnung – „Jetzigen Zustand als normal sichern“ übernimmt es. „Standardgerät zurückstellen“ stellt es zurück.</value></data>
   <data name="State.SavedNow" xml:space="preserve"><value>Gesichert am {0}. Die vorige Sicherung liegt als „audio-snapshot.vorher.json“ im Datenordner.</value></data>
-  <data name="State.ComparedSame" xml:space="preserve"><value>Verglichen: alles wie gesichert.</value></data>
-  <data name="State.ComparedDiff" xml:space="preserve"><value>Verglichen: die Abweichungen stehen in der Liste.</value></data>
   <data name="State.SaveTip" xml:space="preserve"><value>Übernimmt die jetzige Windows-Audio-Einstellung als normal, z. B. wenn du selbst andere Standardgeräte gewählt hast. Sonst sichert das Soundboard von selbst.</value></data>
-  <data name="State.CompareAgain" xml:space="preserve"><value>Neu vergleichen</value></data>
-  <data name="State.Devices" xml:space="preserve"><value>Audiogeräte in Windows</value></data>
-  <data name="State.Reread" xml:space="preserve"><value>Neu einlesen</value></data>
-  <data name="State.Reading" xml:space="preserve"><value>Wird eingelesen …</value></data>
-  <data name="State.NotPresentTip" xml:space="preserve"><value>Windows merkt sich früher benutzte Geräte. Sie sind ausgeblendet, damit die Liste übersichtlich bleibt.</value></data>
-  <data name="Devices.Header" xml:space="preserve"><value>Aktiv: {0} Wiedergabe, {1} Aufnahme. Nur angezeigt – hier wird nichts verändert.</value></data>
-  <data name="Devices.ShowNotPresent" xml:space="preserve"><value>Auch nicht mehr vorhandene Geräte zeigen ({0})</value></data>
   <data name="Device.NotConnected" xml:space="preserve"><value>{0} (nicht angeschlossen)</value></data>
   <data name="Device.WindowsDefault" xml:space="preserve"><value>{0} (Windows-Standard)</value></data>
   <data name="Restore.NothingToDo" xml:space="preserve"><value>Die Standardgeräte sind schon wie gesichert – es war nichts zu tun.</value></data>
@@ -386,16 +367,6 @@ Entf: Taste löschen</value></data>
   <data name="Restore.Short.One" xml:space="preserve"><value>1 Standardgerät zurückgestellt.</value></data>
   <data name="Restore.Short.Other" xml:space="preserve"><value>{0} Standardgeräte zurückgestellt.</value></data>
   <data name="Restore.ByHandShort" xml:space="preserve"><value>Nicht alles ging automatisch. Von Hand:</value></data>
-  <data name="Grid.What" xml:space="preserve"><value>Was</value></data>
-  <data name="Grid.Saved" xml:space="preserve"><value>Gesichert</value></data>
-  <data name="Grid.Now" xml:space="preserve"><value>Jetzt</value></data>
-  <data name="Grid.Result" xml:space="preserve"><value>Ergebnis</value></data>
-  <data name="Grid.Flow" xml:space="preserve"><value>Richtung</value></data>
-  <data name="Grid.Name" xml:space="preserve"><value>Name</value></data>
-  <data name="Grid.Status" xml:space="preserve"><value>Status</value></data>
-  <data name="Grid.Default" xml:space="preserve"><value>Windows-Standard für</value></data>
-  <data name="Grid.Volume" xml:space="preserve"><value>Lautstärke</value></data>
-  <data name="Grid.Format" xml:space="preserve"><value>Mix-Format</value></data>
   <data name="Design.Language" xml:space="preserve"><value>Sprache</value></data>
   <data name="Design.Mode" xml:space="preserve"><value>Hell und dunkel</value></data>
   <data name="Design.System" xml:space="preserve"><value>Wie Windows</value></data>
@@ -522,7 +493,7 @@ Entf: Taste löschen</value></data>
   <data name="Keys.SameKeyStop" xml:space="preserve"><value>Stoppen</value></data>
   <data name="Keys.SameKeyRestart" xml:space="preserve"><value>Von vorn spielen</value></data>
   <data name="Keys.SameKeyHint" xml:space="preserve"><value>Gilt nur für die Tasten. Ein Klick auf ein laufendes Pad stoppt es immer.</value></data>
-  <data name="Search.Placeholder" xml:space="preserve"><value>Sounds suchen</value></data>
+  <data name="Search.Placeholder" xml:space="preserve"><value>Suchen</value></data>
   <data name="Search.Tip" xml:space="preserve"><value>Findet Sounds nach Name oder Taste (Strg+F). Esc leert die Suche.</value></data>
   <data name="Search.Clear" xml:space="preserve"><value>Suche leeren</value></data>
   <data name="Search.NoResults" xml:space="preserve"><value>Kein Sound passt zu „{0}“. Gesucht wird in Namen und Tasten.</value></data>
@@ -584,8 +555,6 @@ Entf: Taste löschen</value></data>
   <data name="Uninstall.AdvancedTail" xml:space="preserve"><value>Nur nötig, wenn das Setup Reste lässt.</value></data>
   <data name="Uninstall.AskHeading" xml:space="preserve"><value>Daten des Soundboards löschen?</value></data>
   <data name="Uninstall.Delete" xml:space="preserve"><value>Löschen</value></data>
-  <data name="State.OnlyCableNew" xml:space="preserve"><value>Audio-Zustand: Seit der Sicherung vom {0} ist nur das Kabel neu – wie erwartet.</value></data>
-  <data name="Devices.IdTip" xml:space="preserve"><value>Endpunkt-ID: {0}</value></data>
   <data name="Setup.FinalLine" xml:space="preserve"><value>Mikrofon + Sounds → Kabel → Discord. Spiel ein Pad an, um es auszuprobieren.</value></data>
   <data name="Pad.StatusPlaying" xml:space="preserve"><value>spielt</value></data>
   <data name="Profile.BackupFailed" xml:space="preserve"><value>Die jetzigen Pads ließen sich nicht sichern ({0}), deshalb wurde nichts importiert. Ist der Datenordner schreibgeschützt?</value></data>
@@ -678,4 +647,30 @@ Entf: Taste löschen</value></data>
   <data name="PadColour.Cyan" xml:space="preserve"><value>Cyan</value></data>
   <data name="PadColour.Indigo" xml:space="preserve"><value>Indigo</value></data>
   <data name="PadColour.Magenta" xml:space="preserve"><value>Magenta</value></data>
+  <data name="State.CompareAgain" xml:space="preserve"><value>Neu vergleichen</value></data>
+  <data name="Grid.What" xml:space="preserve"><value>Was</value></data>
+  <data name="Grid.Saved" xml:space="preserve"><value>Gesichert</value></data>
+  <data name="Grid.Now" xml:space="preserve"><value>Jetzt</value></data>
+  <data name="Grid.Result" xml:space="preserve"><value>Ergebnis</value></data>
+  <data name="Playback.Nothing" xml:space="preserve"><value>Noch nichts gespielt</value></data>
+  <data name="Playback.Position" xml:space="preserve"><value>Stelle im Sound</value></data>
+  <data name="Category.DefaultName" xml:space="preserve"><value>Kategorie</value></data>
+  <data name="Category.NewName" xml:space="preserve"><value>Neue Kategorie</value></data>
+  <data name="Category.New" xml:space="preserve"><value>Neue Kategorie</value></data>
+  <data name="Category.NewWithPad" xml:space="preserve"><value>Neue Kategorie …</value></data>
+  <data name="Category.CountCollapsed" xml:space="preserve"><value>({0})</value></data>
+  <data name="Category.EmptyHint" xml:space="preserve"><value>leer – Pads hierher ziehen</value></data>
+  <data name="Category.Expand" xml:space="preserve"><value>„{0}“ aufklappen</value></data>
+  <data name="Category.Collapse" xml:space="preserve"><value>„{0}“ zuklappen</value></data>
+  <data name="Category.NameHelp" xml:space="preserve"><value>Klick zum Umbenennen</value></data>
+  <data name="Category.Rename" xml:space="preserve"><value>Umbenennen</value></data>
+  <data name="Category.Collapsed" xml:space="preserve"><value>Zugeklappt</value></data>
+  <data name="Category.MoveUp" xml:space="preserve"><value>Nach oben</value></data>
+  <data name="Category.MoveDown" xml:space="preserve"><value>Nach unten</value></data>
+  <data name="Category.Delete" xml:space="preserve"><value>Kategorie löschen</value></data>
+  <data name="Pad.MoveTo" xml:space="preserve"><value>Verschieben nach</value></data>
+  <data name="Notice.PadMovedTo" xml:space="preserve"><value>„{0}“ nach „{1}“ verschoben.</value></data>
+  <data name="Notice.CategoryAdded" xml:space="preserve"><value>Kategorie „{0}“ angelegt.</value></data>
+  <data name="Notice.CategoryDeleted" xml:space="preserve"><value>Kategorie „{0}“ gelöscht.</value></data>
+  <data name="Notice.CategoryMoved" xml:space="preserve"><value>Kategorie „{0}“ verschoben.</value></data>
 </root>

@@ -24,8 +24,13 @@ public partial class MainWindow : Window
             if (Container(tile) is { } c) c.BringIntoView(new Rect(-16, -16, c.ActualWidth + 32, c.ActualHeight + 32));
         });
         Text.UiLanguage.Attach(this);
-        // Favourites: the pad panel breaks the row after the last one.
-        _vm.FavoritesChanged += () => FindPadPanel(PadList)?.InvalidateMeasure();
+        // A new category: its head comes into view, its name open for typing.
+        _vm.CategoryAdded += head => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
+        {
+            if (Container(head) is { } c) c.BringIntoView(new Rect(-16, -16, c.ActualWidth + 32, c.ActualHeight + 48));
+        });
+        // The playback bar: a click or a drag jumps within the sound started last.
+        NowBar.SeekRequested += at => _vm.SeekNow(at);
         // Right-click -> "Trim...": the editor is a dialog owned by this window.
         _vm.TrimRequested += tile => TrimWindow.Show(this, _vm, tile);
         // Main screen without tooltips (header, pads, status line, right-click menus); the settings keep theirs.
@@ -47,6 +52,10 @@ public partial class MainWindow : Window
             {
                 PanelMotion.Show(SettingsPanel, _vm.SettingsOpen, SettingsPanel.IsLoaded && IsVisible && SettingsMotionWanted());
                 _tabLine.Follow(move: false);
+            }
+            else if (e.PropertyName == nameof(MainViewModel.AudioWarn) && !_vm.AudioWarn)
+            {
+                AudioPopup.IsOpen = false;
             }
             else if (e.PropertyName == nameof(MainViewModel.SettingsTab))
             {
@@ -151,6 +160,35 @@ public partial class MainWindow : Window
         return null;
     }
 
+    // ---- "! Audio" in the status line: a small box with the reason and the way back
+
+    /// <summary>When the box last closed: the click on "! Audio" that closed it must not open it again.</summary>
+    private DateTime _audioPopupClosedAt;
+
+    private void OnAudioPopupClosed(object? sender, EventArgs e) => _audioPopupClosedAt = DateTime.UtcNow;
+
+    private void OnAudioStatusClick(object sender, RoutedEventArgs e)
+    {
+        if ((DateTime.UtcNow - _audioPopupClosedAt).TotalMilliseconds < 300) return; // this click closed it
+        _vm.ClearRestoreResult();
+        AudioPopup.IsOpen = true;
+    }
+
+    /// <summary>Opened with the keyboard: the focus goes into the box, so Tab and Esc work there.</summary>
+    private void OnAudioPopupOpened(object? sender, EventArgs e)
+    {
+        if (InputManager.Current.MostRecentInputDevice is KeyboardDevice && AudioPopupButtons.IsVisible)
+            AudioPopupButtons.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+    }
+
+    private void OnAudioPopupKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape) return;
+        AudioPopup.IsOpen = false;
+        AudioStatusButton.Focus();
+        e.Handled = true;
+    }
+
     private void OnClosed(object? sender, EventArgs e) => _vm.Dispose();
 
     /// <summary>Closing the window keeps the app running in the tray (the microphone path must go on).</summary>
@@ -236,12 +274,17 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 return;
             }
-            if (e.Key == Key.Escape && Keyboard.FocusedElement is not TextBox { DataContext: TileViewModel { IsRenaming: true } }
+            if (e.Key == Key.Escape && Keyboard.FocusedElement is not TextBox { DataContext: IInlineRenamable { IsRenaming: true } }
                 && !(ReferenceEquals(Keyboard.FocusedElement, SearchBox) && _vm.SearchActive)
                 && !IsInOpenDropDown(e.OriginalSource as DependencyObject))
             {
                 var open = _vm.Tiles.FirstOrDefault(t => t.IsIssueOpen);
-                if (open is not null) open.IsIssueOpen = false;
+                if (AudioPopup.IsOpen)
+                {
+                    AudioPopup.IsOpen = false;
+                    AudioStatusButton.Focus();
+                }
+                else if (open is not null) open.IsIssueOpen = false;
                 else if (_vm.SettingsOpen) _vm.CloseSettingsCommand.Execute(null);
                 else return;
                 e.Handled = true;
@@ -265,16 +308,22 @@ public partial class MainWindow : Window
         if (_vm.Tiles.Count == 0) return;
         index = Math.Clamp(index, 0, _vm.Tiles.Count - 1);
         // The nearest pad the search shows: forwards first, then backwards.
-        var tile = _vm.Tiles.Skip(index).FirstOrDefault(t => !t.IsFilteredOut)
-            ?? _vm.Tiles.Take(index).LastOrDefault(t => !t.IsFilteredOut);
+        var tile = _vm.Tiles.Skip(index).FirstOrDefault(t => !t.IsHidden)
+            ?? _vm.Tiles.Take(index).LastOrDefault(t => !t.IsHidden);
         if (tile is not null) PadButton(tile)?.Focus();
     });
 
     /// <summary>The pad button of a tile, null while it is not generated.</summary>
-    private Button? PadButton(TileViewModel tile) =>
-        PadList.ItemContainerGenerator.ContainerFromItem(tile) is ContentPresenter { ContentTemplate: { } template } cp
-            ? template.FindName("PadBtn", cp) as Button
-            : null;
+    private Button? PadButton(TileViewModel tile) => Part(tile, "PadBtn") as Button;
+
+    /// <summary>A named part of the template of a pad or head, null while it is not generated.</summary>
+    private object? Part(object item, string name)
+    {
+        if (PadList.ItemContainerGenerator.ContainerFromItem(item) is not ContentPresenter cp) return null;
+        // The grid picks its templates with a selector: the chosen one is not in ContentTemplate.
+        var template = cp.ContentTemplate ?? cp.ContentTemplateSelector?.SelectTemplate(item, cp) ?? PadList.ItemTemplateSelector?.SelectTemplate(item, cp);
+        return template?.FindName(name, cp);
+    }
 
     /// <summary>Esc inside an open list belongs to the list (it closes the list, not the settings).</summary>
     private static bool IsInOpenDropDown(DependencyObject? source)
@@ -295,18 +344,17 @@ public partial class MainWindow : Window
     {
         if (width <= 0 || double.IsNaN(width)) return; // not laid out yet (e.g. started in the tray)
         // Measure the groups once, then pick the first arrangement that fits:
-        // one row; monitor + search + Stop/gear over the volume; or monitor + Stop/gear over volume + search.
-        // Stop and the gear always stay together at the top right.
+        // one row; monitor + search + gear over the volume; or monitor + gear over volume + search.
+        // The gear always stays at the top right.
         var free = new Size(double.PositiveInfinity, double.PositiveInfinity);
         MonitorGroup.Measure(free);
         VolumeGroup.Measure(free);
-        StopButton.Measure(free);
         SettingsButton.Measure(free);
         const double gap = 16, searchMin = 140, searchMax = 280, searchTight = 120;
         double inner = width - 32 - 8; // header padding, a little air for rounding and the window frame
         // Without the volume's margin: it changes with the arrangement, the gaps below stand for it.
         double mon = MonitorGroup.DesiredSize.Width, vol = VolumeGroup.DesiredSize.Width - VolumeGroup.Margin.Left - VolumeGroup.Margin.Right;
-        double end = StopButton.DesiredSize.Width + SettingsButton.DesiredSize.Width; // the gear's margin is part of its desired width
+        double end = SettingsButton.DesiredSize.Width; // the gear's margin is part of its desired width
 
         if (inner >= mon + gap + vol + gap + searchMin + gap + end)
         {
@@ -336,7 +384,7 @@ public partial class MainWindow : Window
         SearchGroup.HorizontalAlignment = Grid.GetRow(SearchGroup) == 2 ? HorizontalAlignment.Left : HorizontalAlignment.Right;
 
         // Tab follows the reading order of the arrangement: row by row, left to right.
-        UIElement[] parts = [MonitorGroup, VolumeGroup, SearchGroup, StopButton, SettingsButton];
+        UIElement[] parts = [MonitorGroup, VolumeGroup, SearchGroup, SettingsButton];
         int tab = 0;
         foreach (var part in parts.OrderBy(Grid.GetRow).ThenBy(Grid.GetColumn))
             KeyboardNavigation.SetTabIndex(part, tab++);
@@ -396,19 +444,16 @@ public partial class MainWindow : Window
 
     // ---- inline rename on a tile: Enter, Esc and leaving the box are handled by InlineRename
 
-    /// <summary>A press anywhere in the window outside the open rename box keeps the typed name (also where no focus goes).</summary>
+    /// <summary>A press anywhere in the window outside the open rename box (pad or group head) keeps the typed name (also where no focus goes).</summary>
     private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        foreach (var tile in _vm.Tiles)
+        foreach (var item in _vm.PadItems)
         {
-            if (!tile.IsRenaming) continue;
-            InlineRename.ConfirmIfOutside(RenameBox(tile), e.OriginalSource as DependencyObject);
+            if (item is not IInlineRenamable { IsRenaming: true }) continue;
+            InlineRename.ConfirmIfOutside(RenameBox(item), e.OriginalSource as DependencyObject);
             break;
         }
     }
 
-    private TextBox? RenameBox(TileViewModel tile) =>
-        PadList.ItemContainerGenerator.ContainerFromItem(tile) is ContentPresenter { ContentTemplate: { } template } cp
-            ? template.FindName("RenameBox", cp) as TextBox
-            : null;
+    private TextBox? RenameBox(object item) => Part(item, item is CategoryViewModel ? "HeadRenameBox" : "RenameBox") as TextBox;
 }

@@ -8,9 +8,11 @@ using Soundboard.Core.Config;
 namespace Soundboard.App.Views;
 
 /// <summary>
-/// Reordering pads with the mouse. Pressing a pad and moving it a few pixels starts the drag (so a
-/// click stays a click); a bar between the pads shows where it lands. This is no OLE drag &amp; drop,
-/// so it never meets the file and picture drop of the window.
+/// Reordering pads with the mouse. Pressing a pad and moving it a few pixels starts the drag (so a click stays a
+/// click). The pad hangs at the mouse, the other pads slide aside to make room where it would land, and on
+/// release it glides into that gap (<see cref="PadPanel"/>). Dragged into another group – also onto a group head,
+/// even a collapsed or empty one – it goes into that group. Esc puts it back. This is no OLE drag &amp; drop, so it
+/// never meets the file and picture drop of the window.
 /// </summary>
 public partial class MainWindow
 {
@@ -20,7 +22,10 @@ public partial class MainWindow
     private TileViewModel? _pressTile;
     private Point _pressAt;
     private bool _dragging;
-    private TileViewModel? _dropBefore;
+    private Vector _grab;               // mouse minus the pad's top left, in the panel
+    private DropPlace? _drop;
+    private TileViewModel? _dropBeforeTile;
+    private CategoryViewModel? _dropHead;
 
     private void OnPadMouseDown(object sender, MouseButtonEventArgs e)
     {
@@ -39,18 +44,72 @@ public partial class MainWindow
             EndDrag(drop: false);
             return;
         }
-        var p = e.GetPosition(PadList);
+        var panel = FindPadPanel(PadList);
+        if (panel is null) return;
         if (!_dragging)
         {
-            if ((p - _pressAt).Length < DragStartDistance) return;
+            if ((e.GetPosition(PadList) - _pressAt).Length < DragStartDistance) return;
+            if (Container(_pressTile) is not { } c) return;
             _dragging = true;
+            _drop = null;
             // Taking the mouse from the pad button cancels its click.
             Mouse.Capture(PadList, CaptureMode.SubTree);
-            if (Container(_pressTile) is { } c) c.Opacity = 0.45;
+            // Where the pad is seen (also while it still slides): it keeps that offset to the mouse.
+            _grab = e.GetPosition(panel) - c.TranslatePoint(new Point(0, 0), panel);
+            panel.BeginDrag(c);
         }
         AutoScroll(e.GetPosition(PadScroll));
-        ShowInsertMark(p);
+        var p = e.GetPosition(panel);
+        panel.DragTopLeft = p - _grab;
+        FollowDrop(panel, p);
         e.Handled = true;
+    }
+
+    /// <summary>A pad's slide that is still running (the place it is drawn minus the place it is laid out).</summary>
+    private static Vector Shift(UIElement e) => e.RenderTransform is TranslateTransform t ? new Vector(t.X, t.Y) : default;
+
+    /// <summary>Finds where the pad would land under the mouse and lets the others make room there.</summary>
+    private void FollowDrop(PadPanel panel, Point p)
+    {
+        if (_pressTile is null || panel.Dragged is not { } dragged) return;
+        var pads = new List<(FrameworkElement El, TileViewModel Tile, GroupedBox Box)>();
+        var heads = new List<(FrameworkElement El, CategoryViewModel Head, HeadBox Box)>();
+        foreach (var (child, r) in panel.Boxes())
+        {
+            if (ReferenceEquals(child, dragged) || child is not FrameworkElement fe) continue;
+            var box = new PadBox(r.X, r.Y, r.Width, r.Height);
+            if (fe.DataContext is TileViewModel t) pads.Add((fe, t, new GroupedBox(box, _vm.GroupOf(t))));
+            else if (fe.DataContext is CategoryViewModel h) heads.Add((fe, h, new HeadBox(box, h.Group)));
+        }
+        var place = PadDrop.Find(pads.Select(x => x.Box).ToList(), heads.Select(x => x.Box).ToList(), p.X, p.Y);
+        if (place is not { } d) return;
+        _drop = d;
+        bool inGroup = d.Before < pads.Count && pads[d.Before].Box.Group == d.Group;
+        _dropBeforeTile = inGroup ? pads[d.Before].Tile : null;
+        // In front of that pad; at the end of a group: in front of the next head (or at the very end).
+        UIElement? before = inGroup ? pads[d.Before].El : NextHead(panel, d.Group, dragged);
+        panel.SetDropBefore(before);
+        // Into another group: its head says so.
+        var head = d.Group != _vm.GroupOf(_pressTile) ? _vm.Head(d.Group) : null;
+        if (!ReferenceEquals(head, _dropHead))
+        {
+            if (_dropHead is not null) _dropHead.IsDropTarget = false;
+            _dropHead = head;
+            if (head is not null) head.IsDropTarget = true;
+        }
+    }
+
+    /// <summary>The head that follows <paramref name="group"/>'s head in the grid (shown or not), null after the last group.</summary>
+    private static UIElement? NextHead(PadPanel panel, GroupKey group, UIElement dragged)
+    {
+        bool passed = false;
+        foreach (var child in panel.Order())
+        {
+            if (ReferenceEquals(child, dragged) || child is not FrameworkElement { DataContext: CategoryViewModel h }) continue;
+            if (passed) return child;
+            if (h.Group == group) passed = true;
+        }
+        return null;
     }
 
     private void OnWindowMouseUp(object sender, MouseButtonEventArgs e)
@@ -60,7 +119,7 @@ public partial class MainWindow
             _pressTile = null;
             return;
         }
-        ShowInsertMark(e.GetPosition(PadList));
+        if (FindPadPanel(PadList) is { } panel) FollowDrop(panel, e.GetPosition(panel));
         EndDrag(drop: true);
         e.Handled = true;
     }
@@ -68,20 +127,21 @@ public partial class MainWindow
     private void EndDrag(bool drop)
     {
         var tile = _pressTile;
-        var before = _dropBefore;
+        var place = _drop;
+        var before = _dropBeforeTile;
         bool was = _dragging;
         _pressTile = null;
         _dragging = false;
-        _dropBefore = null;
-        InsertMark.Visibility = Visibility.Collapsed;
+        _drop = null;
+        _dropBeforeTile = null;
+        if (_dropHead is not null) _dropHead.IsDropTarget = false;
+        _dropHead = null;
         if (!was) return;
-        if (tile is not null && Container(tile) is { } c) c.Opacity = 1;
         if (Mouse.Captured == PadList) PadList.ReleaseMouseCapture();
-        if (drop && tile is not null)
-        {
-            _vm.MoveTileBefore(tile, before);
-            FocusPad(tile);
-        }
+        if (drop && tile is not null && place is { } d) _vm.DropTile(tile, d.Group, before);
+        // After the move (the pad is in its new place in the order): it glides there from under the mouse.
+        FindPadPanel(PadList)?.EndDrag();
+        if (tile is not null) FocusPad(tile);
     }
 
     protected override void OnLostMouseCapture(MouseEventArgs e)
@@ -97,29 +157,10 @@ public partial class MainWindow
         foreach (var tile in _vm.Tiles)
         {
             if (Container(tile) is not { IsVisible: true } c) continue;
-            var at = c.TranslatePoint(new Point(0, 0), PadList);
+            var at = c.TranslatePoint(new Point(0, 0), PadList) - Shift(c);
             list.Add((tile, new PadBox(at.X, at.Y, c.ActualWidth, c.ActualHeight)));
         }
         return list;
-    }
-
-    private void ShowInsertMark(Point p)
-    {
-        var pads = VisiblePads();
-        if (pads.Count == 0) return;
-        int i = PadOrder.InsertIndex(pads.Select(x => x.Box).ToList(), p.X, p.Y);
-        _dropBefore = i < pads.Count ? pads[i].Tile : null;
-        // The bar sits in the gap left of the pad it goes in front of; behind the last pad of the
-        // pointer's row it sits right of that pad instead (not at the start of the next row).
-        double rowTop = pads.Select(x => x.Box.Y).Where(top => top <= p.Y).DefaultIfEmpty(pads[0].Box.Y).Max();
-        bool before = i < pads.Count && pads[i].Box.Y == rowTop;
-        var box = before ? pads[i].Box : pads[Math.Max(i - 1, 0)].Box;
-        double x = before ? box.X - 8 : box.X + box.Width + 4;
-        var origin = PadList.TranslatePoint(new Point(0, 0), DragLayer);
-        Canvas.SetLeft(InsertMark, origin.X + x);
-        Canvas.SetTop(InsertMark, origin.Y + box.Y);
-        InsertMark.Height = box.Height;
-        InsertMark.Visibility = Visibility.Visible;
     }
 
     /// <summary>The pad an arrow key leads to: left/right in order, up/down the nearest pad in the row above/below.</summary>
@@ -145,7 +186,7 @@ public partial class MainWindow
         else if (inScroll.Y > PadScroll.ActualHeight - edge) PadScroll.ScrollToVerticalOffset(PadScroll.VerticalOffset + step);
     }
 
-    private FrameworkElement? Container(TileViewModel tile) => PadList.ItemContainerGenerator.ContainerFromItem(tile) as FrameworkElement;
+    private FrameworkElement? Container(object item) => PadList.ItemContainerGenerator.ContainerFromItem(item) as FrameworkElement;
 
     /// <summary>Keyboard focus to a pad once it is laid out (after a move).</summary>
     private void FocusPad(TileViewModel tile) => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => PadButton(tile)?.Focus());

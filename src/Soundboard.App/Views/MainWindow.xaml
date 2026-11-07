@@ -219,6 +219,16 @@
                 <Grid.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="{t:T Pad.Favorite}" Command="{Binding ToggleFavoriteCommand}" IsChecked="{Binding IsFavorite, Mode=OneWay}" />
+                        <!-- Move to: every group (the pad's own ticked), then a new category with this pad in it. -->
+                        <MenuItem Header="{t:T Pad.MoveTo}" ItemsSource="{Binding MoveMenu}">
+                            <MenuItem.ItemContainerStyle>
+                                <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                    <Setter Property="Command" Value="{Binding Command}" />
+                                    <Setter Property="IsChecked" Value="{Binding IsChecked, Mode=OneWay}" />
+                                    <Setter Property="Header" Value="{Binding Name}" />
+                                </Style>
+                            </MenuItem.ItemContainerStyle>
+                        </MenuItem>
                         <Separator />
                         <MenuItem Header="{t:T Pad.AssignKey}" Command="{Binding AssignHotkeyCommand}" />
                         <MenuItem Header="{t:T Pad.RemoveKey}" Command="{Binding ClearHotkeyCommand}"
@@ -471,6 +481,66 @@
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
+        <!-- A group head: arrow to collapse, the name (a click renames it), the count while collapsed, a thin rule to the edge.
+             Small and quiet, like the head lines before. A pad dragged over it would go into this group: the rule turns accent. -->
+        <DataTemplate x:Key="HeadTemplate">
+            <Grid x:Name="HeadRoot" Background="Transparent">
+                <Grid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="{t:T Category.Rename}" Command="{Binding RenameCommand}"
+                                  Visibility="{Binding CanRename, Converter={StaticResource BoolToVis}}" />
+                        <MenuItem Header="{t:T Category.Collapsed}" Command="{Binding ToggleCollapsedCommand}" IsChecked="{Binding IsCollapsed, Mode=OneWay}" />
+                        <MenuItem Header="{t:T Category.MoveUp}" Command="{Binding MoveUpCommand}"
+                                  Visibility="{Binding CanMoveUp, Converter={StaticResource BoolToVis}}" />
+                        <MenuItem Header="{t:T Category.MoveDown}" Command="{Binding MoveDownCommand}"
+                                  Visibility="{Binding CanMoveDown, Converter={StaticResource BoolToVis}}" />
+                        <Separator />
+                        <MenuItem Header="{t:T Category.New}" Command="{Binding NewCategoryCommand}" />
+                        <MenuItem Header="{t:T Category.Delete}" Command="{Binding DeleteCommand}"
+                                  Visibility="{Binding CanDelete, Converter={StaticResource BoolToVis}}" />
+                    </ContextMenu>
+                </Grid.ContextMenu>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button Style="{StaticResource LinkButton}" Command="{Binding ToggleCollapsedCommand}" Width="28" Height="28" Padding="0" Margin="-8,0,0,0"
+                        AutomationProperties.Name="{Binding ToggleName}">
+                    <Path x:Name="Chevron" Data="M 1,1 L 5,5 L 9,1" Stroke="{DynamicResource SubTextBrush}" StrokeThickness="1.6" Width="10" Height="6"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" RenderTransformOrigin="0.5,0.5" />
+                </Button>
+                <Button x:Name="NameBtn" Grid.Column="1" Style="{StaticResource LinkButton}" Command="{Binding NameClickCommand}" Padding="2,4" FontSize="12"
+                        Foreground="{DynamicResource SubTextBrush}" AutomationProperties.HelpText="{t:T Category.NameHelp}">
+                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" MaxWidth="360" />
+                </Button>
+                <!-- Rename in place: Enter or a click anywhere else keeps the name, Esc the old one. -->
+                <TextBox x:Name="HeadRenameBox" Grid.Column="1" MinWidth="180" MinHeight="26" Padding="4,1" FontSize="12" views:InlineRename.IsEnabled="True"
+                         Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}" />
+                <TextBlock Grid.Column="2" Text="{Binding CountText}" FontSize="12" Foreground="{DynamicResource SubTextBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                <Border x:Name="Rule" Grid.Column="3" Height="1" Background="{DynamicResource LineSoft}" VerticalAlignment="Center" Margin="10,1,0,0" SnapsToDevicePixels="True" />
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsCollapsed}" Value="True">
+                    <Setter TargetName="Chevron" Property="RenderTransform">
+                        <Setter.Value>
+                            <RotateTransform Angle="-90" />
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsRenaming}" Value="True">
+                    <Setter TargetName="NameBtn" Property="Visibility" Value="Hidden" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsDropTarget}" Value="True">
+                    <Setter TargetName="Rule" Property="Background" Value="{DynamicResource AccentBrush}" />
+                    <Setter TargetName="Rule" Property="Height" Value="2" />
+                    <Setter TargetName="NameBtn" Property="Foreground" Value="{DynamicResource TextBrush}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <views:PadItemTemplates x:Key="PadItemTemplates" Pad="{StaticResource PadTemplate}" Head="{StaticResource HeadTemplate}" />
     </Window.Resources>
 
     <DockPanel>
@@ -510,8 +580,9 @@
                             <TextBlock Text="{Binding StatusHotkeys}" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
-                    <!-- Windows audio: only there when something no longer works (no device, cable as default, muted); a click opens the Audio state tab. -->
-                    <Button Style="{StaticResource LinkButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="zustand" Margin="12,0,0,0"
+                    <!-- Windows audio: only there when something no longer works (no device, cable as default, muted);
+                         a click opens a small box above it with the reason and the way back. -->
+                    <Button x:Name="AudioStatusButton" Style="{StaticResource LinkButton}" Click="OnAudioStatusClick" Margin="12,0,0,0"
                             ToolTip="{Binding StatusAudioTip}" AutomationProperties.Name="{Binding StatusAudioTip}"
                             Visibility="{Binding AudioWarn, Converter={StaticResource BoolToVis}}">
                         <StackPanel Orientation="Horizontal">
@@ -519,12 +590,70 @@
                             <TextBlock Text="{t:T Status.Audio}" FontWeight="Bold" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
+                    <!-- The box: closes on a click beside it, with Esc, and by itself once all works again. -->
+                    <Popup x:Name="AudioPopup" PlacementTarget="{Binding ElementName=AudioStatusButton}" Placement="Top" VerticalOffset="-6"
+                           StaysOpen="False" AllowsTransparency="True" PopupAnimation="None" Opened="OnAudioPopupOpened" Closed="OnAudioPopupClosed">
+                        <Border Style="{StaticResource NoticeBox}" Background="{DynamicResource RaisedBg}" Padding="14,12" Margin="0,0,8,8" Width="420"
+                                PreviewKeyDown="OnAudioPopupKeyDown">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25" />
+                            </Border.Effect>
+                            <StackPanel>
+                                <DockPanel>
+                                    <Path Style="{StaticResource WarnIcon}" Margin="0,1,8,0" />
+                                    <TextBlock Text="{t:T State.ProblemTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding AudioProblemText}" Margin="26,4,0,0" TextWrapping="Wrap" LineHeight="20" />
+                                <TextBlock Text="{Binding SnapshotAdvice}" Margin="26,4,0,0" TextWrapping="Wrap" LineHeight="20"
+                                           Visibility="{Binding SnapshotAdvice, Converter={StaticResource TextToVis}}" />
+                                <TextBlock Text="{Binding AudioProblemHint}" Margin="26,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SubTextBrush}"
+                                           Visibility="{Binding AudioProblemHint, Converter={StaticResource TextToVis}}" />
+                                <!-- Only when a default device differs from the saved one: put it back, or keep it as the new normal. -->
+                                <WrapPanel x:Name="AudioPopupButtons" Margin="26,10,0,0" Visibility="{Binding SnapshotAdvice, Converter={StaticResource TextToVis}}">
+                                    <Button Style="{StaticResource NoticeButton}" Content="{t:T Action.Restore}" Command="{Binding RestoreDefaultsCommand}" Margin="0,0,8,6"
+                                            ToolTip="{t:T Restore.Tip}" />
+                                    <Button Style="{StaticResource NoticeButton}" Content="{t:T Action.SaveState}" Command="{Binding SaveSnapshotNowCommand}" Margin="0,0,8,6"
+                                            ToolTip="{t:T State.SaveTip}" />
+                                </WrapPanel>
+                                <TextBlock Text="{Binding RestoreResultText}" Margin="26,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SubTextBrush}"
+                                           Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
+                            </StackPanel>
+                        </Border>
+                    </Popup>
                 </WrapPanel>
             </DockPanel>
         </Border>
 
+        <!-- ============================================================ playback bar: the sound started last.
+             Always there (also before the first sound), so nothing moves when a pad starts. Click or drag jumps. -->
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,1,0,0" Padding="12,6,12,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="40" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" MinWidth="40" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Column="1" FontSize="12" Foreground="{DynamicResource SubTextBrush}" Margin="6,0,6,0" TextTrimming="CharacterEllipsis"
+                           Text="{Binding NowTile.Name}" />
+                <TextBlock Grid.Column="1" FontSize="12" Foreground="{DynamicResource SubTextBrush}" Margin="6,0,6,0" Text="{t:T Playback.Nothing}"
+                           Visibility="{Binding HasNowTile, Converter={StaticResource NotBoolToVis}}" />
+                <TextBlock Grid.Row="1" Text="{Binding NowElapsedText}" Style="{StaticResource Num}" FontSize="12" VerticalAlignment="Bottom" Margin="0,0,0,0"
+                           HorizontalAlignment="Right" />
+                <views:PlaybackBar x:Name="NowBar" Grid.Row="1" Grid.Column="1" Margin="0,2,0,0" Sound="{Binding NowClip}" Progress="{Binding NowProgress}"
+                                   PlayedBrush="{DynamicResource AccentBrush}" RestBrush="{DynamicResource LineBrush}" TrackBrush="{DynamicResource LineSoft}"
+                                   KnobRim="{DynamicResource BarBg}" FocusBrush="{DynamicResource AccentBrush}"
+                                   AutomationProperties.Name="{t:T Playback.Position}" AutomationProperties.HelpText="{Binding NowTile.Name}" />
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding NowTotalText}" Style="{StaticResource Num}" FontSize="12" VerticalAlignment="Bottom"
+                           HorizontalAlignment="Left" />
+            </Grid>
+        </Border>
+
         <!-- ============================================================ header: only what is used while playing.
-             Monitor · volume · search … Stop · settings (gear far right). Sounds are added by dragging, Ctrl+O,
+             Monitor · volume · search … settings (gear far right). All sounds stop with the global key (Keys tab). Sounds are added by dragging, Ctrl+O,
              the right-click on the free pad area, or the button of the empty state. The tab order follows the
              arrangement (set in LayoutHeader), so it stays local to this grid. -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="16,10">
@@ -559,11 +688,12 @@
                 <!-- Search: always there. Ctrl+F jumps here, Esc empties it. -->
                 <Grid x:Name="SearchGroup" Grid.Column="2" Margin="0,0,16,0" VerticalAlignment="Center" MinWidth="150" MaxWidth="280" HorizontalAlignment="Stretch"
                       KeyboardNavigation.TabNavigation="Local">
-                    <TextBox x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="16,2,16,2" Height="{StaticResource HeaderControlHeight}" VerticalContentAlignment="Center"
+                    <TextBox x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Padding="30,2,32,2" Height="{StaticResource HeaderControlHeight}" VerticalContentAlignment="Center"
                              AutomationProperties.Name="{t:T Search.Placeholder}" ToolTip="{t:T Search.Tip}" KeyDown="OnSearchKeyDown" />
                     <Path Data="M 6.5,1 A 5.5,5.5 0 1 1 6.49,1 Z M 10.6,10.6 L 15,15" Stroke="{DynamicResource SubTextBrush}" StrokeThickness="1.6"
                           Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="9,0,0,0" IsHitTestVisible="False" />
-                    <TextBlock Text="{t:T Search.Placeholder}" Foreground="{DynamicResource SubTextBrush}" Margin="32,0,32,0" VerticalAlignment="Center"
+                    <!-- The placeholder starts a few pixels right of where the caret stands, so the caret never sits on its first letter. -->
+                    <TextBlock Text="{t:T Search.Placeholder}" Foreground="{DynamicResource SubTextBrush}" Margin="38,0,32,0" VerticalAlignment="Center"
                                IsHitTestVisible="False" TextTrimming="CharacterEllipsis"
                                Visibility="{Binding SearchText, Converter={StaticResource TextToVis}, ConverterParameter=invert}" />
                     <Button Style="{StaticResource LinkButton}" Command="{Binding ClearSearchCommand}" HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -572,8 +702,6 @@
                         <Path Data="M 1,1 L 9,9 M 9,1 L 1,9" Stroke="{DynamicResource TextBrush}" StrokeThickness="1.6" Width="10" Height="10" />
                     </Button>
                 </Grid>
-                <Button x:Name="StopButton" Grid.Column="3" Style="{StaticResource StopButton}" Content="{t:T Main.Stop}" Height="{StaticResource HeaderControlHeight}" VerticalAlignment="Center"
-                        Command="{Binding StopAllCommand}" ToolTip="{Binding StopAllToolTip}" />
                 <Button x:Name="SettingsButton" Grid.Column="4" Style="{StaticResource IconButton}" Command="{Binding ToggleSettingsCommand}"
                         Width="{StaticResource HeaderControlHeight}" Height="{StaticResource HeaderControlHeight}" Margin="8,0,0,0" VerticalAlignment="Center"
                         AutomationProperties.Name="{Binding GearName}"
@@ -617,17 +745,16 @@
                     <ContextMenu>
                         <MenuItem Header="{t:T Main.AddSounds}" Command="{Binding AddFilesDialogCommand}" InputGestureText="{t:T Main.AddSoundsKey}"
                                   ToolTip="{t:T Main.AddSoundsTip}" />
+                        <MenuItem Header="{t:T Category.New}" Command="{Binding NewCategoryCommand}" />
                     </ContextMenu>
                 </ScrollViewer.ContextMenu>
                 <Grid>
                 <!-- Tab enters the grid once (and leaves it); the arrow keys move between the pads. -->
-                <ItemsControl x:Name="PadList" ItemsSource="{Binding Tiles}" Margin="16,16,16,20" ItemTemplate="{StaticResource PadTemplate}" Focusable="False"
+                <ItemsControl x:Name="PadList" ItemsSource="{Binding PadItems}" Margin="16,12,16,20" ItemTemplateSelector="{StaticResource PadItemTemplates}" Focusable="False"
                               KeyboardNavigation.TabNavigation="Once" KeyboardNavigation.DirectionalNavigation="None">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <views:PadPanel MinPadWidth="160" Gap="12" Compact="{Binding CompactPads}"
-                                            FavoritesHead="{t:T Pads.Favorites}" OthersHead="{t:T Pads.Others}"
-                                            HeadBrush="{DynamicResource SubTextBrush}" RuleBrush="{DynamicResource LineSoft}" />
+                            <views:PadPanel MinPadWidth="160" Gap="12" Compact="{Binding CompactPads}" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemContainerStyle>
@@ -636,17 +763,13 @@
                                 <DataTrigger Binding="{Binding IsIssueOpen}" Value="True">
                                     <Setter Property="Panel.ZIndex" Value="10" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding IsFilteredOut}" Value="True">
+                                <DataTrigger Binding="{Binding IsHidden}" Value="True">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </ItemsControl.ItemContainerStyle>
                 </ItemsControl>
-                <!-- While a pad is dragged: the insert mark between the pads. -->
-                <Canvas x:Name="DragLayer" IsHitTestVisible="False">
-                    <Rectangle x:Name="InsertMark" Width="4" RadiusX="2" RadiusY="2" Fill="{DynamicResource AccentBrush}" Visibility="Collapsed" />
-                </Canvas>
                 </Grid>
             </ScrollViewer>
 
@@ -687,22 +810,16 @@
                 <DockPanel>
                     <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,0,0,1" Padding="16,12,16,0">
                         <StackPanel>
-                            <DockPanel>
-                                <Button DockPanel.Dock="Right" Content="{t:T Common.Close}" Command="{Binding CloseSettingsCommand}" VerticalAlignment="Center"
-                                        ToolTip="{t:T Settings.CloseTip}" />
-                                <TextBlock Text="{t:T Settings.Title}" FontSize="{DynamicResource SizeTitle}" FontWeight="SemiBold" VerticalAlignment="Center" />
-                            </DockPanel>
-                            <!-- Mic & cable first: the gear opens there. One accent line under the open tab slides from tab to tab (TabIndicator). -->
+                            <!-- No close button: the gear (it turns while the settings are open) and Esc close them. -->
+                            <TextBlock Text="{t:T Settings.Title}" FontSize="{DynamicResource SizeTitle}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <!-- Mic & cable first: the gear opens there. One accent line under the open tab slides from tab to tab (TabIndicator).
+                                 The setup steps are no tab: the "?" next to the cable switch opens them (then no tab is marked). -->
                             <Grid Margin="-12,6,0,0">
                                 <WrapPanel x:Name="SettingsTabStrip">
                                     <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.Cable}"
                                                  IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=kabel}" />
-                                    <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.Setup}"
-                                                 IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=einrichtung}" />
                                     <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.Keys}"
                                                  IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=tasten}" />
-                                    <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.State}"
-                                                 IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=zustand}" />
                                     <RadioButton Style="{StaticResource Tab}" GroupName="SettingsTabs" Content="{t:T Tab.Appearance}"
                                                  IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=design}" />
                                 </WrapPanel>
@@ -716,8 +833,9 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <Grid Margin="16,16,16,24" MaxWidth="780" HorizontalAlignment="Left">
 
-                            <!-- ............................................ Einrichtung -->
+                            <!-- ............................................ Einrichtung (from the "?" next to the cable switch) -->
                             <StackPanel Visibility="{Binding SettingsTab, Converter={StaticResource EqToVis}, ConverterParameter=einrichtung}">
+                                <TextBlock Text="{t:T Tab.Setup}" Style="{StaticResource H2}" Margin="0,0,0,10" />
                                 <WrapPanel Margin="0,0,0,12">
                                     <RadioButton Style="{StaticResource Segment}" GroupName="SetupSteps" Content="{t:T Setup.Step1}"
                                                  IsChecked="{Binding SetupStepText, Converter={StaticResource Eq}, ConverterParameter=1}" />
@@ -848,9 +966,17 @@
 
                             <!-- ............................................ Mikrofon & Kabel -->
                             <StackPanel Visibility="{Binding SettingsTab, Converter={StaticResource EqToVis}, ConverterParameter=kabel}">
-                                <CheckBox Style="{StaticResource Switch}" Content="{t:T Setup.SendToCable}" IsChecked="{Binding CableEnabled}"
-                                          ToolTip="{t:T Cable.SendTip}" />
+                                <!-- The "?" opens the setup steps (install the cable, Discord, noise suppression). -->
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox Style="{StaticResource Switch}" Content="{t:T Setup.SendToCable}" IsChecked="{Binding CableEnabled}"
+                                              ToolTip="{t:T Cable.SendTip}" VerticalAlignment="Center" />
+                                    <Button Style="{StaticResource HelpButton}" Command="{Binding OpenSetupCommand}" Margin="10,0,0,0" VerticalAlignment="Center"
+                                            ToolTip="{t:T Setup.HelpTip}" AutomationProperties.Name="{t:T Setup.HelpTip}" />
+                                </StackPanel>
                                 <TextBlock Text="{Binding StatusCable}" Style="{StaticResource Sub}" Margin="48,2,0,0" />
+                                <!-- Windows had made the cable a default; the app set the saved device back. Quiet, no warning. -->
+                                <TextBlock Text="{Binding CableResetText}" Style="{StaticResource Sub}" Margin="48,2,0,0"
+                                           Visibility="{Binding CableResetText, Converter={StaticResource TextToVis}}" />
 
                                 <Grid Margin="0,20,0,0">
                                     <Grid.ColumnDefinitions>
@@ -926,6 +1052,26 @@
                                             Visibility="{Binding HasTestFile, Converter={StaticResource BoolToVis}}" />
                                     <TextBlock Text="{Binding TestStatus}" VerticalAlignment="Center" Margin="0,0,0,6" TextWrapping="Wrap" MaxWidth="420" />
                                 </WrapPanel>
+                                <!-- Windows settings the soundboard changed itself, each with the value before. -->
+                                <TextBlock Text="{t:T Changes.Title}" Style="{StaticResource H2}" Margin="0,28,0,4" />
+                                <TextBlock Text="{t:T Changes.Intro}" Style="{StaticResource Sub}" />
+                                <Border BorderBrush="{DynamicResource LineSoft}" BorderThickness="1" CornerRadius="6" Background="{DynamicResource FieldBg}"
+                                        Padding="12,8" Margin="0,10,0,0" Visibility="{Binding HasChanges, Converter={StaticResource BoolToVis}}">
+                                    <ItemsControl ItemsSource="{Binding ChangeLines}" Focusable="False">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,3" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                                <TextBlock Text="{t:T Changes.None}" Style="{StaticResource P}" Margin="0,8,0,0"
+                                           Visibility="{Binding HasChanges, Converter={StaticResource NotBoolToVis}}" />
+                                <Button Content="{t:T Changes.UndoAll}" Command="{Binding UndoAllChangesCommand}" HorizontalAlignment="Left" Margin="0,10,0,0"
+                                        ToolTip="{t:T Changes.UndoAllTip}" />
+                                <TextBlock Text="{Binding ChangesResultText}" Style="{StaticResource P}" Margin="0,6,0,0"
+                                           Visibility="{Binding ChangesResultText, Converter={StaticResource TextToVis}}" />
+
                             </StackPanel>
 
                             <!-- ............................................ Tasten -->
@@ -961,109 +1107,6 @@
                                                  IsChecked="{Binding SameKeyAgain, Converter={StaticResource Eq}, ConverterParameter=Restart}" />
                                 </WrapPanel>
                                 <TextBlock Style="{StaticResource Sub}" Margin="0,6,0,0" Text="{t:T Keys.SameKeyHint}" />
-                            </StackPanel>
-
-                            <!-- ............................................ Audio-Zustand -->
-                            <StackPanel Visibility="{Binding SettingsTab, Converter={StaticResource EqToVis}, ConverterParameter=zustand}">
-                                <!-- Only when something no longer works – the same as the "!" in the status line, in full. -->
-                                <Border Style="{StaticResource NoticeBox}" Padding="14,10" Margin="0,0,0,16"
-                                        Visibility="{Binding AudioWarn, Converter={StaticResource BoolToVis}}">
-                                    <StackPanel>
-                                        <DockPanel>
-                                            <Path Style="{StaticResource WarnIcon}" Margin="0,1,8,0" />
-                                            <TextBlock Text="{t:T State.ProblemTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                        </DockPanel>
-                                        <TextBlock Text="{Binding AudioProblemText}" Margin="26,4,0,0" TextWrapping="Wrap" LineHeight="20" />
-                                        <TextBlock Text="{Binding AudioProblemHint}" Margin="26,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SubTextBrush}"
-                                                   Visibility="{Binding AudioProblemHint, Converter={StaticResource TextToVis}}" />
-                                    </StackPanel>
-                                </Border>
-                                <TextBlock Text="{Binding SnapshotHeader}" FontSize="{DynamicResource SizeGroup}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                <!-- Windows had made the cable a default; the app set the saved device back. Quiet, no warning. -->
-                                <TextBlock Text="{Binding CableResetText}" Style="{StaticResource Sub}" Margin="0,6,0,0"
-                                           Visibility="{Binding CableResetText, Converter={StaticResource TextToVis}}" />
-                                <TextBlock Style="{StaticResource P}" Margin="0,8,0,0" Text="{Binding SnapshotAdvice}"
-                                           Visibility="{Binding SnapshotAdvice, Converter={StaticResource TextToVis}}" />
-                                <WrapPanel Margin="0,12,0,0">
-                                    <Button Content="{t:T Action.Restore}" Command="{Binding RestoreDefaultsCommand}" Margin="0,0,8,6"
-                                            Visibility="{Binding SnapshotAdvice, Converter={StaticResource TextToVis}}"
-                                            ToolTip="{t:T Restore.Tip}" />
-                                    <Button Content="{t:T Action.SaveState}" Command="{Binding SaveSnapshotNowCommand}" Margin="0,0,8,6"
-                                            ToolTip="{t:T State.SaveTip}" />
-                                    <Button Content="{t:T State.CompareAgain}" Command="{Binding CompareAgainCommand}" Margin="0,0,8,6" />
-                                </WrapPanel>
-                                <TextBlock Text="{Binding RestoreResultText}" Style="{StaticResource P}" Margin="0,4,0,0"
-                                           Visibility="{Binding RestoreResultText, Converter={StaticResource TextToVis}}" />
-                                <DataGrid ItemsSource="{Binding ComparisonRows}" Margin="0,10,0,0">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.What}" Binding="{Binding What}" Width="2*" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Saved}" Binding="{Binding Saved}" Width="2*" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Now}" Binding="{Binding Now}" Width="2*" />
-                                        <DataGridTemplateColumn Header="{t:T Grid.Result}" Width="Auto">
-                                            <DataGridTemplateColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock x:Name="K" Text="{Binding KindText}" FontWeight="SemiBold" Foreground="{DynamicResource DiffText}" Margin="4,0" />
-                                                    <DataTemplate.Triggers>
-                                                        <DataTrigger Binding="{Binding Kind}" Value="Same">
-                                                            <Setter TargetName="K" Property="Foreground" Value="{DynamicResource OkText}" />
-                                                            <Setter TargetName="K" Property="FontWeight" Value="Normal" />
-                                                        </DataTrigger>
-                                                    </DataTemplate.Triggers>
-                                                </DataTemplate>
-                                            </DataGridTemplateColumn.CellTemplate>
-                                        </DataGridTemplateColumn>
-                                    </DataGrid.Columns>
-                                </DataGrid>
-                                <TextBlock Text="{Binding SnapshotInfo}" Style="{StaticResource Sub}" Margin="0,6,0,0" />
-
-                                <!-- Windows settings the soundboard changed itself, each with the value before. -->
-                                <TextBlock Text="{t:T Changes.Title}" Style="{StaticResource H2}" Margin="0,28,0,4" />
-                                <TextBlock Text="{t:T Changes.Intro}" Style="{StaticResource Sub}" />
-                                <Border BorderBrush="{DynamicResource LineSoft}" BorderThickness="1" CornerRadius="6" Background="{DynamicResource FieldBg}"
-                                        Padding="12,8" Margin="0,10,0,0" Visibility="{Binding HasChanges, Converter={StaticResource BoolToVis}}">
-                                    <ItemsControl ItemsSource="{Binding ChangeLines}" Focusable="False">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,3" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </Border>
-                                <TextBlock Text="{t:T Changes.None}" Style="{StaticResource P}" Margin="0,8,0,0"
-                                           Visibility="{Binding HasChanges, Converter={StaticResource NotBoolToVis}}" />
-                                <Button Content="{t:T Changes.UndoAll}" Command="{Binding UndoAllChangesCommand}" HorizontalAlignment="Left" Margin="0,10,0,0"
-                                        ToolTip="{t:T Changes.UndoAllTip}" />
-                                <TextBlock Text="{Binding ChangesResultText}" Style="{StaticResource P}" Margin="0,6,0,0"
-                                           Visibility="{Binding ChangesResultText, Converter={StaticResource TextToVis}}" />
-
-                                <TextBlock Text="{t:T State.Devices}" Style="{StaticResource H2}" Margin="0,28,0,4" />
-                                <TextBlock Text="{Binding DevicesHeader}" Style="{StaticResource Sub}" />
-                                <WrapPanel Margin="0,10,0,8">
-                                    <Button Content="{t:T State.Reread}" Command="{Binding ReadDevicesCommand}" Margin="0,0,16,0" />
-                                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding ShowNotPresent}"
-                                              Content="{Binding NotPresentText}"
-                                              ToolTip="{t:T State.NotPresentTip}" />
-                                    <!-- The read runs in the background; the list shows the previous one meanwhile. -->
-                                    <TextBlock Text="{t:T State.Reading}" Style="{StaticResource Sub}" VerticalAlignment="Center" Margin="16,0,0,0"
-                                               Visibility="{Binding DevicesReading, Converter={StaticResource BoolToVis}}" />
-                                </WrapPanel>
-                                <!-- No height limit: the page scrolls, not the table. The ID is in the tooltip of each row. -->
-                                <DataGrid ItemsSource="{Binding Devices}">
-                                    <DataGrid.RowStyle>
-                                        <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
-                                            <Setter Property="ToolTip" Value="{Binding IdTip}" />
-                                        </Style>
-                                    </DataGrid.RowStyle>
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellOneLine}" Header="{t:T Grid.Flow}" Binding="{Binding Flow}" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Name}" Binding="{Binding Name}" Width="*" MinWidth="160" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellOneLine}" Header="{t:T Grid.Status}" Binding="{Binding Status}" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellText}" Header="{t:T Grid.Default}" Binding="{Binding Default}" Width="Auto" MaxWidth="180" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellOneLine}" Header="{t:T Grid.Volume}" Binding="{Binding Volume}" />
-                                        <DataGridTextColumn ElementStyle="{StaticResource CellOneLine}" Header="{t:T Grid.Format}" Binding="{Binding Format}" />
-
-                                    </DataGrid.Columns>
-                                </DataGrid>
                             </StackPanel>
 
                             <!-- ............................................ Appearance: language, light/dark, accent, pads, motion -->

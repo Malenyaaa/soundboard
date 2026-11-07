@@ -54,9 +54,6 @@ public sealed class DesignTests
             // A notice is a field like the others; only its drawn warning sign is amber.
             AssertAtLeast(3.0, t["DiffText"], t["FieldBg"], $"warning sign in a notice, dark={dark}");
             AssertAtLeast(3.0, t["LineBrush"], t["WindowBg"], $"notice frame against the window, dark={dark}");
-            AssertAtLeast(4.5, t["OnStopBrush"], t["StopBg"], $"stop, dark={dark}");
-            AssertAtLeast(4.5, t["OnStopBrush"], t["StopHover"], $"stop hover, dark={dark}");
-            AssertAtLeast(3.0, t["StopBg"], t["BarBg"], $"stop button against bar, dark={dark}");
             AssertAtLeast(4.5, t["OkText"], t["FieldBg"], $"ok, dark={dark}");
             AssertAtLeast(4.5, t["DiffText"], t["FieldBg"], $"diff, dark={dark}");
             AssertAtLeast(3.0, t["MeterBrush"], t["TrackBg"], $"meter, dark={dark}");
