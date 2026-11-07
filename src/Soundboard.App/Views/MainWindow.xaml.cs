@@ -29,8 +29,6 @@ public partial class MainWindow : Window
         {
             if (Container(head) is { } c) c.BringIntoView(new Rect(-16, -16, c.ActualWidth + 32, c.ActualHeight + 48));
         });
-        // The playback bar: a click or a drag jumps within the sound started last.
-        NowBar.SeekRequested += at => _vm.SeekNow(at);
         // Right-click -> "Trim...": the editor is a dialog owned by this window.
         _vm.TrimRequested += tile => TrimWindow.Show(this, _vm, tile);
         // Main screen without tooltips (header, pads, status line, right-click menus); the settings keep theirs.

@@ -546,6 +546,9 @@ der Fremdtreiber kommt.
    Gesamtzeit (m:ss), Name klein darüber; für den zuletzt gestarteten Sound. Klick springt, Ziehen
    spult; ein beendeter Sound startet an der Stelle neu. Steht immer da (vor dem ersten Sound leer),
    damit beim Abspielen nichts verrutscht. Der Player kann dafür springen (`Seek`, Start mitten im Sound).
+   **Ab 0.18.1 vorerst ausgeblendet** (Wunsch 07.11.2026): `PlaybackBar`, `MainViewModel.Playback.cs`
+   und `Seek` bleiben im Code; zum Wiedereinblenden die Leiste in `MainWindow.xaml` über der Statuszeile
+   einsetzen und `SeekRequested` mit `SeekNow` verbinden (siehe Commit 208b512).
 7. ~~Stop-Knopf neu gestalten~~ Geändert (06.11.2026): **Der Stop-Knopf kommt ganz weg.** Die
    globale Taste „Alles stoppen“ bleibt und bleibt im Reiter Tasten belegbar. Erledigt in 0.18.0.
 

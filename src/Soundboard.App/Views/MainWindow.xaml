@@ -624,34 +624,6 @@
             </DockPanel>
         </Border>
 
-        <!-- ============================================================ playback bar: the sound started last.
-             Always there (also before the first sound), so nothing moves when a pad starts. Click or drag jumps. -->
-        <Border DockPanel.Dock="Bottom" Background="{DynamicResource BarBg}" BorderBrush="{DynamicResource LineSoft}" BorderThickness="0,1,0,0" Padding="12,6,12,4">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" MinWidth="40" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" MinWidth="40" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Column="1" FontSize="12" Foreground="{DynamicResource SubTextBrush}" Margin="6,0,6,0" TextTrimming="CharacterEllipsis"
-                           Text="{Binding NowTile.Name}" />
-                <TextBlock Grid.Column="1" FontSize="12" Foreground="{DynamicResource SubTextBrush}" Margin="6,0,6,0" Text="{t:T Playback.Nothing}"
-                           Visibility="{Binding HasNowTile, Converter={StaticResource NotBoolToVis}}" />
-                <TextBlock Grid.Row="1" Text="{Binding NowElapsedText}" Style="{StaticResource Num}" FontSize="12" VerticalAlignment="Bottom" Margin="0,0,0,0"
-                           HorizontalAlignment="Right" />
-                <views:PlaybackBar x:Name="NowBar" Grid.Row="1" Grid.Column="1" Margin="0,2,0,0" Sound="{Binding NowClip}" Progress="{Binding NowProgress}"
-                                   PlayedBrush="{DynamicResource AccentBrush}" RestBrush="{DynamicResource LineBrush}" TrackBrush="{DynamicResource LineSoft}"
-                                   KnobRim="{DynamicResource BarBg}" FocusBrush="{DynamicResource AccentBrush}"
-                                   AutomationProperties.Name="{t:T Playback.Position}" AutomationProperties.HelpText="{Binding NowTile.Name}" />
-                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding NowTotalText}" Style="{StaticResource Num}" FontSize="12" VerticalAlignment="Bottom"
-                           HorizontalAlignment="Left" />
-            </Grid>
-        </Border>
-
         <!-- ============================================================ header: only what is used while playing.
              Monitor · volume · search … settings (gear far right). All sounds stop with the global key (Keys tab). Sounds are added by dragging, Ctrl+O,
              the right-click on the free pad area, or the button of the empty state. The tab order follows the

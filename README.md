@@ -18,7 +18,7 @@ Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.18.0 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.18.1 mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -69,7 +69,7 @@ In 0.17.1: Gibt es Favoriten, tragen beide Gruppen einen schlichten Kopf – „
 „Weitere Pads“ in kleiner Schrift mit dünner Linie bis zum rechten Rand.
 In 0.18: Eigene Kategorien (zuklappbar, umbenennbar per Klick auf den Namen, Pads hineinziehen,
 löschen mit Strg+Z); Pads gleiten beim Ziehen zur Seite, das gezogene Pad hängt am Mauszeiger;
-Abspielleiste unten mit Wellenform, Zeit und Springen per Klick oder Ziehen. Der Stop-Knopf ist
+Abspielleiste unten mit Wellenform, Zeit und Springen (seit 0.18.1 vorerst ausgeblendet). Der Stop-Knopf ist
 weg (die Stopp-Taste bleibt), die Einstellungen haben nur noch drei Reiter, die Einrichtung
 öffnet das „?“ neben dem Kabel-Schalter, und „Audio“ in der Statuszeile öffnet einen kleinen
 Kasten statt eines Reiters.
@@ -163,10 +163,6 @@ Discords Dateien.
 │ │ Applaus 85 %│ │ Ba-dum-tss  │ │ Grillen      │                                  │
 │ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁┘ └▁▁▁▁▁▁▁▁▁▁▁▁▁▁┘                                  │
 ├──────────────────────────────────────────────────────────────────────────────────┤
-│    Trommelwirbel                                                                 │
-│ 0:01 ┃┃▌┃┃┃▌┃┃┃▌▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌┃┃┃▌ 0:03 │
-│      ━━━━━━━━━●───────────────────────────────────────────────────────────────    │
-├──────────────────────────────────────────────────────────────────────────────────┤
 │ Kabel: sendet ▬▬▭   Mikrofon: an   Tasten: 6 aktiv                  Sound-Ordner │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -211,12 +207,6 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   es erst, sobald es eine Kategorie oder einen Favoriten gibt. Die Suche findet in allen Gruppen,
   auch zugeklappten; Gruppen ohne Treffer verschwinden solange. Profil-Export und -Import nehmen
   die Kategorien mit (beim Hinzufügen landen Pads einer gleichnamigen Kategorie in der vorhandenen).
-- **Abspielleiste:** unten über der Statuszeile, für den zuletzt gestarteten Sound: Name, die
-  Wellenform aus dünnen Strichen, darunter eine dünne Leiste mit dem gespielten Teil in der
-  Akzentfarbe und einem runden Knopf, links die gespielte Zeit, rechts die ganze Länge (m:ss).
-  Ein Klick springt an die Stelle, Ziehen spult vor und zurück; ist der Sound schon zu Ende,
-  startet er dort neu. Mit der Tastatur: Pfeil links/rechts 5 %, Pos1/Ende. Die Leiste steht
-  immer da (vor dem ersten Sound leer), damit beim Abspielen nichts verrutscht.
 - **Suche:** Das Feld „Suchen“ steht immer in der Kopfzeile; **Strg+F** springt hinein,
   Esc leert es. Gesucht wird in Name und Taste („air“, „num 3“), jedes Wort muss passen. Ohne
   Treffer steht dort ein Satz mit „Suche leeren“.
