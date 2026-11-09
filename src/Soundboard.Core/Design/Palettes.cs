@@ -54,14 +54,18 @@ public static class ThemeTokens
     public static IReadOnlyDictionary<string, string> For(bool dark) => dark ? Dark : Light;
 }
 
-/// <summary>An accent colour as used on screen: fill, hover, pressed, text on it, soft background.</summary>
+/// <summary>
+/// An accent colour as used on screen. <see cref="Fill"/> is exactly the chosen colour (buttons, switches,
+/// sliders); <see cref="Line"/> is the same hue made readable on the window ground (text, rings, borders).
+/// </summary>
 public sealed record AccentColors(
     Rgb Fill,
     Rgb Hover,
     Rgb Pressed,
     Rgb OnFill,
     Rgb Soft,
-    double FillOnGround,
+    Rgb Line,
+    double LineOnGround,
     bool Adjusted);
 
 /// <summary>One of the preset accent colours: plain, familiar hues. The name comes from the text files ("Accent.&lt;id&gt;").</summary>
@@ -71,8 +75,9 @@ public sealed record AccentPreset(string Id, string BaseHex)
 }
 
 /// <summary>
-/// Accent colours: presets plus a free colour. Every accent is derived per mode until the
-/// contrast holds: as text and fill against the grounds ≥ 4.5 : 1, text on the fill ≥ 4.5 : 1.
+/// Accent colours: presets plus a free colour. Filled parts take the colour exactly as chosen, with
+/// white or dark text on it, whichever reads better. Only where the accent itself is text or a line on
+/// the window ground is its lightness moved (hue and chroma kept) until it reaches 4.5 : 1.
 /// </summary>
 public static class AccentPalette
 {
@@ -128,33 +133,44 @@ public static class AccentPalette
     }
 
     /// <summary>
-    /// Moves the lightness of <paramref name="baseColor"/> (hue fixed) until fill and text on the
-    /// fill are readable in this mode. Adjusted = the colour had to change noticeably.
+    /// The accent in this mode: the fill stays exactly <paramref name="baseColor"/>; the line colour (text,
+    /// rings, borders on the ground) moves its lightness until it is readable. Adjusted = the line colour
+    /// differs noticeably from the chosen colour.
     /// </summary>
     public static AccentColors Derive(Rgb baseColor, bool dark)
     {
         var tokens = ThemeTokens.For(dark);
         var grounds = new[] { tokens["WindowBg"], tokens["BarBg"], tokens["FieldBg"], tokens["RaisedBg"] }.Select(Rgb.Parse).ToArray();
         var o = ColorMath.ToOklch(baseColor);
-        var on = dark ? OnDark : OnLight;
 
-        double c = dark ? Math.Max(0, o.C - 0.02) : o.C;
+        // Fill: the chosen colour as it is, text on it white or dark, whichever has more contrast.
+        var fill = baseColor;
+        var on = ColorMath.Contrast(fill, OnLight) >= ColorMath.Contrast(fill, OnDark) ? OnLight : OnDark;
+        // Hover and pressed move away from the text colour (more contrast); at the very ends of the
+        // scale they go the other way, so black and white still show a change.
+        double dir = on == OnLight ? -1 : 1, first = 0.05;
+        if (o.L + 2 * first * dir is < 0.02 or > 0.98)
+        {
+            dir = -dir;
+            first = 0.2; // near black a small step stays invisible
+        }
+        var hover = ColorMath.FromOklch(new Oklch(Math.Clamp(o.L + first * dir, 0, 1), o.C, o.H));
+        var pressed = ColorMath.FromOklch(new Oklch(Math.Clamp(o.L + (first + 0.05) * dir, 0, 1), o.C, o.H));
+
+        // Line: lightness moved (hue and chroma kept) until it reads on every ground.
         double l = o.L;
-        Rgb fill = ColorMath.FromOklch(new Oklch(l, c, o.H));
-        bool Ok(Rgb x) => ColorMath.Contrast(x, on) >= 4.5 && grounds.All(g => ColorMath.Contrast(x, g) >= 4.5);
-        for (int i = 0; i < 100 && !Ok(fill); i++)
+        Rgb line = baseColor;
+        bool Ok(Rgb x) => grounds.All(g => ColorMath.Contrast(x, g) >= 4.5);
+        for (int i = 0; i < 100 && !Ok(line); i++)
         {
             l += dark ? 0.01 : -0.01;
             if (l is < 0 or > 1) break;
-            fill = ColorMath.FromOklch(new Oklch(l, c, o.H));
+            line = ColorMath.FromOklch(new Oklch(l, o.C, o.H));
         }
 
-        double step = dark ? 0.05 : -0.05;
-        var hover = ColorMath.FromOklch(new Oklch(Math.Clamp(l + step, 0, 1), c, o.H));
-        var pressed = ColorMath.FromOklch(new Oklch(Math.Clamp(l + 2 * step, 0, 1), c, o.H));
-        var soft = ColorMath.FromOklch(dark ? new Oklch(0.33, Math.Min(c, 0.06), o.H) : new Oklch(0.91, Math.Min(c, 0.05), o.H));
-        double onGround = grounds.Min(g => ColorMath.Contrast(fill, g));
-        return new AccentColors(fill, hover, pressed, on, soft, onGround, Math.Abs(l - o.L) > 0.03);
+        var soft = ColorMath.FromOklch(dark ? new Oklch(0.33, Math.Min(o.C, 0.06), o.H) : new Oklch(0.91, Math.Min(o.C, 0.05), o.H));
+        double onGround = grounds.Min(g => ColorMath.Contrast(line, g));
+        return new AccentColors(fill, hover, pressed, on, soft, line, onGround, Math.Abs(l - o.L) > 0.03);
     }
 }
 

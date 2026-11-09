@@ -18,7 +18,7 @@ Konzept steht in [KONZEPT.md](KONZEPT.md).
 
 ## Stand
 
-Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 0.18.1 mit
+Alle acht Schritte des Bauplans (KONZEPT.md, Abschnitt 6.2) sind umgesetzt, Version 1.0.0 (erstes stabiles Release) mit
 überarbeiteter Oberfläche (Pads, Einstellungen mit Reitern, eigene Akzentfarbe per Farbwähler),
 Bildern als Pad-Hintergrund, englischer Oberfläche, umschaltbar auf Deutsch, und
 eigenem App-Symbol (Taste mit Wellenform, auch im Infobereich immer in Fast-Schwarz #222222).
@@ -73,9 +73,11 @@ Abspielleiste unten mit Wellenform, Zeit und Springen (seit 0.18.1 vorerst ausge
 weg (die Stopp-Taste bleibt), die Einstellungen haben nur noch drei Reiter, die Einrichtung
 öffnet das „?“ neben dem Kabel-Schalter, und „Audio“ in der Statuszeile öffnet einen kleinen
 Kasten statt eines Reiters.
-Getestet ist der Code mit automatischen Tests ohne Hardware; der Test am echten Rechner mit
-Kabel und Discord steht aus. Der Installer wird gebaut, Installieren und Deinstallieren sind
-**noch ungetestet** (siehe unten).
+In 0.19: Sounds von YouTube (Link einfügen oder hineinziehen), M4A als Format, eigene Kategorien
+am Kopf verschieben; „Lautstärke angleichen“ ist entfallen.
+In 1.0: Automatische Updates aus den GitHub-Releases (siehe [Updates](#updates)).
+Getestet ist der Code mit automatischen Tests ohne Hardware;
+Installieren und Aktualisieren mit dem Installer sind ausprobiert.
 
 ## So funktioniert es
 
@@ -151,7 +153,7 @@ Discords Dateien.
 ┌──────────────────────────────────────────────────────────────────────────────────┐
 │ (●) Mithören [Kopfhörer v]  ◁) ━━●── 80 %              [Suchen          ]      [⚙] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
-│ ⚠ Nicht übernommen: notiz.txt. Möglich sind MP3, WAV, OGG und FLAC.      [Schließen] │
+│ ⚠ Nicht übernommen: notiz.txt. Möglich sind MP3, WAV, OGG, FLAC und M4A.[Schließen] │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ ˅ Favoriten ─────────────────────────────────────────────────────────────────────│
 │ ┌Num 1───1,2 s┐ ┌Num 2─■ −2,0 s┐                                                  │
@@ -178,8 +180,7 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   zuerst die Länge; reicht es dann noch nicht, fallen die Umschalttasten von vorne weg
   („…Umschalt+F12“) – die Taste selbst wird nie gekürzt, die volle Belegung steht im Tooltip.
   Eine Lautstärke unter 100 % steht unten rechts.
-- **Rechtsklick auf ein Pad:** Taste belegen oder entfernen, Lautstärke (Regler), „Lautstärke
-  angleichen“ / „Alle Pads angleichen“, umbenennen (F2), „Farbe ▸“ („Zufällig“
+- **Rechtsklick auf ein Pad:** Taste belegen oder entfernen, Lautstärke (Regler), umbenennen (F2), „Farbe ▸“ („Zufällig“
   oder eine der zwölf Pad-Farben), „Bild ▸“ (wählen, entfernen, Bilder-Ordner
   öffnen), im Sound-Ordner zeigen, Pad entfernen (Entf, mit „Rückgängig“).
   Beim Umbenennen gilt der neue Name mit Enter oder einem Klick irgendwohin daneben (auch auf
@@ -200,7 +201,9 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   Der Name ist dann zum Tippen offen; ein Klick auf einen Namen benennt später um (Enter oder
   Klick daneben übernimmt, Esc nicht, leer behält den alten). Der Pfeil vor dem Namen klappt
   die Gruppe zu – dann steht die Zahl der Pads dahinter; der Zustand bleibt gespeichert.
-  „Verschieben nach ▸“ im Rechtsklick eines Pads nennt alle Gruppen. Rechtsklick auf einen Kopf:
+  „Verschieben nach ▸“ im Rechtsklick eines Pads nennt alle Gruppen. Eine eigene Kategorie lässt
+  sich am Kopf mit der Maus an eine andere Stelle ziehen: Beim Ziehen klappt sie kurz zu, die
+  anderen Gruppen rücken zur Seite, Esc bricht ab, Strg+Z nimmt es zurück. Rechtsklick auf einen Kopf:
   Umbenennen, Zugeklappt, Nach oben/Nach unten, Kategorie löschen (die Pads gehen nach „Weitere
   Pads“, Strg+Z holt die Kategorie samt Pads zurück). Favoriten sind die erste Gruppe, „Weitere
   Pads“ die letzte; ein Favorit, der keiner mehr ist, kehrt in seine Kategorie zurück. Köpfe gibt
@@ -213,9 +216,6 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
 - **Rückgängig:** Entfernen, Verschieben, Angleichen und Importieren landen auf einem Stapel.
   Der Hinweis nennt den neuesten Schritt und wie viele danach noch zurückgehen; **Strg+Z**
   oder „Rückgängig“ nimmt einen nach dem anderen zurück.
-- **Lautstärke angleichen:** misst die dekodierten Sounds (Spitze und RMS ohne Stille) und
-  stellt die Pad-Lautstärke so, dass laute Pads so laut klingen wie das mittlere. Leisere
-  bleiben auf 100 %, die Dateien bleiben unverändert.
 - **Bild als Hintergrund:** Rechtsklick → „Bild wählen …“ oder eine Bilddatei direkt **auf ein
   Pad** ziehen (PNG, JPG, GIF – davon das erste Bild –, BMP, WebP, sofern Windows WebP lesen
   kann). Das Bild füllt das Pad, wird mittig zugeschnitten und ist im Ruhezustand leicht
@@ -231,11 +231,20 @@ das Zahnrad bleiben oben. Die Tab-Taste geht die Kopfzeile in dieser Lesereihenf
   Datei zurück, ist auch das Bild wieder da. „Bild entfernen“ und das Ersetzen eines Bildes
   lassen sich rückgängig machen. Rechtsklick → „Bilder-Ordner öffnen“ zeigt den Ordner mit den
   Pad-Bildern im Explorer (das Bild des Pads ist markiert, falls vorhanden).
-- **Sounds hinzufügen:** MP3, WAV, OGG oder FLAC ins Fenster ziehen, **Strg+O** drücken oder
+- **Sounds hinzufügen:** MP3, WAV, OGG, FLAC oder M4A ins Fenster ziehen, **Strg+O** drücken oder
   Rechtsklick auf die freie Fläche zwischen und unter den Pads → „Sounds hinzufügen …“.
   Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt. Danach rollt das
   Fenster zum ersten neuen Pad, die neuen Pads tragen kurz einen Ring. Ohne Sounds zeigt das
   Fenster eine Ablagefläche mit demselben Knopf.
+- **Sound von YouTube:** Link eines Videos kopieren und im Fenster **Strg+V** drücken, den Link
+  aus dem Browser ins Fenster ziehen oder Rechtsklick auf die freie Fläche → „YouTube-Link
+  einfügen“. Die Tonspur (M4A) wird mit [yt-dlp](https://github.com/yt-dlp/yt-dlp) geladen und
+  wird ein Pad mit dem Videotitel als Namen; zuschneiden geht danach wie gewohnt. Während des
+  Downloads steht unten rechts in der Statuszeile nur klein der Fortschritt in Prozent. yt-dlp liegt
+  nicht bei: Beim ersten Mal lädt das Soundboard es von den GitHub-Releases nach `Werkzeuge\`;
+  klappt ein Download nicht, aktualisiert es sich einmal selbst und versucht es erneut. Nur das
+  eine Video, keine Playlists; höchstens 15 Minuten, keine Livestreams. Kopierte Sound-Dateien
+  nimmt Strg+V ebenso.
 - **Globale Tasten:** Klick auf die Tastenkappe (oder Rechtsklick → „Taste belegen …“), dann die
   Taste drücken; Enter nimmt den angezeigten Vorschlag. Vorgeschlagen werden
   Strg+Alt+Umschalt+1 … 0 – Num 1 … Num 0 vorher nur, wenn in dieser Sitzung schon eine
@@ -324,8 +333,7 @@ Schritte an derselben Stelle (dann ist kein Reiter markiert; ein Klick auf einen
 **Profil:** „Profil exportieren …“ speichert alle Pads mit ihren Sounds und Bildern als eine
 ZIP-Datei (`config.json`, `Sounds\`, `Bilder\`); Geräte-IDs, Gerätenamen und das notierte
 Discord-Mikrofon bleiben draußen. „Profil importieren …“ zeigt zuerst, wie viele Pads in der
-Datei stecken, dann „Zu den vorhandenen hinzufügen“, „Ersetzen“ oder „Abbrechen“; „Lautstärke
-der neuen Pads angleichen“ ist vorgewählt. Vor dem Import sichert das Programm die jetzigen
+Datei stecken, dann „Zu den vorhandenen hinzufügen“, „Ersetzen“ oder „Abbrechen“. Vor dem Import sichert das Programm die jetzigen
 Pads als ZIP in `Sicherungen\`, „Rückgängig“ holt sie zurück. Aus der Datei werden nur
 `config.json`, `Sounds\<Name>` und `Bilder\<Name>` gelesen; Namen mit Ordnern oder „..“
 werden verworfen. Belegte Tasten bleiben, wo sie sind – ein importiertes Pad gibt eine schon
@@ -335,10 +343,12 @@ vergebene Taste ab.
 eigene. „Eigene“ öffnet einen Farbwähler: links eine Fläche für Sättigung (nach rechts) und
 Helligkeit (nach oben), rechts eine Leiste für den Farbton. Beide lassen sich mit der Maus
 ziehen oder mit den Pfeiltasten bewegen (Umschalt: größere Schritte); die Farbe gilt sofort.
-Daneben stehen eine Vorschau und, klein, der Hex-Wert zum Abschreiben oder Eintippen. Jede
-Farbe wird für hell und dunkel getrennt abgestimmt, bis Schrift darauf und die Farbe auf dem
-Grund mindestens 4,5 : 1 Kontrast haben. Muss eine eigene Farbe dafür abgedunkelt oder
-aufgehellt werden, sagt eine leise Zeile unter dem Farbwähler, zu welchem Wert. Die
+Daneben stehen eine Vorschau und, klein, der Hex-Wert zum Abschreiben oder Eintippen. Knöpfe,
+Schalter und Regler bekommen genau die gewählte Farbe, die Schrift darauf ist weiß oder dunkel,
+je nachdem, was besser lesbar ist. Nur wo die Farbe selbst Schrift, Rahmen oder Linie auf dem
+Fensterhintergrund ist, wird ihre Helligkeit (Farbton und Sättigung bleiben) verschoben, bis sie
+mindestens 4,5 : 1 Kontrast hat – so wird z. B. Schwarz im dunklen Modus dort grau. Eine leise
+Zeile unter dem Farbwähler sagt dann, zu welchem Wert. Die
 Windows-Akzentfarbe wird nicht benutzt.
 
 **Pad-Farben:** zwölf kräftige Töne rund um den Farbkreis (Rot, Orange, Bernstein, Gelbgrün, Grün,
@@ -492,6 +502,8 @@ Alles liegt unter `%LOCALAPPDATA%\Soundboard\`:
 | `Sounds\` | die hereingezogenen Sounds (Kopien) |
 | `Bilder\` | die Pad-Bilder (Kopien); ein entferntes oder ersetztes Bild wird beim Beenden gelöscht, sofern es kein Pad mehr nutzt. Andere Dateien im Ordner bleiben unberührt |
 | `Aufnahmen\` | 10-Sekunden-Testaufnahmen |
+| `Werkzeuge\` | `yt-dlp.exe`, erst nach dem ersten YouTube-Link |
+| `Updates\` | das Setup einer neuen Version, bis es beim Beenden installiert ist |
 | `Sicherungen\` | ZIP der Pads vor jedem Import (`vor-import-<Datum>.zip`) |
 | `audio-snapshot.json` | gesicherter Windows-Audio-Zustand (automatisch: beim ersten Start und wenn Geräte dazukommen oder wegfallen, solange die Standardgeräte wie gesichert sind und alles geht) |
 | `audio-snapshot.vorher.json` | die Sicherung davor |
@@ -526,15 +538,14 @@ ist. Das Symbol im Infobereich zeichnet die App zur Laufzeit selbst, immer in Fa
 App-Symbol (unabhängig von der Akzentfarbe) und in der Größe, die Windows für die Skalierung der
 Taskleiste vorsieht.
 
-## Installer (gebaut, Installation noch ungetestet)
+## Installer
 
 `installer/soundboard.iss` ist ein Skript für [Inno Setup 6](https://jrsoftware.org/isinfo.php):
 Installation nur für den eigenen Benutzer nach `%LOCALAPPDATA%\Programs\Soundboard`, ohne
 Adminrechte, Startmenü-Eintrag (mit dem Symbol der EXE), „Mit Windows starten“ als abwählbare
 Option (derselbe Run-Wert wie der Schalter im Programm; die Deinstallation entfernt ihn). Der Installer spricht Englisch, auf einem deutschen Windows Deutsch. Beim
 Deinstallieren startet die Anleitung `--uninstall`; bei stiller Deinstallation nur
-`--restore`. Das Skript kompiliert mit Inno Setup 6.7 ohne Warnungen; Installieren und
-Deinstallieren sind **noch nicht ausprobiert**. Bauen nach dem Publish:
+`--restore`. Bauen nach dem Publish:
 
 ```powershell
 iscc installer\soundboard.iss
@@ -543,7 +554,32 @@ iscc installer\soundboard.iss
 Ergebnis: `publish\installer\Soundboard-Setup-<Version>.exe`. Inno Setup lässt sich ohne
 Adminrechte installieren: `winget install JRSoftware.InnoSetup --scope user --custom /CURRENTUSER`.
 
-Die portable EXE bleibt der zweite Download.
+Die portable EXE bleibt der zweite Download (ohne automatische Updates).
+
+## Updates
+
+Neue Versionen erscheinen als [GitHub-Release](https://github.com/Malenyaaa/soundboard/releases)
+mit Tag `vX.Y.Z` und der Datei `Soundboard-Setup-X.Y.Z.exe`. Eine installierte Kopie (mit
+`unins000.exe` daneben) fragt 20 Sekunden nach dem Start und dann alle sechs Stunden
+`api.github.com` nach dem neuesten stabilen Release (keine Vorabversionen). Ist es neuer, lädt
+sie das Setup nach `%LOCALAPPDATA%\Soundboard\Updates\` und prüft es gegen den SHA-256, den
+GitHub für die Datei angibt; ohne passende Prüfsumme wird nichts verwendet. Dann steht unten
+rechts klein „Update X.Y.Z – neu starten“: Ein Klick installiert sofort und startet neu, sonst
+installiert es still beim Beenden über das Infobereich-Menü. Abschalten: Einstellungen →
+Darstellung → „Updates automatisch installieren“.
+
+Das Setup läuft dabei mit `/VERYSILENT /UPDATE=1` (nach dem Klick zusätzlich `/RELAUNCH=1`) und
+wartet, bis kein Soundboard-Prozess mehr läuft (Hauptfenster und Wächter halten den Mutex
+`Soundboard.Process`), höchstens 60 Sekunden. Pads und Einstellungen bleiben, ebenso
+„Mit Windows starten“.
+
+Release veröffentlichen (Version in `Directory.Build.props` und `installer/soundboard.iss` erhöhen):
+
+```powershell
+dotnet publish src/Soundboard.App -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish
+iscc installer\soundboard.iss
+gh release create vX.Y.Z publish\installer\Soundboard-Setup-X.Y.Z.exe publish\Soundboard.exe --title "Soundboard X.Y.Z" --notes "…"
+```
 
 ## Mitarbeit
 

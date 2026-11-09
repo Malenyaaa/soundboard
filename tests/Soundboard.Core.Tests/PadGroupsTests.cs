@@ -132,4 +132,18 @@ public sealed class PadGroupsTests
     {
         Assert.IsNull(PadDrop.Find([], [], 10, 10));
     }
+
+    [TestMethod]
+    public void Dragged_category_goes_after_every_group_whose_middle_is_above_the_pointer()
+    {
+        // three other categories: 0–100, 100–400 (many pads), 400–450 (empty)
+        var spans = new List<(double, double)> { (0, 100), (100, 400), (400, 450) };
+        Assert.AreEqual(0, PadDrop.CategoryIndex(spans, -20));
+        Assert.AreEqual(0, PadDrop.CategoryIndex(spans, 40));
+        Assert.AreEqual(1, PadDrop.CategoryIndex(spans, 60));
+        Assert.AreEqual(1, PadDrop.CategoryIndex(spans, 240));
+        Assert.AreEqual(2, PadDrop.CategoryIndex(spans, 260));
+        Assert.AreEqual(3, PadDrop.CategoryIndex(spans, 900));
+        Assert.AreEqual(0, PadDrop.CategoryIndex([], 50));
+    }
 }

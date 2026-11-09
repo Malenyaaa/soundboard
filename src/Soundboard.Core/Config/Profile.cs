@@ -160,6 +160,9 @@ public sealed class Profile
     /// <summary>Short transitions (pad lighting up). Windows' own "animation effects" setting is respected as well.</summary>
     public bool Animations { get; set; } = true;
 
+    /// <summary>Look for new versions on GitHub, fetch them quietly and install when the app ends.</summary>
+    public bool AutoUpdate { get; set; } = true;
+
     /// <summary>Language of the interface: "en" or "de". New profiles start in English; profiles from before version 4 keep German.</summary>
     public string Language { get; set; } = Text.L.English;
 
@@ -400,6 +403,8 @@ public sealed class AppPaths
         ImagesDir = Path.Combine(dataDir, "Bilder");
         ProfileFile = Path.Combine(dataDir, "config.json");
         RecordingsDir = Path.Combine(dataDir, "Aufnahmen");
+        ToolsDir = Path.Combine(dataDir, "Werkzeuge");
+        UpdatesDir = Path.Combine(dataDir, "Updates");
         BackupsDir = Path.Combine(dataDir, "Sicherungen");
         SnapshotFile = Path.Combine(dataDir, "audio-snapshot.json");
         DirtyFlagFile = Path.Combine(dataDir, "running.json");
@@ -419,6 +424,12 @@ public sealed class AppPaths
 
     /// <summary>Automatic backups of the pads (ZIP) made before an import.</summary>
     public string BackupsDir { get; }
+
+    /// <summary>Helper programs fetched on demand (yt-dlp for YouTube links).</summary>
+    public string ToolsDir { get; }
+
+    /// <summary>Setup of a new version, fetched by the automatic update and run when the app ends.</summary>
+    public string UpdatesDir { get; }
 
     /// <summary>Test recordings (10-second WAV files).</summary>
     public string RecordingsDir { get; }

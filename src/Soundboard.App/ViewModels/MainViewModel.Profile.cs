@@ -10,7 +10,7 @@ using Soundboard.Core.Text;
 
 namespace Soundboard.App.ViewModels;
 
-/// <summary>Profile as a ZIP file (export, import with preview) and evening out the pad volumes.</summary>
+/// <summary>Profile as a ZIP file (export, import with preview).</summary>
 public sealed partial class MainViewModel
 {
 
@@ -26,9 +26,6 @@ public sealed partial class MainViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasImportPreview), nameof(ImportPreviewText))]
     private ArchivePreview? _importPreview;
-
-    [ObservableProperty]
-    private bool _evenOutOnImport = true;
 
     private string? _importPath;
 
@@ -172,7 +169,6 @@ public sealed partial class MainViewModel
         PushUndo(() => L.Count(replace ? "Notice.ImportedReplace" : "Notice.ImportedAdd", n, backupName), () => SetTiles(before, beforeCategories));
         ProfileResultText = L.Count(replace ? "Notice.ImportedReplace" : "Notice.ImportedAdd", n, backupName);
         ShowAdded(added);
-        if (EvenOutOnImport) await EvenOutAsync(added, remember: false);
     }
 
     /// <summary>The current pads as a ZIP in the backup folder, before an import changes them.</summary>
@@ -234,76 +230,5 @@ public sealed partial class MainViewModel
         RefreshMoveMenus();
         ApplyAllHotkeys();
         ScheduleSave();
-    }
-
-    // ---------------------------------------------------------------- even out volume
-
-    private readonly ConditionalWeakTable<SoundClip, StrongBox<LoudnessInfo>> _loudness = [];
-
-    private LoudnessInfo LoudnessOf(SoundClip clip)
-    {
-        if (_loudness.TryGetValue(clip, out var box)) return box.Value;
-        var info = Loudness.Analyze(clip.Samples, clip.Format.Channels, clip.Format.SampleRate);
-        _loudness.AddOrUpdate(clip, new StrongBox<LoudnessInfo>(info));
-        return info;
-    }
-
-    /// <summary>Right-click → "Even out volume": this pad to the level of the others.</summary>
-    public void EvenOut(TileViewModel tile)
-    {
-        if (tile.Clip is null)
-        {
-            ShowNotice("play", TF(tile.State == TileState.Error ? "Notice.EvenOutBroken" : "Notice.StillLoading", tile.Name));
-            return;
-        }
-        _ = EvenOutAsync([tile], remember: true);
-    }
-
-    /// <summary>Right-click → "Even out all pads".</summary>
-    public void EvenOutAll() => _ = EvenOutAsync(Tiles.ToList(), remember: true);
-
-    /// <summary>
-    /// Measures the sounds (once per sound) and sets the pad volume of <paramref name="which"/> so they
-    /// sound as loud as the middle pad; only the volume field changes, never the file.
-    /// </summary>
-    private async Task EvenOutAsync(IReadOnlyList<TileViewModel> which, bool remember)
-    {
-        // Pads still loading are waited for (at most 30 s).
-        for (int i = 0; i < 300 && which.Any(t => t.State == TileState.Loading); i++) await Task.Delay(100);
-        var clips = Tiles.Where(t => t.Clip is not null).Select(t => (Tile: t, Clip: t.Clip!)).ToList();
-        if (clips.Count == 0)
-        {
-            if (remember) ShowNotice("evenout", T("Notice.EvenOutNoSounds"));
-            return;
-        }
-        var infos = await Task.Run(() => clips.Select(c => (c.Tile, Info: LoudnessOf(c.Clip))).ToList());
-        if (_disposed) return;
-        double target = Loudness.Target(infos.Select(i => i.Info));
-        var old = new List<(TileViewModel Tile, double Percent)>();
-        foreach (var (tile, info) in infos)
-        {
-            if (!which.Contains(tile) || Loudness.VolumeFor(info, target) is not { } v) continue;
-            double percent = Math.Round(v * 100);
-            if (Math.Abs(tile.VolumePercent - percent) < 0.5) continue;
-            old.Add((tile, tile.VolumePercent));
-            tile.VolumePercent = percent;
-        }
-        if (!remember) return;
-        if (old.Count == 0)
-        {
-            ShowNotice("evenout", T("Notice.EvenOutNothing"));
-            HideNoticeAfter("evenout", TimeSpan.FromSeconds(4));
-            return;
-        }
-        Func<string> text = old.Count == 1 && which.Count == 1
-            ? () => L.F("Notice.EvenedOutOne", old[0].Tile.Name, L.Percent(old[0].Percent / 100), old[0].Tile.VolumeText)
-            : () => L.Count("Notice.EvenedOut", old.Count);
-        // Found again by its settings: an import or a restored pad makes new pad objects.
-        var back = old.Select(o => (o.Tile.Config, o.Percent)).ToList();
-        PushUndo(text, () =>
-        {
-            foreach (var (config, percent) in back)
-                if (Tiles.FirstOrDefault(t => ReferenceEquals(t.Config, config)) is { } now) now.VolumePercent = percent;
-        });
     }
 }

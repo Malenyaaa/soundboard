@@ -93,6 +93,18 @@ public readonly record struct HeadBox(PadBox Box, GroupKey Group);
 public static class PadDrop
 {
     /// <summary>
+    /// New place of a dragged own category among the others: <paramref name="spans"/> are the other own
+    /// categories from top to bottom (head top to the start of the next group); the category goes after
+    /// every one whose middle lies above the pointer at <paramref name="y"/>.
+    /// </summary>
+    public static int CategoryIndex(IReadOnlyList<(double Top, double Bottom)> spans, double y)
+    {
+        int i = 0;
+        while (i < spans.Count && (spans[i].Top + spans[i].Bottom) / 2 < y) i++;
+        return i;
+    }
+
+    /// <summary>
     /// Where a pad dragged with the pointer at (<paramref name="x"/>, <paramref name="y"/>) lands. <paramref name="pads"/>
     /// are the other shown pads in order (the dragged one left out); the result's <see cref="DropPlace.Before"/> is
     /// an index into them (<c>pads.Count</c> = after all). Over a head: the end of that group. Otherwise the row under

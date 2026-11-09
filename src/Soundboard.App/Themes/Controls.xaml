@@ -33,7 +33,7 @@
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Border Margin="-3" CornerRadius="6" BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}" SnapsToDevicePixels="True" />
+                    <Border Margin="-3" CornerRadius="6" BorderThickness="2" BorderBrush="{DynamicResource AccentLine}" SnapsToDevicePixels="True" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -291,7 +291,7 @@
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" RecognizesAccessKey="False" />
                         </Border>
-                        <Border x:Name="Ring" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}" Opacity="0" IsHitTestVisible="False" />
+                        <Border x:Name="Ring" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentLine}" Opacity="0" IsHitTestVisible="False" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -302,7 +302,7 @@
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentSoft}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentLine}" />
                             <Setter TargetName="Ring" Property="Opacity" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -365,14 +365,14 @@
                             <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                         </Border>
                         <!-- Focus: a 2-px ring on top; the text inside does not move. -->
-                        <Border x:Name="FocusBd" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}" Opacity="0" IsHitTestVisible="False" />
+                        <Border x:Name="FocusBd" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentLine}" Opacity="0" IsHitTestVisible="False" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource TextBrush}" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentLine}" />
                             <Setter TargetName="FocusBd" Property="Opacity" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -397,7 +397,7 @@
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource TextBrush}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentLine}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -504,7 +504,7 @@
                             <Thumb>
                                 <Thumb.Template>
                                     <ControlTemplate TargetType="Thumb">
-                                        <Ellipse x:Name="E" Width="16" Height="16" Fill="{DynamicResource FieldBg}" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.5" />
+                                        <Ellipse x:Name="E" Width="16" Height="16" Fill="{DynamicResource FieldBg}" Stroke="{DynamicResource AccentLine}" StrokeThickness="2.5" />
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
                                                 <Setter TargetName="E" Property="Fill" Value="{DynamicResource AccentBrush}" />
@@ -784,7 +784,7 @@
     </Style>
 
     <Style TargetType="Hyperlink">
-        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentLine}" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
 

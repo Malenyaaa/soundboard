@@ -83,6 +83,8 @@ public partial class App : Application
         Instance?.ListenForShow(() => Dispatcher.BeginInvoke(ShowMain));
         Watcher.StartForThisProcess();
         if (!StartInTray) _window.Show();
+        _vm.UpdateRestartRequested += (_, _) => ExitNow(UpdateAtExit.InstallAndRestart);
+        _vm.StartUpdates();
     }
 
     private void StartUninstall()
@@ -122,7 +124,7 @@ public partial class App : Application
         if (!Views.ConfirmWindow.Ask(_window, L.Get("App.UninstallTitle"), L.Get("App.UninstallHeading"), text,
                 L.Get("App.UninstallGo"), L.Get("Exit.Keep")))
             return;
-        ExitNow();
+        ExitNow(UpdateAtExit.Skip);
         try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, "--uninstall") { UseShellExecute = false }); }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) { }
     }
@@ -177,17 +179,41 @@ public partial class App : Application
             ExitNow();
     }
 
+    /// <summary>What happens with a fetched update when the app ends.</summary>
+    public enum UpdateAtExit
+    {
+        /// <summary>Install it quietly if automatic updates are on (normal quit).</summary>
+        IfEnabled,
+        /// <summary>The user clicked the update: install and start again.</summary>
+        InstallAndRestart,
+        /// <summary>Leave it (removal guide follows).</summary>
+        Skip,
+    }
+
     /// <summary>Ends without asking (after confirmation or for the uninstall guide).</summary>
-    public void ExitNow()
+    public void ExitNow(UpdateAtExit update = UpdateAtExit.IfEnabled)
     {
         if (_exiting) return;
         _exiting = true;
+        string? setup = update == UpdateAtExit.Skip ? null : _vm?.SetupToRunAtExit(update == UpdateAtExit.InstallAndRestart);
         _vm?.Dispose();
         _tray?.Dispose();
         _window?.Close();
         Instance?.Dispose();
         Instance = null;
+        // After the single-instance mutex is gone; the setup itself waits until every Soundboard
+        // process (this one and its watcher) has ended before it replaces the program file.
+        if (setup is not null) StartSetup(setup, restart: update == UpdateAtExit.InstallAndRestart);
         Shutdown();
+    }
+
+    private static void StartSetup(string setup, bool restart)
+    {
+        var psi = new System.Diagnostics.ProcessStartInfo(setup) { UseShellExecute = false };
+        foreach (var a in new[] { "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/UPDATE=1" }) psi.ArgumentList.Add(a);
+        if (restart) psi.ArgumentList.Add("/RELAUNCH=1");
+        try { System.Diagnostics.Process.Start(psi)?.Dispose(); }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) { }
     }
 
     /// <summary>

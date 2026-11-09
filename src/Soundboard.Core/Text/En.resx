@@ -42,7 +42,7 @@
   <data name="Mic.FormatUnsupported" xml:space="preserve"><value>A microphone format with {0} bits is not supported.</value></data>
   <data name="Device.NoAnswer" xml:space="preserve"><value>The device does not respond ({0}).</value></data>
   <data name="Output.OpenFailed" xml:space="preserve"><value>The output device could not be opened ({0}). Is another program using it exclusively?</value></data>
-  <data name="Sound.FormatUnsupported" xml:space="preserve"><value>The format “{0}” is not supported. Use MP3, WAV, OGG or FLAC.</value></data>
+  <data name="Sound.FormatUnsupported" xml:space="preserve"><value>The format “{0}” is not supported. Use MP3, WAV, OGG, FLAC or M4A.</value></data>
   <data name="Sound.Unreadable" xml:space="preserve"><value>“{0}” could not be read. The file may be damaged or not a real {1} file. ({2})</value></data>
   <data name="Sound.NoAudio" xml:space="preserve"><value>“{0}” has no audio track.</value></data>
   <data name="Sound.TooLong" xml:space="preserve"><value>“{0}” is longer than {1:0} minutes. Please use a shorter file.</value></data>
@@ -150,7 +150,7 @@
   <data name="Main.VolumeAllTip" xml:space="preserve"><value>Volume of all sounds in this program (not the Windows volume).</value></data>
   <data name="Main.VolumeMuted" xml:space="preserve"><value>Volume of all sounds: muted</value></data>
   <data name="Main.AddSounds" xml:space="preserve"><value>Add sounds…</value></data>
-  <data name="Main.AddSoundsTip" xml:space="preserve"><value>Choose MP3, WAV, OGG or FLAC files (Ctrl+O). They are copied into the sound folder; dragging them into the window works too.</value></data>
+  <data name="Main.AddSoundsTip" xml:space="preserve"><value>Choose MP3, WAV, OGG, FLAC or M4A files (Ctrl+O). They are copied into the sound folder; dragging them into the window works too.</value></data>
   <data name="Main.AddSoundsKey" xml:space="preserve"><value>Ctrl+O</value></data>
   <data name="Main.SettingsTip" xml:space="preserve"><value>Settings: microphone &amp; cable, setup, keys, audio state, appearance</value></data>
   <data name="Main.CloseSettings" xml:space="preserve"><value>Close settings</value></data>
@@ -164,9 +164,9 @@
   <data name="Main.TheMic" xml:space="preserve"><value>The microphone</value></data>
   <data name="Main.ReloadingSounds" xml:space="preserve"><value>The sounds are being reloaded because the monitor device uses another format.</value></data>
   <data name="Empty.Title" xml:space="preserve"><value>Drag sounds here</value></data>
-  <data name="Empty.Text" xml:space="preserve"><value>MP3, WAV, OGG or FLAC – one by one or a whole folder. Each sound becomes a pad that you click or play with a key. The files are copied into the sound folder; the originals stay where they are.</value></data>
+  <data name="Empty.Text" xml:space="preserve"><value>MP3, WAV, OGG, FLAC or M4A – one by one or a whole folder. Each sound becomes a pad that you click or play with a key. The files are copied into the sound folder; the originals stay where they are. A copied YouTube link works too: Ctrl+V.</value></data>
   <data name="Dialog.AddSounds" xml:space="preserve"><value>Add sounds</value></data>
-  <data name="Dialog.SoundFilter" xml:space="preserve"><value>Sounds (MP3, WAV, OGG, FLAC)|*.mp3;*.wav;*.ogg;*.flac|All files|*.*</value></data>
+  <data name="Dialog.SoundFilter" xml:space="preserve"><value>Sounds (MP3, WAV, OGG, FLAC, M4A)|*.mp3;*.wav;*.ogg;*.flac;*.m4a|All files|*.*</value></data>
   <data name="Dialog.ChoosePicture" xml:space="preserve"><value>Choose a picture for “{0}”</value></data>
   <data name="Status.SoundFolder" xml:space="preserve"><value>Sound folder</value></data>
   <data name="Status.CableOff" xml:space="preserve"><value>Cable: off</value></data>
@@ -202,7 +202,7 @@
   <data name="Notice.StillLoading" xml:space="preserve"><value>“{0}” is still loading. Click again in a moment.</value></data>
   <data name="Notice.NowhereMonitorBroken" xml:space="preserve"><value>The sound has nowhere to go right now: the monitor device is not working, and nothing is sent to the cable. Choose a connected device at the top under “Monitor”.</value></data>
   <data name="Notice.NowhereMonitorOff" xml:space="preserve"><value>The sound has nowhere to go right now: monitoring is off, and nothing is sent to the cable. Switch on “Monitor” at the top.</value></data>
-  <data name="Notice.Rejected" xml:space="preserve"><value>Not added: {0}. Supported are MP3, WAV, OGG and FLAC.</value></data>
+  <data name="Notice.Rejected" xml:space="preserve"><value>Not added: {0}. Supported are MP3, WAV, OGG, FLAC and M4A.</value></data>
   <data name="Notice.CopyFailed" xml:space="preserve"><value>Could not be copied into the sound folder: {0}</value></data>
   <data name="Notice.PictureNotSound" xml:space="preserve"><value>Pictures don’t become pads, they become the background of a pad: right-click the pad → “Choose picture…”, or drag the picture straight onto the pad.</value></data>
   <data name="Notice.PadRemoved" xml:space="preserve"><value>Pad “{0}” removed. The file stays in the sound folder.</value></data>
@@ -383,9 +383,9 @@ Delete: remove key</value></data>
   <data name="Design.Hex" xml:space="preserve"><value>Hex</value></data>
   <data name="Design.HexTip" xml:space="preserve"><value>Colour value as hex, for example #2E6E4C</value></data>
   <data name="Design.HexInvalid" xml:space="preserve"><value>“{0}” is not a colour value. It looks like this: #2E6E4C.</value></data>
-  <data name="Design.AdjustedLight" xml:space="preserve"><value>Too pale for readable text, so it is used as {0} in light mode (contrast at least 4.5:1).</value></data>
-  <data name="Design.AdjustedDark" xml:space="preserve"><value>Too dark for readable text, so it is used as {0} in dark mode (contrast at least 4.5:1).</value></data>
-  <data name="Design.AdjustedBoth" xml:space="preserve"><value>Used as {0} in light and {1} in dark mode, so text stays readable (contrast at least 4.5:1).</value></data>
+  <data name="Design.AdjustedLight" xml:space="preserve"><value>Buttons and fills use exactly this colour. As text and outlines it is too pale in light mode, so {0} is used there (contrast at least 4.5:1).</value></data>
+  <data name="Design.AdjustedDark" xml:space="preserve"><value>Buttons and fills use exactly this colour. As text and outlines it is too dark in dark mode, so {0} is used there (contrast at least 4.5:1).</value></data>
+  <data name="Design.AdjustedBoth" xml:space="preserve"><value>Buttons and fills use exactly this colour. Text and outlines use {0} in light and {1} in dark mode, so they stay readable (contrast at least 4.5:1).</value></data>
   <data name="Design.PadColours" xml:space="preserve"><value>Pad colours</value></data>
   <data name="Design.Colourful" xml:space="preserve"><value>Colourful – each pad its own colour</value></data>
   <data name="Design.AllAccent" xml:space="preserve"><value>All in the accent colour</value></data>
@@ -519,8 +519,6 @@ Delete: remove key</value></data>
   <data name="Profile.Preview.Other" xml:space="preserve"><value>“{1}” holds {0} pads.</value></data>
   <data name="Profile.PreviewMissing.One" xml:space="preserve"><value>The sound of 1 pad is missing in the file; that pad is left out.</value></data>
   <data name="Profile.PreviewMissing.Other" xml:space="preserve"><value>The sound of {0} pads is missing in the file; those pads are left out.</value></data>
-  <data name="Profile.EvenOut" xml:space="preserve"><value>Even out the volume of the new pads</value></data>
-  <data name="Profile.EvenOutTip" xml:space="preserve"><value>Sets each new pad’s volume so they sound about as loud as the others. The sound files stay unchanged.</value></data>
   <data name="Profile.BackupHint" xml:space="preserve"><value>Before the import, your current pads are saved as a ZIP in the folder “Sicherungen” in the data folder. “Undo” brings them back.</value></data>
   <data name="Profile.Add" xml:space="preserve"><value>Add to existing</value></data>
   <data name="Profile.Replace" xml:space="preserve"><value>Replace</value></data>
@@ -535,15 +533,6 @@ Delete: remove key</value></data>
   <data name="Notice.ImportedReplace.Other" xml:space="preserve"><value>{0} pads imported, the previous pads replaced. Backup: “{1}”.</value></data>
   <data name="Notice.ImportedAdd.One" xml:space="preserve"><value>1 pad imported and added. Backup: “{1}”.</value></data>
   <data name="Notice.ImportedAdd.Other" xml:space="preserve"><value>{0} pads imported and added. Backup: “{1}”.</value></data>
-  <data name="Pad.EvenOut" xml:space="preserve"><value>Even out volume</value></data>
-  <data name="Pad.EvenOutTip" xml:space="preserve"><value>Sets this pad’s volume so it sounds about as loud as the others. The file stays unchanged.</value></data>
-  <data name="Pad.EvenOutAll" xml:space="preserve"><value>Even out all pads</value></data>
-  <data name="Pad.EvenOutAllTip" xml:space="preserve"><value>Brings loud pads down to the level of the middle one. Nothing gets louder than 100%.</value></data>
-  <data name="Notice.EvenOutBroken" xml:space="preserve"><value>“{0}” cannot be played, so it cannot be measured either.</value></data>
-  <data name="Notice.EvenOutNothing" xml:space="preserve"><value>The volumes already fit – nothing changed.</value></data>
-  <data name="Notice.EvenedOutOne" xml:space="preserve"><value>“{0}” evened out: {1} → {2}.</value></data>
-  <data name="Notice.EvenedOut.One" xml:space="preserve"><value>Volume of 1 pad evened out.</value></data>
-  <data name="Notice.EvenedOut.Other" xml:space="preserve"><value>Volume of {0} pads evened out.</value></data>
   <data name="Traces.Backups" xml:space="preserve"><value>Backups made before an import (folder “Sicherungen”)</value></data>
   <data name="Exit.Quit" xml:space="preserve"><value>Quit</value></data>
   <data name="Exit.Keep" xml:space="preserve"><value>Keep running</value></data>
@@ -558,7 +547,6 @@ Delete: remove key</value></data>
   <data name="Setup.FinalLine" xml:space="preserve"><value>Microphone + sounds → cable → Discord. Play a pad to try it.</value></data>
   <data name="Pad.StatusPlaying" xml:space="preserve"><value>playing</value></data>
   <data name="Profile.BackupFailed" xml:space="preserve"><value>The current pads could not be backed up ({0}), so nothing was imported. Is the data folder read-only?</value></data>
-  <data name="Notice.EvenOutNoSounds" xml:space="preserve"><value>No pad has a playable sound yet, so there is nothing to measure.</value></data>
   <data name="Archive.TooBig" xml:space="preserve"><value>This file would unpack to more than 8 GB. Import it in parts.</value></data>
   <data name="Setup.AutoSave" xml:space="preserve"><value>The soundboard has already noted how Windows audio is set up. If the driver setup breaks anything, “Audio” with a warning sign appears in the status line.</value></data>
   <data name="State.SaveFailed" xml:space="preserve"><value>The audio state could not be saved ({0}). Is the data folder read-only?</value></data>
@@ -673,4 +661,21 @@ Delete: remove key</value></data>
   <data name="Notice.CategoryAdded" xml:space="preserve"><value>Category “{0}” added.</value></data>
   <data name="Notice.CategoryDeleted" xml:space="preserve"><value>Category “{0}” deleted.</value></data>
   <data name="Notice.CategoryMoved" xml:space="preserve"><value>Category “{0}” moved.</value></data>
+  <data name="Main.AddYouTube" xml:space="preserve"><value>Paste YouTube link</value></data>
+  <data name="Main.AddYouTubeKey" xml:space="preserve"><value>Ctrl+V</value></data>
+  <data name="Main.AddYouTubeTip" xml:space="preserve"><value>Copy the link of a YouTube video and press Ctrl+V here – or drag the link into the window. The sound is downloaded and becomes a pad.</value></data>
+  <data name="YouTube.NoLink" xml:space="preserve"><value>There is no YouTube link on the clipboard. Copy the link of a video, then press Ctrl+V in the window.</value></data>
+  <data name="YouTube.Failed" xml:space="preserve"><value>The sound could not be loaded from YouTube: {0}</value></data>
+  <data name="YouTube.TooLong" xml:space="preserve"><value>The video is longer than {0} minutes or a live stream. The soundboard does not take sounds that long.</value></data>
+  <data name="YouTube.NoAudio" xml:space="preserve"><value>There is no suitable sound track (M4A) for this video.</value></data>
+  <data name="YouTube.ToolFailed" xml:space="preserve"><value>The helper program yt-dlp could not be downloaded or started: {0}</value></data>
+  <data name="Update.Title" xml:space="preserve"><value>Updates</value></data>
+  <data name="Update.Switch" xml:space="preserve"><value>Install updates automatically</value></data>
+  <data name="Update.Hint" xml:space="preserve"><value>Looks for new versions on GitHub, downloads them in the background and installs them when you quit the Soundboard. Your pads and settings stay.</value></data>
+  <data name="Update.Ready" xml:space="preserve"><value>Update {0} – restart</value></data>
+  <data name="Update.ReadyTip" xml:space="preserve"><value>Installs version {0} now and starts the Soundboard again. Otherwise it is installed when you quit.</value></data>
+  <data name="Update.ReadyTipOff" xml:space="preserve"><value>Installs version {0} now and starts the Soundboard again.</value></data>
+  <data name="Update.Status" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="Update.StatusReady" xml:space="preserve"><value>Version {0} – version {1} is ready and will be installed when you quit.</value></data>
+  <data name="Update.NotInstalled" xml:space="preserve"><value>Version {0} – not installed with the setup, so no automatic updates.</value></data>
 </root>

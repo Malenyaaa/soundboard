@@ -2127,6 +2127,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // Windows settings changed for this run go back first, before anything else can fail: if
         // putting back fails, the entries stay in the journal and the watcher or the next start tries again.
         UndoSessionChanges();
+        StopYouTube();
+        StopUpdates();
         L.Changed -= OnLanguageChanged;
         _progressTimer.Stop();
         _deviceTimer.Stop();

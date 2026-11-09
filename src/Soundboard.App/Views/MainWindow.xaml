@@ -154,7 +154,7 @@
                         <TextBlock x:Name="NoKey" Grid.Column="1" Text="–" Foreground="{DynamicResource SubTextBrush}" VerticalAlignment="Center" Margin="0,0,16,0" Visibility="Collapsed" />
                         <Button x:Name="Change" Grid.Column="2" Content="{t:T Keys.Change}" Command="{Binding AssignHotkeyCommand}" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Left" />
                     </Grid>
-                    <Border Margin="0,8,0,0" Padding="10,6" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}"
+                    <Border Margin="0,8,0,0" Padding="10,6" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource AccentLine}"
                             Visibility="{Binding IsCapturingKey, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="{Binding CaptureHint}" TextWrapping="Wrap" />
                     </Border>
@@ -246,8 +246,6 @@
                                 </DockPanel>
                             </MenuItem.Header>
                         </MenuItem>
-                        <MenuItem Header="{t:T Pad.EvenOut}" Command="{Binding EvenOutCommand}" ToolTip="{t:T Pad.EvenOutTip}" />
-                        <MenuItem Header="{t:T Pad.EvenOutAll}" Command="{Binding EvenOutAllCommand}" ToolTip="{t:T Pad.EvenOutAllTip}" />
                         <MenuItem Header="{t:T Pad.Trim}" Command="{Binding TrimCommand}" />
                         <Separator />
                         <MenuItem Header="{t:T Pad.Rename}" Command="{Binding RenameCommand}" InputGestureText="F2" />
@@ -379,7 +377,7 @@
                 </views:PadTopRow>
 
                 <!-- A picture is dragged over this pad: it will take it. -->
-                <Border CornerRadius="10" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="3" IsHitTestVisible="False"
+                <Border CornerRadius="10" BorderBrush="{DynamicResource AccentLine}" BorderThickness="3" IsHitTestVisible="False"
                         Visibility="{Binding IsImageDropTarget, Converter={StaticResource BoolToVis}}">
                     <Border Background="{DynamicResource AccentBrush}" CornerRadius="5" Padding="8,3" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="{t:T Pad.DropPicture}" Foreground="{DynamicResource OnAccentBrush}" FontSize="12" />
@@ -387,7 +385,7 @@
                 </Border>
 
                 <!-- Just added: a ring in the accent colour for a moment, so the eye finds the new pads. -->
-                <Border CornerRadius="13" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="3" Margin="-5" IsHitTestVisible="False"
+                <Border CornerRadius="13" BorderBrush="{DynamicResource AccentLine}" BorderThickness="3" Margin="-5" IsHitTestVisible="False"
                         Visibility="{Binding IsJustAdded, Converter={StaticResource BoolToVis}}" />
 
                 <!-- Rename in place -->
@@ -396,7 +394,7 @@
                          Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVis}}" />
 
                 <!-- Waiting for a key -->
-                <Border CornerRadius="10" Background="{DynamicResource FieldBg}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2" Padding="12,10"
+                <Border CornerRadius="10" Background="{DynamicResource FieldBg}" BorderBrush="{DynamicResource AccentLine}" BorderThickness="2" Padding="12,10"
                         Visibility="{Binding IsCapturingKey, Converter={StaticResource BoolToVis}}">
                     <TextBlock Text="{Binding CaptureHint}" TextWrapping="Wrap" FontSize="12" LineHeight="17" Foreground="{DynamicResource TextBrush}" />
                 </Border>
@@ -484,7 +482,7 @@
         <!-- A group head: arrow to collapse, the name (a click renames it), the count while collapsed, a thin rule to the edge.
              Small and quiet, like the head lines before. A pad dragged over it would go into this group: the rule turns accent. -->
         <DataTemplate x:Key="HeadTemplate">
-            <Grid x:Name="HeadRoot" Background="Transparent">
+            <Grid x:Name="HeadRoot" Background="Transparent" PreviewMouseLeftButtonDown="OnHeadMouseDown">
                 <Grid.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="{t:T Category.Rename}" Command="{Binding RenameCommand}"
@@ -533,7 +531,7 @@
                     <Setter TargetName="NameBtn" Property="Visibility" Value="Hidden" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding IsDropTarget}" Value="True">
-                    <Setter TargetName="Rule" Property="Background" Value="{DynamicResource AccentBrush}" />
+                    <Setter TargetName="Rule" Property="Background" Value="{DynamicResource AccentLine}" />
                     <Setter TargetName="Rule" Property="Height" Value="2" />
                     <Setter TargetName="NameBtn" Property="Foreground" Value="{DynamicResource TextBrush}" />
                 </DataTrigger>
@@ -549,6 +547,15 @@
             <DockPanel>
                 <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="{t:T Status.SoundFolder}" Command="{Binding OpenSoundsFolderCommand}"
                         ToolTip="{Binding SoundsDir}" Foreground="{DynamicResource SubTextBrush}" />
+                <!-- A newer version is fetched and checked: small, a click installs it and starts again. -->
+                <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="{Binding UpdateReadyText}" Command="{Binding InstallUpdateNowCommand}"
+                        FontSize="11" Margin="0,0,12,0" Foreground="{DynamicResource SubTextBrush}"
+                        AutomationProperties.Name="{Binding UpdateReadyTip}"
+                        Visibility="{Binding UpdateReadyText, Converter={StaticResource TextToVis}}" />
+                <!-- YouTube download running: only a small percentage, no notice. -->
+                <TextBlock DockPanel.Dock="Right" Text="{Binding YouTubeProgressText}" Foreground="{DynamicResource SubTextBrush}"
+                           FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"
+                           Visibility="{Binding YouTubeProgressText, Converter={StaticResource TextToVis}}" />
                 <WrapPanel>
                     <Button Style="{StaticResource LinkButton}" Command="{Binding ShowSettingsCommand}" CommandParameter="{Binding StatusCableTab}"
                             ToolTip="{Binding StatusCableTip}">
@@ -717,6 +724,8 @@
                     <ContextMenu>
                         <MenuItem Header="{t:T Main.AddSounds}" Command="{Binding AddFilesDialogCommand}" InputGestureText="{t:T Main.AddSoundsKey}"
                                   ToolTip="{t:T Main.AddSoundsTip}" />
+                        <MenuItem Header="{t:T Main.AddYouTube}" Command="{Binding PasteSoundsCommand}" InputGestureText="{t:T Main.AddYouTubeKey}"
+                                  ToolTip="{t:T Main.AddYouTubeTip}" />
                         <MenuItem Header="{t:T Category.New}" Command="{Binding NewCategoryCommand}" />
                     </ContextMenu>
                 </ScrollViewer.ContextMenu>
@@ -796,7 +805,7 @@
                                                  IsChecked="{Binding SettingsTab, Converter={StaticResource Eq}, ConverterParameter=design}" />
                                 </WrapPanel>
                                 <Canvas IsHitTestVisible="False" ClipToBounds="False">
-                                    <Border x:Name="SettingsTabLine" Height="3" Width="0" CornerRadius="1.5" Background="{DynamicResource AccentBrush}" Visibility="Hidden" />
+                                    <Border x:Name="SettingsTabLine" Height="3" Width="0" CornerRadius="1.5" Background="{DynamicResource AccentLine}" Visibility="Hidden" />
                                 </Canvas>
                             </Grid>
                         </StackPanel>
@@ -1132,7 +1141,7 @@
                                         <Border Background="{DynamicResource AccentBrush}" CornerRadius="6" Padding="16,7" HorizontalAlignment="Left">
                                             <TextBlock Text="{t:T Design.PreviewButton}" Foreground="{DynamicResource OnAccentBrush}" FontWeight="SemiBold" />
                                         </Border>
-                                        <TextBlock Text="{t:T Design.PreviewText}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Margin="0,8,0,0" />
+                                        <TextBlock Text="{t:T Design.PreviewText}" Foreground="{DynamicResource AccentLine}" FontWeight="SemiBold" Margin="0,8,0,0" />
                                         <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
                                             <TextBlock Text="{t:T Design.Hex}" Style="{StaticResource Sub}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                             <TextBox Width="96" Text="{Binding CustomAccentText, UpdateSourceTrigger=PropertyChanged}" FontFamily="{DynamicResource FontDisplay}"
@@ -1198,7 +1207,6 @@
                                         MaxWidth="608" HorizontalAlignment="Left" Visibility="{Binding HasImportPreview, Converter={StaticResource BoolToVis}}">
                                     <StackPanel>
                                         <TextBlock Text="{Binding ImportPreviewText}" Style="{StaticResource P}" FontWeight="SemiBold" />
-                                        <CheckBox Content="{t:T Profile.EvenOut}" IsChecked="{Binding EvenOutOnImport}" Margin="0,10,0,0" ToolTip="{t:T Profile.EvenOutTip}" />
                                         <TextBlock Style="{StaticResource Sub}" Margin="0,8,0,0" Text="{t:T Profile.BackupHint}" />
                                         <WrapPanel Margin="0,12,0,0">
                                             <Button Style="{StaticResource PrimaryButton}" Content="{t:T Profile.Add}" Command="{Binding ImportAddCommand}" Margin="0,0,8,6" />
@@ -1228,6 +1236,12 @@
                                         <TextBlock Text="{Binding AutostartError}" TextWrapping="Wrap" LineHeight="20" />
                                     </DockPanel>
                                 </Border>
+
+                                <!-- Automatic updates from the GitHub releases; installs when the app ends. -->
+                                <TextBlock Text="{t:T Update.Title}" Style="{StaticResource H2}" />
+                                <CheckBox Style="{StaticResource Switch}" Content="{t:T Update.Switch}" IsChecked="{Binding AutoUpdate}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,2,0,0" MaxWidth="560" HorizontalAlignment="Left" TextWrapping="Wrap" Text="{t:T Update.Hint}" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="48,6,0,0" Text="{Binding UpdateStatusText}" />
                             </StackPanel>
                         </Grid>
                     </ScrollViewer>

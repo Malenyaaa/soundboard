@@ -42,7 +42,7 @@
   <data name="Mic.FormatUnsupported" xml:space="preserve"><value>Mikrofon-Format mit {0} bit wird nicht unterstützt.</value></data>
   <data name="Device.NoAnswer" xml:space="preserve"><value>Das Gerät antwortet nicht ({0}).</value></data>
   <data name="Output.OpenFailed" xml:space="preserve"><value>Das Ausgabegerät ließ sich nicht öffnen ({0}). Ist es gerade von einem anderen Programm exklusiv belegt?</value></data>
-  <data name="Sound.FormatUnsupported" xml:space="preserve"><value>Das Format „{0}“ wird nicht unterstützt. Möglich sind MP3, WAV, OGG und FLAC.</value></data>
+  <data name="Sound.FormatUnsupported" xml:space="preserve"><value>Das Format „{0}“ wird nicht unterstützt. Möglich sind MP3, WAV, OGG, FLAC und M4A.</value></data>
   <data name="Sound.Unreadable" xml:space="preserve"><value>„{0}“ ließ sich nicht lesen. Die Datei ist vielleicht beschädigt oder kein echtes {1}. ({2})</value></data>
   <data name="Sound.NoAudio" xml:space="preserve"><value>„{0}“ hat keine Tonspur.</value></data>
   <data name="Sound.TooLong" xml:space="preserve"><value>„{0}“ ist länger als {1:0} Minuten. Bitte eine kürzere Datei nehmen.</value></data>
@@ -150,7 +150,7 @@
   <data name="Main.VolumeAllTip" xml:space="preserve"><value>Lautstärke aller Sounds in diesem Programm (nicht die Windows-Lautstärke).</value></data>
   <data name="Main.VolumeMuted" xml:space="preserve"><value>Lautstärke aller Sounds: stumm</value></data>
   <data name="Main.AddSounds" xml:space="preserve"><value>Sounds hinzufügen …</value></data>
-  <data name="Main.AddSoundsTip" xml:space="preserve"><value>MP3-, WAV-, OGG- oder FLAC-Dateien auswählen (Strg+O). Sie werden in den Sound-Ordner kopiert; ins Fenster ziehen geht auch.</value></data>
+  <data name="Main.AddSoundsTip" xml:space="preserve"><value>MP3-, WAV-, OGG-, FLAC- oder M4A-Dateien auswählen (Strg+O). Sie werden in den Sound-Ordner kopiert; ins Fenster ziehen geht auch.</value></data>
   <data name="Main.AddSoundsKey" xml:space="preserve"><value>Strg+O</value></data>
   <data name="Main.SettingsTip" xml:space="preserve"><value>Einstellungen: Mikrofon &amp; Kabel, Einrichtung, Tasten, Audio-Zustand, Darstellung</value></data>
   <data name="Main.CloseSettings" xml:space="preserve"><value>Einstellungen schließen</value></data>
@@ -164,9 +164,9 @@
   <data name="Main.TheMic" xml:space="preserve"><value>Das Mikrofon</value></data>
   <data name="Main.ReloadingSounds" xml:space="preserve"><value>Die Sounds werden gerade neu geladen, weil das Mithörgerät ein anderes Format hat.</value></data>
   <data name="Empty.Title" xml:space="preserve"><value>Sounds hierher ziehen</value></data>
-  <data name="Empty.Text" xml:space="preserve"><value>MP3, WAV, OGG oder FLAC – einzeln oder als ganzer Ordner. Jeder Sound wird ein Pad, das du anklickst oder mit einer Taste auslöst. Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt.</value></data>
+  <data name="Empty.Text" xml:space="preserve"><value>MP3, WAV, OGG, FLAC oder M4A – einzeln oder als ganzer Ordner. Jeder Sound wird ein Pad, das du anklickst oder mit einer Taste auslöst. Die Dateien werden in den Sound-Ordner kopiert, das Original bleibt. Ein kopierter YouTube-Link geht auch: Strg+V.</value></data>
   <data name="Dialog.AddSounds" xml:space="preserve"><value>Sounds hinzufügen</value></data>
-  <data name="Dialog.SoundFilter" xml:space="preserve"><value>Sounds (MP3, WAV, OGG, FLAC)|*.mp3;*.wav;*.ogg;*.flac|Alle Dateien|*.*</value></data>
+  <data name="Dialog.SoundFilter" xml:space="preserve"><value>Sounds (MP3, WAV, OGG, FLAC, M4A)|*.mp3;*.wav;*.ogg;*.flac;*.m4a|Alle Dateien|*.*</value></data>
   <data name="Dialog.ChoosePicture" xml:space="preserve"><value>Bild für „{0}“ wählen</value></data>
   <data name="Status.SoundFolder" xml:space="preserve"><value>Sound-Ordner</value></data>
   <data name="Status.CableOff" xml:space="preserve"><value>Kabel: aus</value></data>
@@ -202,7 +202,7 @@
   <data name="Notice.StillLoading" xml:space="preserve"><value>„{0}“ wird gerade noch geladen. Gleich noch einmal klicken.</value></data>
   <data name="Notice.NowhereMonitorBroken" xml:space="preserve"><value>Der Sound geht gerade nirgendwohin: Das Mithörgerät funktioniert nicht, und es wird nichts ans Kabel gesendet. Wähle oben bei „Mithören“ ein angeschlossenes Gerät.</value></data>
   <data name="Notice.NowhereMonitorOff" xml:space="preserve"><value>Der Sound geht gerade nirgendwohin: Mithören ist aus, und es wird nichts ans Kabel gesendet. Schalte oben „Mithören“ ein.</value></data>
-  <data name="Notice.Rejected" xml:space="preserve"><value>Nicht übernommen: {0}. Möglich sind MP3, WAV, OGG und FLAC.</value></data>
+  <data name="Notice.Rejected" xml:space="preserve"><value>Nicht übernommen: {0}. Möglich sind MP3, WAV, OGG, FLAC und M4A.</value></data>
   <data name="Notice.CopyFailed" xml:space="preserve"><value>Konnte nicht in den Sound-Ordner kopiert werden: {0}</value></data>
   <data name="Notice.PictureNotSound" xml:space="preserve"><value>Bilder werden keine Pads, sondern der Hintergrund eines Pads: Rechtsklick auf das Pad → „Bild wählen …“ oder das Bild direkt auf das Pad ziehen.</value></data>
   <data name="Notice.PadRemoved" xml:space="preserve"><value>Pad „{0}“ entfernt. Die Datei bleibt im Sound-Ordner.</value></data>
@@ -383,9 +383,9 @@ Entf: Taste löschen</value></data>
   <data name="Design.Hex" xml:space="preserve"><value>Hex</value></data>
   <data name="Design.HexTip" xml:space="preserve"><value>Farbwert als Hex, z. B. #2E6E4C</value></data>
   <data name="Design.HexInvalid" xml:space="preserve"><value>„{0}“ ist kein Farbwert. So sieht einer aus: #2E6E4C.</value></data>
-  <data name="Design.AdjustedLight" xml:space="preserve"><value>Zu hell für lesbare Schrift, deshalb im hellen Modus als {0} verwendet (Kontrast mindestens 4,5 : 1).</value></data>
-  <data name="Design.AdjustedDark" xml:space="preserve"><value>Zu dunkel für lesbare Schrift, deshalb im dunklen Modus als {0} verwendet (Kontrast mindestens 4,5 : 1).</value></data>
-  <data name="Design.AdjustedBoth" xml:space="preserve"><value>Im hellen Modus als {0}, im dunklen als {1} verwendet, damit Schrift lesbar bleibt (Kontrast mindestens 4,5 : 1).</value></data>
+  <data name="Design.AdjustedLight" xml:space="preserve"><value>Knöpfe und Flächen bekommen genau diese Farbe. Als Schrift und Rahmen ist sie im hellen Modus zu hell, dort wird {0} verwendet (Kontrast mindestens 4,5 : 1).</value></data>
+  <data name="Design.AdjustedDark" xml:space="preserve"><value>Knöpfe und Flächen bekommen genau diese Farbe. Als Schrift und Rahmen ist sie im dunklen Modus zu dunkel, dort wird {0} verwendet (Kontrast mindestens 4,5 : 1).</value></data>
+  <data name="Design.AdjustedBoth" xml:space="preserve"><value>Knöpfe und Flächen bekommen genau diese Farbe. Schrift und Rahmen nehmen im hellen Modus {0}, im dunklen {1}, damit sie lesbar bleiben (Kontrast mindestens 4,5 : 1).</value></data>
   <data name="Design.PadColours" xml:space="preserve"><value>Pad-Farben</value></data>
   <data name="Design.Colourful" xml:space="preserve"><value>Bunt – jedes Pad eine eigene Farbe</value></data>
   <data name="Design.AllAccent" xml:space="preserve"><value>Alle in der Akzentfarbe</value></data>
@@ -519,8 +519,6 @@ Entf: Taste löschen</value></data>
   <data name="Profile.Preview.Other" xml:space="preserve"><value>„{1}“ enthält {0} Pads.</value></data>
   <data name="Profile.PreviewMissing.One" xml:space="preserve"><value>Bei 1 Pad fehlt der Sound in der Datei; dieses Pad bleibt weg.</value></data>
   <data name="Profile.PreviewMissing.Other" xml:space="preserve"><value>Bei {0} Pads fehlt der Sound in der Datei; diese Pads bleiben weg.</value></data>
-  <data name="Profile.EvenOut" xml:space="preserve"><value>Lautstärke der neuen Pads angleichen</value></data>
-  <data name="Profile.EvenOutTip" xml:space="preserve"><value>Stellt die Lautstärke jedes neuen Pads so ein, dass es etwa so laut klingt wie die anderen. Die Sound-Dateien bleiben unverändert.</value></data>
   <data name="Profile.BackupHint" xml:space="preserve"><value>Vor dem Import werden deine jetzigen Pads als ZIP im Ordner „Sicherungen“ im Datenordner gesichert. „Rückgängig“ holt sie zurück.</value></data>
   <data name="Profile.Add" xml:space="preserve"><value>Zu den vorhandenen hinzufügen</value></data>
   <data name="Profile.Replace" xml:space="preserve"><value>Ersetzen</value></data>
@@ -535,15 +533,6 @@ Entf: Taste löschen</value></data>
   <data name="Notice.ImportedReplace.Other" xml:space="preserve"><value>{0} Pads importiert, die bisherigen Pads ersetzt. Sicherung: „{1}“.</value></data>
   <data name="Notice.ImportedAdd.One" xml:space="preserve"><value>1 Pad importiert und hinzugefügt. Sicherung: „{1}“.</value></data>
   <data name="Notice.ImportedAdd.Other" xml:space="preserve"><value>{0} Pads importiert und hinzugefügt. Sicherung: „{1}“.</value></data>
-  <data name="Pad.EvenOut" xml:space="preserve"><value>Lautstärke angleichen</value></data>
-  <data name="Pad.EvenOutTip" xml:space="preserve"><value>Stellt die Lautstärke dieses Pads so ein, dass es etwa so laut klingt wie die anderen. Die Datei bleibt unverändert.</value></data>
-  <data name="Pad.EvenOutAll" xml:space="preserve"><value>Alle Pads angleichen</value></data>
-  <data name="Pad.EvenOutAllTip" xml:space="preserve"><value>Holt laute Pads auf die Lautstärke des mittleren herunter. Nichts wird lauter als 100 %.</value></data>
-  <data name="Notice.EvenOutBroken" xml:space="preserve"><value>„{0}“ lässt sich nicht abspielen und deshalb auch nicht messen.</value></data>
-  <data name="Notice.EvenOutNothing" xml:space="preserve"><value>Die Lautstärken passen schon – nichts geändert.</value></data>
-  <data name="Notice.EvenedOutOne" xml:space="preserve"><value>„{0}“ angeglichen: {1} → {2}.</value></data>
-  <data name="Notice.EvenedOut.One" xml:space="preserve"><value>Lautstärke von 1 Pad angeglichen.</value></data>
-  <data name="Notice.EvenedOut.Other" xml:space="preserve"><value>Lautstärke von {0} Pads angeglichen.</value></data>
   <data name="Traces.Backups" xml:space="preserve"><value>Sicherungen vor einem Import (Ordner „Sicherungen“)</value></data>
   <data name="Exit.Quit" xml:space="preserve"><value>Beenden</value></data>
   <data name="Exit.Keep" xml:space="preserve"><value>Weiterlaufen lassen</value></data>
@@ -558,7 +547,6 @@ Entf: Taste löschen</value></data>
   <data name="Setup.FinalLine" xml:space="preserve"><value>Mikrofon + Sounds → Kabel → Discord. Spiel ein Pad an, um es auszuprobieren.</value></data>
   <data name="Pad.StatusPlaying" xml:space="preserve"><value>spielt</value></data>
   <data name="Profile.BackupFailed" xml:space="preserve"><value>Die jetzigen Pads ließen sich nicht sichern ({0}), deshalb wurde nichts importiert. Ist der Datenordner schreibgeschützt?</value></data>
-  <data name="Notice.EvenOutNoSounds" xml:space="preserve"><value>Noch kein Pad hat einen abspielbaren Sound, also gibt es nichts zu messen.</value></data>
   <data name="Archive.TooBig" xml:space="preserve"><value>Diese Datei würde mehr als 8 GB entpacken. Importiere sie in Teilen.</value></data>
   <data name="Setup.AutoSave" xml:space="preserve"><value>Das Soundboard hat sich schon gemerkt, wie Windows-Audio eingestellt ist. Macht das Treiber-Setup etwas kaputt, steht unten in der Statuszeile „Audio“ mit Warnzeichen.</value></data>
   <data name="State.SaveFailed" xml:space="preserve"><value>Der Audio-Zustand ließ sich nicht sichern ({0}). Ist der Datenordner schreibgeschützt?</value></data>
@@ -673,4 +661,21 @@ Entf: Taste löschen</value></data>
   <data name="Notice.CategoryAdded" xml:space="preserve"><value>Kategorie „{0}“ angelegt.</value></data>
   <data name="Notice.CategoryDeleted" xml:space="preserve"><value>Kategorie „{0}“ gelöscht.</value></data>
   <data name="Notice.CategoryMoved" xml:space="preserve"><value>Kategorie „{0}“ verschoben.</value></data>
+  <data name="Main.AddYouTube" xml:space="preserve"><value>YouTube-Link einfügen</value></data>
+  <data name="Main.AddYouTubeKey" xml:space="preserve"><value>Strg+V</value></data>
+  <data name="Main.AddYouTubeTip" xml:space="preserve"><value>Link eines YouTube-Videos kopieren und hier Strg+V drücken – oder den Link ins Fenster ziehen. Der Ton wird heruntergeladen und ein Pad.</value></data>
+  <data name="YouTube.NoLink" xml:space="preserve"><value>In der Zwischenablage ist kein YouTube-Link. Kopiere den Link eines Videos und drücke dann Strg+V im Fenster.</value></data>
+  <data name="YouTube.Failed" xml:space="preserve"><value>Der Ton von YouTube konnte nicht geladen werden: {0}</value></data>
+  <data name="YouTube.TooLong" xml:space="preserve"><value>Das Video ist länger als {0} Minuten oder ein Livestream. So lange Sounds nimmt das Soundboard nicht.</value></data>
+  <data name="YouTube.NoAudio" xml:space="preserve"><value>Für dieses Video gibt es keine passende Tonspur (M4A).</value></data>
+  <data name="YouTube.ToolFailed" xml:space="preserve"><value>Das Hilfsprogramm yt-dlp konnte nicht geladen oder gestartet werden: {0}</value></data>
+  <data name="Update.Title" xml:space="preserve"><value>Updates</value></data>
+  <data name="Update.Switch" xml:space="preserve"><value>Updates automatisch installieren</value></data>
+  <data name="Update.Hint" xml:space="preserve"><value>Sucht auf GitHub nach neuen Versionen, lädt sie im Hintergrund und installiert sie, wenn du das Soundboard beendest. Pads und Einstellungen bleiben.</value></data>
+  <data name="Update.Ready" xml:space="preserve"><value>Update {0} – neu starten</value></data>
+  <data name="Update.ReadyTip" xml:space="preserve"><value>Installiert Version {0} jetzt und startet das Soundboard neu. Sonst wird es beim Beenden installiert.</value></data>
+  <data name="Update.ReadyTipOff" xml:space="preserve"><value>Installiert Version {0} jetzt und startet das Soundboard neu.</value></data>
+  <data name="Update.Status" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="Update.StatusReady" xml:space="preserve"><value>Version {0} – Version {1} ist geladen und wird beim Beenden installiert.</value></data>
+  <data name="Update.NotInstalled" xml:space="preserve"><value>Version {0} – nicht mit dem Setup installiert, daher keine automatischen Updates.</value></data>
 </root>

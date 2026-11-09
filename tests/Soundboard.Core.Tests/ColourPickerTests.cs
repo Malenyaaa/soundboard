@@ -57,8 +57,8 @@ public sealed class ColourPickerTests
                     var a = AccentPalette.Derive(c, dark);
                     var t = ThemeTokens.For(dark);
                     foreach (var ground in new[] { "WindowBg", "BarBg", "FieldBg", "RaisedBg" })
-                        Assert.IsTrue(ColorMath.Contrast(a.Fill, Rgb.Parse(t[ground])) >= 4.5, $"{c} on {ground} dark={dark}: {a.Fill}");
-                    Assert.IsTrue(ColorMath.Contrast(a.OnFill, a.Fill) >= 4.5, $"{c} text on fill dark={dark}");
+                        Assert.IsTrue(ColorMath.Contrast(a.Line, Rgb.Parse(t[ground])) >= 4.5, $"{c} on {ground} dark={dark}: {a.Line}");
+                    Assert.IsTrue(ColorMath.Contrast(a.OnFill, a.Fill) >= 4.3, $"{c} text on fill dark={dark}");
                 }
             }
     }
@@ -69,7 +69,7 @@ public sealed class ColourPickerTests
         var pale = ColorMath.FromHsv(new Hsv(210, 0.25, 1)); // a washed-out sky blue
         var light = AccentPalette.Derive(pale, dark: false);
         Assert.IsTrue(light.Adjusted);
-        Assert.AreEqual(ColorMath.ToOklch(pale).H, ColorMath.ToOklch(light.Fill).H, 12);
+        Assert.AreEqual(ColorMath.ToOklch(pale).H, ColorMath.ToOklch(light.Line).H, 12);
     }
 }
 

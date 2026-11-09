@@ -118,7 +118,8 @@ public partial class MainWindow : Window
 
     private void OnDragOver(object sender, DragEventArgs e)
     {
-        e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) || DroppedYouTubeLink(e.Data) is not null
+            ? DragDropEffects.Copy : DragDropEffects.None;
         // A picture over a pad: that pad shows it will take the picture.
         bool picture = e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Any(Soundboard.Core.Images.ImageFiles.HasImageExtension);
         MarkDropTarget(picture ? FindTile(e.OriginalSource as DependencyObject) : null);
@@ -137,7 +138,23 @@ public partial class MainWindow : Window
         MarkDropTarget(null);
         if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
             _vm.DropFiles(files, FindTile(e.OriginalSource as DependencyObject));
+        else if (DroppedYouTubeLink(e.Data) is { } link)
+            _vm.TryAddYouTube(link);
         e.Handled = true;
+    }
+
+    /// <summary>A link dragged in from the browser (address bar or a link on the page), if it is a YouTube video.</summary>
+    private static string? DroppedYouTubeLink(IDataObject data)
+    {
+        try
+        {
+            var text = data.GetData(DataFormats.UnicodeText) as string;
+            return Soundboard.Core.Web.YouTubeLink.VideoIdOf(text) is not null ? text : null;
+        }
+        catch (System.Runtime.InteropServices.COMException)
+        {
+            return null;
+        }
     }
 
     private void MarkDropTarget(TileViewModel? target)
@@ -230,6 +247,13 @@ public partial class MainWindow : Window
             if (e.Key == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 _vm.AddFilesDialogCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+            // Ctrl+V: a copied YouTube link (or copied sound files) becomes a pad, except inside a text field.
+            if (e.Key == Key.V && Keyboard.Modifiers == ModifierKeys.Control && Keyboard.FocusedElement is not TextBox)
+            {
+                _vm.PasteSoundsCommand.Execute(null);
                 e.Handled = true;
                 return;
             }

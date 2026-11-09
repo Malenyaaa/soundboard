@@ -70,6 +70,7 @@ public sealed partial class MainViewModel
         foreach (var a in AccentChoices) a.RefreshText();
         UpdateCustomAccentHint();
         UpdateAutostartTexts();
+        UpdateUpdateTexts();
         OnPropertyChanged(nameof(StatusMicTip));
         OnPropertyChanged(nameof(GearName));
         OnPropertyChanged(nameof(GearTip));

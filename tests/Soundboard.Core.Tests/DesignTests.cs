@@ -77,8 +77,9 @@ public sealed class DesignTests
         var light = AccentPalette.Derive(pale, dark: false);
         Assert.IsTrue(light.Adjusted);
         AssertAccent(light, false, "pale");
-        // the hue stays (yellow), only lightness moved
-        Assert.AreEqual(ColorMath.ToOklch(pale).H, ColorMath.ToOklch(light.Fill).H, 12);
+        // the fill stays as chosen; the line keeps the hue (yellow), only lightness moved
+        Assert.AreEqual(pale, light.Fill);
+        Assert.AreEqual(ColorMath.ToOklch(pale).H, ColorMath.ToOklch(light.Line).H, 12);
     }
 
     [TestMethod]
@@ -97,6 +98,27 @@ public sealed class DesignTests
         var light = AccentPalette.Derive(ok, dark: false);
         Assert.IsFalse(light.Adjusted);
         Assert.AreEqual(ok, light.Fill);
+        Assert.AreEqual(ok, light.Line);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void Black_stays_black_on_buttons(bool dark)
+    {
+        var black = Rgb.Parse("#000000");
+        var a = AccentPalette.Derive(black, dark);
+        Assert.AreEqual(black, a.Fill);
+        Assert.AreEqual(AccentPalette.OnLight, a.OnFill);
+        Assert.AreNotEqual(a.Fill, a.Hover, "hover must show a change");
+        Assert.AreEqual(dark, a.Adjusted, "only in dark mode black is too dark as a line");
+    }
+
+    [TestMethod]
+    public void Presets_keep_their_colour_in_dark_mode()
+    {
+        foreach (var p in AccentPalette.Presets)
+            Assert.AreEqual(Rgb.Parse(p.BaseHex), AccentPalette.Resolve(p.Id, null, dark: true).Fill, p.Id);
     }
 
     [TestMethod]
@@ -133,10 +155,11 @@ public sealed class DesignTests
     {
         var t = ThemeTokens.For(dark);
         foreach (var ground in new[] { "WindowBg", "BarBg", "FieldBg", "RaisedBg" })
-            AssertAtLeast(4.5, a.Fill, Rgb.Parse(t[ground]), $"{what} accent on {ground}, dark={dark}");
-        AssertAtLeast(4.5, a.OnFill, a.Fill, $"{what} text on accent, dark={dark}");
-        AssertAtLeast(4.5, a.OnFill, a.Hover, $"{what} text on hover, dark={dark}");
-        AssertAtLeast(4.5, a.OnFill, a.Pressed, $"{what} text on pressed, dark={dark}");
+            AssertAtLeast(4.5, a.Line, Rgb.Parse(t[ground]), $"{what} accent line on {ground}, dark={dark}");
+        // The fill is the chosen colour itself; the better of white and dark text reaches at least 4.3 : 1 on any colour.
+        AssertAtLeast(4.3, a.OnFill, a.Fill, $"{what} text on accent, dark={dark}");
+        AssertAtLeast(4.3, a.OnFill, a.Hover, $"{what} text on hover, dark={dark}");
+        AssertAtLeast(4.3, a.OnFill, a.Pressed, $"{what} text on pressed, dark={dark}");
         AssertAtLeast(4.5, Rgb.Parse(t["TextBrush"]), a.Soft, $"{what} text on soft, dark={dark}");
     }
 

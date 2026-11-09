@@ -70,6 +70,7 @@ public sealed class PadPanel : Panel
     private bool Animate => AnimateOverride ?? Themes.ThemeManager.AnimationsOn;
 
     private UIElement? _dragged, _dropBefore, _settling;
+    private readonly HashSet<UIElement> _tucked = [];
     private Point _dragTopLeft;
     private readonly Dictionary<UIElement, Rect> _last = [];
     private (double Width, double PadW, double PadH) _lastGrid;
@@ -116,7 +117,7 @@ public sealed class PadPanel : Panel
         bool started = false;
         foreach (var child in Order())
         {
-            if (child.Visibility == Visibility.Collapsed) continue;
+            if (child.Visibility == Visibility.Collapsed || _tucked.Contains(child)) continue;
             if (IsHead(child))
             {
                 if (started) y = bottom + GroupGap;
@@ -299,7 +300,22 @@ public sealed class PadPanel : Panel
         InvalidateArrange();
     }
 
+    /// <summary>While a category is dragged its pads take no place (as if the group were collapsed).</summary>
+    public void Tuck(IEnumerable<UIElement> children)
+    {
+        _tucked.Clear();
+        _tucked.UnionWith(children);
+        InvalidateMeasure();
+    }
+
+    public void Untuck()
+    {
+        if (_tucked.Count == 0) return;
+        _tucked.Clear();
+        InvalidateMeasure();
+    }
+
     /// <summary>Box of every shown child after the last layout (panel coordinates), in layout order.</summary>
     public IReadOnlyList<(UIElement Child, Rect Box)> Boxes() =>
-        Order().Where(c => c.Visibility != Visibility.Collapsed && _last.ContainsKey(c)).Select(c => (c, _last[c])).ToList();
+        Order().Where(c => c.Visibility != Visibility.Collapsed && !_tucked.Contains(c) && _last.ContainsKey(c)).Select(c => (c, _last[c])).ToList();
 }

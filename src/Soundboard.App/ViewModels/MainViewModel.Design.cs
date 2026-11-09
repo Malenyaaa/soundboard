@@ -282,9 +282,9 @@ public sealed partial class MainViewModel
         var dark = AccentPalette.Derive(raw, dark: true);
         CustomAccentHint = (light.Adjusted, dark.Adjusted) switch
         {
-            (true, true) => L.F("Design.AdjustedBoth", light.Fill.ToHex(), dark.Fill.ToHex()),
-            (true, false) => L.F("Design.AdjustedLight", light.Fill.ToHex()),
-            (false, true) => L.F("Design.AdjustedDark", dark.Fill.ToHex()),
+            (true, true) => L.F("Design.AdjustedBoth", light.Line.ToHex(), dark.Line.ToHex()),
+            (true, false) => L.F("Design.AdjustedLight", light.Line.ToHex()),
+            (false, true) => L.F("Design.AdjustedDark", dark.Line.ToHex()),
             _ => "",
         };
     }

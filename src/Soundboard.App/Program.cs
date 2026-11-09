@@ -42,8 +42,18 @@ internal static class Program
         return RunApp();
     }
 
+    /// <summary>
+    /// Exists while any window process of the app runs (main window, watcher, removal guide). An
+    /// update setup waits until it is gone, so the program file is no longer in use.
+    /// </summary>
+    public const string ProcessMutexName = "Soundboard.Process";
+
+    private static Mutex? _processMarker;
+
     private static int RunApp()
     {
+        _processMarker = new Mutex(false, ProcessMutexName);
+        GC.KeepAlive(_processMarker);
         var app = new App();
         app.InitializeComponent();
         return app.Run();

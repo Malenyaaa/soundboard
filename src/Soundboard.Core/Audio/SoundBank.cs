@@ -40,7 +40,7 @@ public sealed class SoundLoadException(string message, Exception? inner = null) 
 public static class SoundDecoder
 {
     /// <summary>File extensions accepted by drag &amp; drop.</summary>
-    public static readonly IReadOnlyList<string> SupportedExtensions = [".mp3", ".wav", ".ogg", ".flac"];
+    public static readonly IReadOnlyList<string> SupportedExtensions = [".mp3", ".wav", ".ogg", ".flac", ".m4a"];
 
     /// <summary>Longest sound accepted; everything is held in memory.</summary>
     public static readonly TimeSpan MaxDuration = TimeSpan.FromMinutes(15);
@@ -111,7 +111,7 @@ public static class SoundDecoder
             wav?.Dispose();
         }
 
-        // MP3, FLAC and other WAV variants via Media Foundation (Windows 10+).
+        // MP3, FLAC, M4A (AAC) and other WAV variants via Media Foundation (Windows 10+).
         var mf = new MediaFoundationReader(path, new MediaFoundationReader.MediaFoundationReaderSettings
         {
             RequestFloatOutput = true,

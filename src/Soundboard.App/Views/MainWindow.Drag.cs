@@ -13,6 +13,8 @@ namespace Soundboard.App.Views;
 /// release it glides into that gap (<see cref="PadPanel"/>). Dragged into another group – also onto a group head,
 /// even a collapsed or empty one – it goes into that group. Esc puts it back. This is no OLE drag &amp; drop, so it
 /// never meets the file and picture drop of the window.
+/// Own categories are moved the same way by their head: while dragged, the group folds up (its pads take no
+/// place), the other groups make room, and on release it is put among the own categories where it was dropped.
 /// </summary>
 public partial class MainWindow
 {
@@ -26,6 +28,84 @@ public partial class MainWindow
     private DropPlace? _drop;
     private TileViewModel? _dropBeforeTile;
     private CategoryViewModel? _dropHead;
+    private CategoryViewModel? _pressHead;
+    private int _headDropIndex = -1;
+
+    private void OnHeadMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        _pressHead = null;
+        _pressTile = null;
+        if (sender is not FrameworkElement { DataContext: CategoryViewModel { IsOwn: true, IsRenaming: false } head }) return;
+        if (IsInside<TextBox>(e.OriginalSource as DependencyObject)) return;
+        _pressHead = head;
+        _pressAt = e.GetPosition(PadList);
+    }
+
+    /// <summary>Moving a category: its place among the own categories follows the mouse.</summary>
+    private void MoveHead(MouseEventArgs e)
+    {
+        var panel = FindPadPanel(PadList);
+        if (panel is null || _pressHead is not { } head) return;
+        if (!_dragging)
+        {
+            if ((e.GetPosition(PadList) - _pressAt).Length < DragStartDistance) return;
+            if (Container(head) is not { } c) return;
+            _dragging = true;
+            _headDropIndex = -1;
+            Mouse.Capture(PadList, CaptureMode.SubTree);
+            panel.Tuck(_vm.Tiles.Where(t => _vm.GroupOf(t) == head.Group).Select(Container).OfType<UIElement>());
+            panel.UpdateLayout();
+            _grab = new Vector(e.GetPosition(panel).X - c.TranslatePoint(new Point(0, 0), panel).X, PadPanel.HeadHeight / 2);
+            panel.BeginDrag(c);
+        }
+        AutoScroll(e.GetPosition(PadScroll));
+        var p = e.GetPosition(panel);
+        panel.DragTopLeft = new Point(0, p.Y - _grab.Y);
+        FollowHeadDrop(panel, p.Y);
+        e.Handled = true;
+    }
+
+    private void FollowHeadDrop(PadPanel panel, double y)
+    {
+        if (panel.Dragged is not { } dragged) return;
+        // Heads in layout order with their tops; each group reaches to the next head.
+        var heads = panel.Boxes()
+            .Where(b => !ReferenceEquals(b.Child, dragged) && b.Child is FrameworkElement { DataContext: CategoryViewModel })
+            .Select(b => (El: b.Child, Head: (CategoryViewModel)((FrameworkElement)b.Child).DataContext, b.Box.Top))
+            .ToList();
+        double end = panel.ActualHeight;
+        var own = new List<(UIElement El, double Top, double Bottom)>();
+        for (int i = 0; i < heads.Count; i++)
+            if (heads[i].Head.IsOwn) own.Add((heads[i].El, heads[i].Top, i + 1 < heads.Count ? heads[i + 1].Top : end));
+        int index = PadDrop.CategoryIndex(own.Select(o => (o.Top, o.Bottom)).ToList(), y);
+        if (index == _headDropIndex) return;
+        _headDropIndex = index;
+        // In front of the own head at that place; after the last one: in front of the head that follows it ("Other pads").
+        UIElement? before = index < own.Count ? own[index].El
+            : own.Count > 0 ? heads.SkipWhile(h => !ReferenceEquals(h.El, own[^1].El)).Skip(1).Select(h => h.El).FirstOrDefault()
+            : heads.FirstOrDefault(h => h.Head.Group.Kind == GroupKind.Others).El;
+        panel.SetDropBefore(before);
+    }
+
+    private void EndHeadDrag(bool drop)
+    {
+        var head = _pressHead;
+        int index = _headDropIndex;
+        _pressHead = null;
+        _headDropIndex = -1;
+        _dragging = false;
+        if (Mouse.Captured == PadList) PadList.ReleaseMouseCapture();
+        if (drop && head is not null && index >= 0)
+        {
+            int from = _vm.CategoryIndex(head);
+            if (from >= 0 && index != from) _vm.MoveCategory(head, index - from);
+        }
+        if (FindPadPanel(PadList) is { } panel)
+        {
+            panel.EndDrag();
+            panel.Untuck();
+        }
+    }
 
     private void OnPadMouseDown(object sender, MouseButtonEventArgs e)
     {
@@ -38,6 +118,12 @@ public partial class MainWindow
 
     private void OnWindowMouseMove(object sender, MouseEventArgs e)
     {
+        if (_pressHead is not null)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed) EndDrag(drop: false);
+            else MoveHead(e);
+            return;
+        }
         if (_pressTile is null) return;
         if (e.LeftButton != MouseButtonState.Pressed)
         {
@@ -117,6 +203,14 @@ public partial class MainWindow
         if (!_dragging)
         {
             _pressTile = null;
+            _pressHead = null;
+            return;
+        }
+        if (_pressHead is not null)
+        {
+            if (FindPadPanel(PadList) is { } p) FollowHeadDrop(p, e.GetPosition(p).Y);
+            EndHeadDrag(drop: true);
+            e.Handled = true;
             return;
         }
         if (FindPadPanel(PadList) is { } panel) FollowDrop(panel, e.GetPosition(panel));
@@ -126,6 +220,12 @@ public partial class MainWindow
 
     private void EndDrag(bool drop)
     {
+        if (_pressHead is not null)
+        {
+            if (_dragging) EndHeadDrag(drop);
+            else _pressHead = null;
+            return;
+        }
         var tile = _pressTile;
         var place = _drop;
         var before = _dropBeforeTile;

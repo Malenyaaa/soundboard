@@ -440,12 +440,6 @@ public sealed partial class TileViewModel : ObservableObject, IKeyTarget, Views.
     private void Remove() => _owner.RemoveTile(this);
 
     [RelayCommand]
-    private void EvenOut() => _owner.EvenOut(this);
-
-    [RelayCommand]
-    private void EvenOutAll() => _owner.EvenOutAll();
-
-    [RelayCommand]
     private void Trim() => _owner.RequestTrim(this);
 
     /// <summary>Pinned to the front (right-click → "Favourite").</summary>

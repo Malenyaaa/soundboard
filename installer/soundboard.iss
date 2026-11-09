@@ -4,7 +4,7 @@
 ;               -p:PublishSingleFile=true -o publish
 ; Then compile: iscc installer\soundboard.iss   (Inno Setup 6)
 ;
-; NOT TESTED YET - see README.
+; Updates: the app fetches new setups from the GitHub releases and runs them with /UPDATE=1 (see [Code]).
 ;
 ; - Installs to %LOCALAPPDATA%\Programs\Soundboard, start menu entry for the user only.
 ; - Optional task: start with Windows (HKCU Run value "Soundboard", started with --tray).
@@ -15,7 +15,7 @@
 ; - VB-CABLE is not bundled; the app links to vb-cable.com.
 
 #define AppName "Soundboard"
-#define AppVersion "0.18.1"
+#define AppVersion "1.0.0"
 #define AppExe "Soundboard.exe"
 
 [Setup]
@@ -78,11 +78,53 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:StartNow}"; Flags: nowait postinstall skipifsilent
+; Automatic update after "Update ready - restart": start the new version again.
+Filename: "{app}\{#AppExe}"; Flags: nowait; Check: Relaunch
 
-[UninstallRun]
-; Interactive uninstall: the guided removal (audio state, own data with question, cable steps).
-Filename: "{app}\{#AppExe}"; Parameters: "--uninstall"; Flags: waituntilterminated; \
-    RunOnceId: "GuidedRemoval"; Check: not UninstallSilent
-; Silent uninstall: put back what the app changed in Windows and the default devices; delete nothing.
-Filename: "{app}\{#AppExe}"; Parameters: "--restore"; Flags: runhidden waituntilterminated; \
-    RunOnceId: "RestoreDefaults"; Check: UninstallSilent
+[Code]
+// Uninstall, before any file is removed (in [Code], because Check functions of [UninstallRun]
+// entries run during setup, where UninstallSilent cannot be called):
+// - interactive: the guided removal (audio state, own data with question, cable steps);
+// - silent: put back what the app changed in Windows and the default devices; delete nothing.
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  Code: Integer;
+begin
+  if CurUninstallStep = usUninstall then
+  begin
+    if UninstallSilent then
+      Exec(ExpandConstant('{app}\{#AppExe}'), '--restore', '', SW_HIDE, ewWaitUntilTerminated, Code)
+    else
+      Exec(ExpandConstant('{app}\{#AppExe}'), '--uninstall', '', SW_SHOW, ewWaitUntilTerminated, Code);
+  end;
+end;
+
+// Automatic update: the app starts this setup with /VERYSILENT /UPDATE=1 (and /RELAUNCH=1 after
+// a click on the update) while it is ending. Wait until every Soundboard process is gone (main
+// window and watcher hold "Soundboard.Process"), at most 60 seconds, so the EXE can be replaced.
+function IsUpdate: Boolean;
+begin
+  Result := ExpandConstant('{param:UPDATE|0}') = '1';
+end;
+
+function Relaunch: Boolean;
+begin
+  Result := IsUpdate and (ExpandConstant('{param:RELAUNCH|0}') = '1');
+end;
+
+function InitializeSetup: Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+  if IsUpdate then
+  begin
+    I := 0;
+    while (I < 240) and CheckForMutexes('Soundboard.SingleInstance,Soundboard.Process') do
+    begin
+      Sleep(250);
+      I := I + 1;
+    end;
+    Sleep(500);
+  end;
+end;

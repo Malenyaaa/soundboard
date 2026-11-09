@@ -106,6 +106,7 @@ public static class ThemeManager
         Set(app, "AccentPressed", ToColor(Accent.Pressed));
         Set(app, "OnAccentBrush", ToColor(Accent.OnFill));
         Set(app, "AccentSoft", ToColor(Accent.Soft));
+        Set(app, "AccentLine", ToColor(Accent.Line));
         SetPadImageBrushes(app);
         Changed?.Invoke(null, EventArgs.Empty);
     }

@@ -37,7 +37,7 @@
             <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="4" Margin="0,14,0,0" ClipToBounds="True">
                 <views:WaveTrimView x:Name="Wave" Height="150"
                                     Background="{DynamicResource FieldBg}"
-                                    WaveBrush="{DynamicResource AccentBrush}"
+                                    WaveBrush="{DynamicResource AccentLine}"
                                     MutedBrush="{DynamicResource SubTextBrush}"
                                     VeilBrush="{DynamicResource PressedOverlay}"
                                     HandleBrush="{DynamicResource TextBrush}" />

@@ -5,6 +5,24 @@ namespace Soundboard.Core.Tests;
 [TestClass]
 public sealed class SoundDecoderTests
 {
+    /// <summary>YouTube sounds arrive as M4A (AAC); Media Foundation decodes them without anything else.</summary>
+    [TestMethod]
+    public void Decodes_m4a_aac()
+    {
+        using var dir = new TempDir();
+        var wav = dir.File("sine.wav");
+        var m4a = dir.File("sine.m4a");
+        WavFactory.WriteSine(wav, 44100, 2, 1.0, amplitude: 0.5);
+        NAudio.MediaFoundation.MediaFoundationApi.Startup();
+        using (var reader = new NAudio.Wave.WaveFileReader(wav))
+            NAudio.Wave.MediaFoundationEncoder.EncodeToAac(reader, m4a);
+
+        var clip = SoundDecoder.Decode(m4a, new TargetFormat(48000, 2));
+
+        Assert.AreEqual(1.0, clip.Duration.TotalSeconds, 0.1);
+        Assert.IsTrue(clip.Samples.Max() > 0.3f, "sine not audible after decoding");
+    }
+
     [TestMethod]
     public void Decodes_wav_in_same_format_exactly()
     {
